@@ -1,0 +1,39 @@
+---
+const today = new Date();
+import {SOCIALS} from '../consts';
+---
+
+<footer>
+	&copy; {today.getFullYear()} Benign X. All rights reserved.
+	<div class="social-links">
+        {
+            SOCIALS.map((social) => (
+                    <a href={social.url} target="_blank">
+                        <span class="sr-only">{social.description}</span>
+                        <img src={social.icon} alt={social.description} />
+                    </a>
+            ))
+        }
+	</div>
+</footer>
+<style>
+	footer {
+		padding: 2em 1em 6em 1em;
+		background: linear-gradient(var(--gray-gradient)) no-repeat;
+		color: rgb(var(--gray));
+		text-align: center;
+	}
+	.social-links {
+		display: flex;
+		justify-content: center;
+		gap: 1em;
+		margin-top: 1em;
+	}
+	.social-links a {
+		text-decoration: none;
+		color: rgb(var(--gray));
+	}
+	.social-links a:hover {
+		color: rgb(var(--gray-dark));
+	}
+</style>

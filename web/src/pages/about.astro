@@ -1,0 +1,19 @@
+---
+import AboutHeroImage from '../assets/my_hero_img.png';
+import Layout from '../layouts/BlogPost.astro';
+---
+
+<Layout
+        title="About Me"
+        description="Lorem ipsum dolor sit amet"
+        pubDate={new Date()}
+        heroImage={AboutHeroImage}
+>
+    {Array.from({length: Math.random() * 100}).map((_, index) => (
+            <span>Me </span>
+    ))}
+    <span>My </span>
+    {Array.from({length: Math.random() * 100}).map((_, index) => (
+            <span>Me </span>
+    ))}
+</Layout>

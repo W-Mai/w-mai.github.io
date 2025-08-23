@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 16 16" aria-hidden="true" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+    <path
+            fill="currentColor"
+            d="M14.5 0h-13A1.5 1.5 0 0 0 0 1.5v13A1.5 1.5 0 0 0 1.5 16h13A1.5 1.5 0 0 0 16 14.5v-13A1.5 1.5 0 0 0 14.5 0zm-9.75 13.5h-2V6h2v7.5zm-1-8.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm10.25 8.5h-2v-3.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v3.5h-2V6h2v1.09c.41-.63 1.13-1.09 1.91-1.09 1.38 0 2.5 1.12 2.5 2.5v5z"
+    />
+</svg>
