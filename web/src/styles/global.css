@@ -15,6 +15,9 @@
 	--box-shadow:
 		0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px
 		rgba(var(--gray), 33%);
+
+    --sl-color-gray-5: #9ca3af;
+    --sl-text-sm: 0.875rem;
 }
 @font-face {
 	font-family: "Atkinson";
