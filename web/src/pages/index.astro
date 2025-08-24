@@ -2,7 +2,7 @@
 import {Card, CardGrid} from '@astrojs/starlight/components'
 
 import WithSidebar from '~/layouts/WithSidebar.astro'
-import {SOCIALS, USER_NAME} from "../consts";
+import {SOCIALS, USER_NAME, NICK_NAME} from "../consts";
 ---
 
 <WithSidebar>
@@ -16,7 +16,7 @@ import {SOCIALS, USER_NAME} from "../consts";
                         src={`https://github.com/${USER_NAME}.png`}
                         alt={USER_NAME}
                 />
-                <h1 class="mt-3 text-xl font-bold">{USER_NAME}</h1>
+                <h1 class="mt-3 text-xl font-bold">{NICK_NAME}</h1>
                 <p class="text-slate-500">@{USER_NAME}</p>
                 <p class="text-center text-slate-600">{"Overflow Stack Developer."}</p>
             </div>
