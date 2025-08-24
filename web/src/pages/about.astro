@@ -6,14 +6,14 @@ import {USER_NAME} from "~/consts";
 ---
 
 <Layout
-        title="About Me"
+        title="俺。"
         description="Lorem ipsum dolor sit amet"
         pubDate={new Date()}
         heroImage={AboutHeroImage}
 >
     <h3>Overflow Stack Developer.</h3>
 
-    贴瓷砖ing...
+    贴瓷砖嘞...
 
     <br />
     <br />
@@ -22,11 +22,13 @@ import {USER_NAME} from "~/consts";
 
     <br/>
 
+    <p>从俺里边儿，找着恁搁哪儿嘞？</p>
+    
     {Array.from({length: Math.random() * 100}).map((_, index) => (
-            <span>Me </span>
+            <span>俺 </span>
     ))}
-    <span>My </span>
+    <span>恁 </span>
     {Array.from({length: Math.random() * 100}).map((_, index) => (
-            <span>Me </span>
+            <span>俺 </span>
     ))}
 </Layout>

@@ -7,7 +7,7 @@ import {SOCIALS, USER_NAME, NICK_NAME} from "../consts";
 
 <WithSidebar>
     <Fragment slot="sidebar">
-        <aside class="bg-white border-r border-slate-200 p-6
+        <aside class="bg-white rounded-2xl border-slate-200 p-6
         flex flex-col gap-y-2 text-sm text-slate-800">
 
             <div class="flex flex-col items-center">
@@ -46,20 +46,22 @@ import {SOCIALS, USER_NAME, NICK_NAME} from "../consts";
             </div>
         </aside>
     </Fragment>
-    <h1 class="flex-1 p-6">👋 Hi there</h1>
-    <h3>Welcome to my website, here I will:</h3>
 
-    <div class="size-12 bg-red-500"></div>
+    <h1>👋 恁好，吃了冇</h1>
+    <h3>可求欢迎恁来俺嘞网站，搁这儿：</h3>
 
-    <CardGrid stagger={true}>
-        <Card title="Post my posts." icon="rocket">
-        </Card>
-        <Card title="Share my thoughts." icon="star">
-        </Card>
-        <Card title="Show my projects." icon="puzzle">
-        </Card>
-        <Card title="Show what I'm working on." icon="approve-check-circle">
-        </Card>
-    </CardGrid>
+    <div class="flex flex-col gap-y-2 md:p-32">
+        <CardGrid stagger={true}>
+            <Card title="怼点文章" icon="rocket">
+            </Card>
+            <Card title="怼点想法" icon="star">
+            </Card>
+            <Card title="怼点项目" icon="puzzle">
+            </Card>
+            <Card title="怼点日特怼想怼嘞" icon="approve-check-circle">
+            </Card>
+        </CardGrid>
+    </div>
+
 
 </WithSidebar>

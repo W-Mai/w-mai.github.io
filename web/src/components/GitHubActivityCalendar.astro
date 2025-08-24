@@ -202,10 +202,10 @@ const labels = {
         'Nov',
         'Dec',
     ],
-    totalCount: `{{count}} contributions in ${year === 'last' ? 'the last year' : '{{year}}'}`,
+    totalCount: `${year === 'last' ? '去年' : '{{year}} 年'}怼了 {{count}} 下儿`,
     legend: {
-        less: 'Less',
-        more: 'More',
+        less: '怼少了',
+        more: '怼多了',
     },
 }
 const labelHeight = hideMonthLabels ? 0 : fontSize + labelMargin

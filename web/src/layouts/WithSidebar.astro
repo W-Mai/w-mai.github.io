@@ -27,7 +27,7 @@ if (Astro.slots.has('sidebar')) {
         <Fragment slot="sidebar" set:html={html}/>
     </Sidebar>
 
-    <main class="flex-1">
+    <main class="box-border flex-1 flex-col m-10">
         <slot/>
     </main>
 </div>
