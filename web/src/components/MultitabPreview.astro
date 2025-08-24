@@ -1,48 +1,85 @@
 ---
-import {Tabs, TabItem, Code} from '@astrojs/starlight/components';
+import {Tabs, TabItem} from '@astrojs/starlight/components';
 
-interface Props {
-    snippets: Array<{
-        lang: string;
-        code: string;
-        title: string;
-        mark?: string[];
-    }>;
-}
-
-const {snippets} = Astro.props;
+const slots = Astro.slots;
+const labels = Astro.props.labels;
+const syncKey = Astro.props.syncKey;
 ---
 
 <figure>
     {
-        snippets.length > 1 ?
-                <Tabs syncKey="content-type">
-                    {
-                        snippets.map(
-                            (snippet) => (
-                                    <TabItem label={snippet.title}>
-                                        <Code code={snippet.code} lang={snippet.lang} title={snippet.title}
-                                              mark={snippet.mark}></Code>
-                                    </TabItem>
-                            )
-                        )
+        slots.has("tab0") || slots.has("tab1") || slots.has("tab2") || slots.has("tab3") || slots.has("tab4") || slots.has("tab5") || slots.has("tab6") || slots.has("tab7") || slots.has("tab8") || slots.has("tab9") || slots.has("tab10") ?
+                <Tabs syncKey={syncKey}>
+                    {slots.has("tab0") &&
+                            <TabItem label={labels["tab0"]}>
+                                <slot name="tab0"/>
+                            </TabItem>}
+                    {slots.has("tab1") &&
+                            <TabItem label={labels["tab1"]}>
+                                <slot name="tab1"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab2") &&
+                            <TabItem label={labels["tab2"]}>
+                                <slot name="tab2"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab3") &&
+                            <TabItem label={labels["tab3"]}>
+                                <slot name="tab3"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab4") &&
+                            <TabItem label={labels["tab4"]}>
+                                <slot name="tab4"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab5") &&
+                            <TabItem label={labels["tab5"]}>
+                                <slot name="tab5"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab6") &&
+                            <TabItem label={labels["tab6"]}>
+                                <slot name="tab6"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab7") &&
+                            <TabItem label={labels["tab7"]}>
+                                <slot name="tab7"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab8") &&
+                            <TabItem label={labels["tab8"]}>
+                                <slot name="tab8"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab9") &&
+                            <TabItem label={labels["tab9"]}>
+                                <slot name="tab9"/>
+                            </TabItem>
+                    }
+                    {slots.has("tab10") &&
+                            <TabItem label={labels["tab10"]}>
+                                <slot name="tab10"/>
+                            </TabItem>
                     }
                 </Tabs> :
-            snippets.length == 1 ?
-                    <Code code={snippets[0].code} lang={snippets[0].lang} title={snippets[0].title}
-                          mark={snippets[0].mark}></Code> :
-                    <span>? 没写东西，哥们😅 </span>
+                <slot/>
     }
 
-    <div class="preview">
-        <div class="preview-content">
-            <slot name="preview"/>
-        </div>
-    </div>
+    {
+        slots.has("preview") &&
+            <div class="preview">
+                <div class="preview-content">
+                    <slot name="preview"/>
+                </div>
+            </div>
+    }
 </figure>
 
 <style>
-    :global(.sl-markdown-content) .preview {
+    .preview {
         border: 1px solid var(--sl-color-gray-5);
         border-top: none;
         margin-top: 0;
@@ -58,7 +95,7 @@ const {snippets} = Astro.props;
         padding: 0.5rem 1rem 0;
     }
 
-    :global(.sl-markdown-content) .preview-content {
+    .preview-content {
         margin-top: 0;
         padding: 1rem;
     }

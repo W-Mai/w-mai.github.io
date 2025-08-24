@@ -20,37 +20,37 @@ When you open this page in the browser, you should see the clickable button belo
 
 import HeaderLink from '../../components/HeaderLink.astro';
 import MultitabPreview from "../../components/MultitabPreview.astro"
-import {Tabs, TabItem, Code} from '@astrojs/starlight/components'
 
 <HeaderLink href="#" onclick="alert('clicked!')">
     Embedded component in MDX
 </HeaderLink>
 
-<MultitabPreview snippets={[
-    {
-        lang: 'cpp',
-        code: `#include <iostream>
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
-}`,
-        title: 'example.js',
-        mark: ['Hello']
-    },
-    {
-        lang: 'python',
-        code: `print("Hello, World!")`,
-        title: 'example.py',
-        mark: ['Hello']
-    },
-    {
-        lang: 'javascript',
-        code: 'console.log("Hello, World!")',
-        title: 'example.js',
-        mark: ['Hello']
+<MultitabPreview labels={{tab0: "Cpp", tab1: "Python", tab2: "Javascript", preview: "Preview"}}>
+
+    <Fragment slot="tab0">
+        ```cpp title="example.cpp"
+        #include <iostream>
+
+        int main() {
+        std::cout << "Hello, World!" << std::endl;
+        return 0;
     }
-]}>
+        ```
+
+    </Fragment>
+
+    <Fragment slot="tab1">
+        ```python title="example.py"
+        print("Hello, World!")
+        ```
+    </Fragment>
+
+    <Fragment slot="tab2">
+        ```javascript title="example.js"
+        console.log("Hello, World!")'
+        ```
+    </Fragment>
 
     <Fragment slot="preview">
         ```bash title="Output"
@@ -59,7 +59,7 @@ int main() {
     </Fragment>
 </MultitabPreview>
 
-<MultitabPreview snippets={[]} />
+<MultitabPreview> </MultitabPreview>
 
 ```ansi
 [1;4mStandard ANSI colors:[0m
