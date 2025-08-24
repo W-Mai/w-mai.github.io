@@ -1,20 +1,39 @@
 ---
-import {Tabs, TabItem} from '@astrojs/starlight/components';
+import {Tabs, TabItem, Code} from '@astrojs/starlight/components';
+
+interface Props {
+    snippets: Array<{
+        lang: string;
+        code: string;
+        title: string;
+        mark?: string[];
+    }>;
+}
+
+const {snippets} = Astro.props;
 ---
 
 <figure>
     {
-        (
-            <Tabs syncKey="content-type">
-                <TabItem label="MDX">
-                    <slot/>
-                </TabItem>
-                <TabItem label="Markdoc">
-                    <slot name="markdoc"/>
-                </TabItem>
-            </Tabs>
-        )
+        snippets.length > 1 ?
+                <Tabs syncKey="content-type">
+                    {
+                        snippets.map(
+                            (snippet) => (
+                                    <TabItem label={snippet.title}>
+                                        <Code code={snippet.code} lang={snippet.lang} title={snippet.title}
+                                              mark={snippet.mark}></Code>
+                                    </TabItem>
+                            )
+                        )
+                    }
+                </Tabs> :
+            snippets.length == 1 ?
+                    <Code code={snippets[0].code} lang={snippets[0].lang} title={snippets[0].title}
+                          mark={snippets[0].mark}></Code> :
+                    <span>? 没写东西，哥们😅 </span>
     }
+
     <div class="preview">
         <div class="preview-content">
             <slot name="preview"/>
