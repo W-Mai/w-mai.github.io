@@ -1,0 +1,37 @@
+---
+import {SITE_DESCRIPTION, SITE_TITLE} from "../consts";
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Sidebar from '~/components/Sidebar.astro'
+
+const slots = Astro.slots
+let html = '';
+if (Astro.slots.has('sidebar')) {
+    html = await Astro.slots.render('sidebar', []);
+}
+---
+
+
+<html>
+<head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION}/>
+    <title>{SITE_TITLE}</title>
+</head>
+
+<body>
+<Header/>
+
+<div class="flex flex-col md:flex-row min-h-screen">
+    <Sidebar>
+        <Fragment slot="sidebar" set:html={html}/>
+    </Sidebar>
+
+    <main class="flex-1">
+        <slot/>
+    </main>
+</div>
+
+<Footer/>
+</body>
+</html>

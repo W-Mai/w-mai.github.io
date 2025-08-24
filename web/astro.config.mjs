@@ -4,7 +4,6 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import {defineConfig, passthroughImageService} from 'astro/config';
 import {astroExpressiveCode} from "@astrojs/starlight/expressive-code";
-
 import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
