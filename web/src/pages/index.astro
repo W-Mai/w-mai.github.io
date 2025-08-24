@@ -3,6 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import {SITE_DESCRIPTION, SITE_TITLE} from '../consts';
+import {Card, CardGrid} from '@astrojs/starlight/components'
 ---
 
 <!doctype html>
@@ -13,19 +14,20 @@ import {SITE_DESCRIPTION, SITE_TITLE} from '../consts';
 <body>
 <Header/>
 <main>
-    <h1>👋 Hello</h1>
-    Welcome to my website, here I will:
-    <ul>
-        <li>
-            Post my posts
-        </li>
-        <li>
-            Share my thoughts
-        </li>
-        <li>
-            Show my projects
-        </li>
-    </ul>
+    <h1>👋 Hi there</h1>
+    <h3>Welcome to my website, here I will:</h3>
+
+    <CardGrid stagger>
+        <Card title="Post my posts." icon="rocket">
+        </Card>
+        <Card title="Share my thoughts." icon="star">
+        </Card>
+        <Card title="Show my projects." icon="puzzle">
+        </Card>
+        <Card title="Show what I'm working on." icon="approve-check-circle">
+        </Card>
+    </CardGrid>
+
 </main>
 <Footer/>
 </body>
