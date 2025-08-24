@@ -1,10 +1,7 @@
-/*
-  The CSS in this style tag is based off of Bear Blog's default CSS.
-  https://github.com/HermanMartinus/bearblog/blob/297026a877bc2ab2b3bdfbd6b9f7961c350917dd/templates/styles/blog/default.css
-  License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
- */
-
 :root {
+    --theme-background: #f6f8fa;  /* Light gray background */
+    --theme-accent: #1a7f37;      /* GitHub green accent */
+
 	--accent: #2337ff;
 	--accent-dark: #000d8a;
 	--black: 15, 18, 25;
@@ -19,6 +16,15 @@
     --sl-color-gray-5: #9ca3af;
     --sl-text-sm: 0.875rem;
 }
+
+/* For dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --theme-background: #ffffff;  /* GitHub dark background */
+        --theme-accent: #3fb950;      /* Brighter green for dark mode */
+    }
+}
+
 @font-face {
 	font-family: "Atkinson";
 	src: url("/fonts/atkinson-regular.woff") format("woff");
@@ -110,7 +116,7 @@ img {
 }
 code {
 	padding: 2px 5px;
-	background-color: rgb(var(--gray-light));
+	background-color: rgb(var(--theme-background));
 	border-radius: 2px;
 }
 pre {
