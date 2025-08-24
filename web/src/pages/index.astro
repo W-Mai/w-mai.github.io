@@ -1,5 +1,5 @@
 ---
-import {Card, CardGrid} from '@astrojs/starlight/components'
+import {Card, CardGrid, LinkCard} from '@astrojs/starlight/components'
 
 import WithSidebar from '~/layouts/WithSidebar.astro'
 import {SOCIALS, USER_NAME, NICK_NAME} from "../consts";
@@ -47,10 +47,31 @@ import {SOCIALS, USER_NAME, NICK_NAME} from "../consts";
         </aside>
     </Fragment>
 
-    <h1 class="text-4xl md:text-6xl md font-bold">👋 恁好，吃了冇</h1>
-    <h3 class="text-2xl md:text-4xl">可求欢迎恁来俺嘞网站，搁这儿：</h3>
+    <h1 class="text-4xl md:text-6xl md font-bold mb-10">👋 恁好，吃了冇</h1>
 
-    <div class="flex flex-col md:p-32">
+    <div class="flex-wrap flex-col sl-flex justify-center">
+        <div class="link-card m-3">
+            <a class="no-underline text-black" href="https://i.to01.icu/" target="_blank">
+                <p class="bg-gray-50">ICU (Image Convert Ultra)</p>
+            </a>
+        </div>
+
+        <div class="link-card m-3">
+            <a class="no-underline text-black" href="https://ui.to01.icu/" target="_blank">
+                <p class="bg-gray-50">ICUI (Image Convert Ultra web UI)</p>
+            </a>
+        </div>
+
+        <div class="link-card m-3">
+            <a class="no-underline text-black" href="https://w-mai.github.io/vegravis" target="_blank">
+                <p class="bg-gray-50">Vegravis</p>
+            </a>
+        </div>
+    </div>
+
+    <h3 class="text-2xl md:text-4xl mt-10">可求欢迎恁来俺嘞网站，还能搁这儿：</h3>
+
+    <div class="flex flex-col md:px-32 md:py-10">
         <CardGrid stagger={true}>
             <Card title="怼点文章" icon="rocket">
             </Card>
@@ -65,3 +86,21 @@ import {SOCIALS, USER_NAME, NICK_NAME} from "../consts";
 
 
 </WithSidebar>
+
+<style>
+    .link-card {
+        transition: border-color 0.3s ease-in-out;
+        border: 1px solid #e0e0e0; /* 淡灰色边框 */
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .link-card img {
+        transition: all 0.3s ease-in-out;
+    }
+
+    .link-card:hover {
+        border-color: #a0a0a0; /* 深灰色边框 */
+        color: black;
+    }
+</style>
