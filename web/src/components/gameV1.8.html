@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <title>猜数字游戏 (0~6)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        :root {
+            --bg1: #eef2f7;
+            --bg2: #dfe9f3;
+            --card: #ffffff;
+            --text: #333;
+            --ok: #4CAF50;
+            --ok-hover: #45a049;
+            --muted: #666;
+            --ring: #7aa7ff;
+            --dot-green: #22c55e;
+            --dot-white: #ffffff;
+            --dot-border: #cfcfd6;
+            --dot-shadow: 0 1px 2px rgba(0, 0, 0, .10);
+            --err: #e53935;
+            --err-ring: rgba(229, 57, 53, .18);
+
+            /* 计时器主题变量（浅色） */
+            --timer-bg: #0f172a; /* 近夜蓝底 */
+            --timer-fg: #e2e8f0; /* 淡雾白字 */
+            --timer-shadow: 0 10px 24px rgba(15, 23, 42, .15);
+            --timer-border: rgba(255, 255, 255, .08);
+            --timer-accent: #22c55e;
+        }
+
+        [data-theme="dark"] {
+            --bg1: #1a1c1f;
+            --bg2: #2a2d31;
+            --card: #2f3237;
+            --text: #f1f1f1;
+            --muted: #aaa;
+            --ring: #4a90e2;
+            --dot-border: #444;
+
+            /* 计时器（深色） */
+            --timer-bg: #0b0d10;
+            --timer-fg: #eaeaea;
+            --timer-shadow: 0 10px 26px rgba(0, 0, 0, .35);
+            --timer-border: rgba(255, 255, 255, .06);
+            --timer-accent: #86efac;
+        }
+
+        [data-theme="contrast"] {
+            --bg1: #000;
+            --bg2: #000;
+            --card: #fff;
+            --text: #000;
+            --muted: #333;
+            --ring: #000;
+            --dot-border: #000;
+
+            /* 计时器（高对比） */
+            --timer-bg: #000;
+            --timer-fg: #fff;
+            --timer-shadow: none;
+            --timer-border: #fff;
+            --timer-accent: #0f0;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans SC", sans-serif;
+            background: linear-gradient(135deg, var(--bg1), var(--bg2));
+            margin: 0;
+            justify-content: center;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .wrap {
+            width: min(640px, 100%)
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            text-align: center
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--muted)
+        }
+
+        .game-box {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+            margin-bottom: 14px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .left-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            background: var(--ok);
+        }
+
+        button:hover {
+            background: var(--ok-hover)
+        }
+
+        .secondary {
+            background: #607d8b
+        }
+
+        /* 计时器 UI */
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: var(--timer-bg);
+            color: var(--timer-fg);
+            box-shadow: var(--timer-shadow);
+            border: 1px solid var(--timer-border);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer .dot-live {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--timer-accent);
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, .6);
+            animation: livePulse 1.6s ease-out infinite;
+        }
+
+        @keyframes livePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, .6)
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(34, 197, 94, 0)
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0)
+            }
+        }
+
+        .timer .time {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .timer .label {
+            opacity: .9;
+            font-size: 12px;
+            letter-spacing: .4px;
+        }
+
+        #message {
+            min-height: 22px;
+            margin: 6px 0 10px;
+            font-weight: 600
+        }
+
+        #history {
+            max-height: 50vh;
+            overflow: auto;
+            padding-top: 6px
+        }
+
+        .guess-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px
+        }
+
+        .cell {
+            position: relative
+        }
+
+        .digit-input {
+            width: 48px;
+            height: 48px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            border: 2px solid #cfcfcf;
+            border-radius: 12px;
+            outline: none;
+            transition: box-shadow .15s, border-color .15s, transform .08s, background .15s, color .15s;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+            background: #fff;
+            color: #111;
+            caret-color: auto;
+        }
+
+        .digit-input:focus {
+            border-color: var(--ring);
+            box-shadow: 0 0 0 4px rgba(122, 167, 255, .15)
+        }
+
+        .digit-input.error {
+            border-color: var(--err) !important;
+            box-shadow: 0 0 0 4px var(--err-ring) !important
+        }
+
+        .digit-input.error.shake {
+            animation: shake .35s ease-in-out
+        }
+
+        .digit {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .feedback {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .dots {
+            display: grid;
+            grid-template-columns: repeat(2, 20px);
+            grid-auto-rows: 20px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            display: inline-block;
+            box-shadow: var(--dot-shadow);
+            opacity: 0;
+            transform: scale(.8);
+            animation: dotIn .28s ease-out forwards;
+        }
+
+        .dot-a {
+            background: var(--dot-green);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .dot-b {
+            background: var(--dot-white);
+            border: 1px solid var(--dot-border);
+        }
+
+        .try-tag {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        /* 输入时给背景上色（辅助） */
+        .color-0 {
+            background: #808080;
+            color: #fff;
+        }
+
+        .color-1 {
+            background: #4682b4;
+            color: #fff;
+        }
+
+        .color-2 {
+            background: #3cb371;
+            color: #fff;
+        }
+
+        .color-3 {
+            background: #7b68ee;
+            color: #fff;
+        }
+
+        .color-4 {
+            background: #ff8c00;
+            color: #fff;
+        }
+
+        .color-5 {
+            background: #dc143c;
+            color: #fff;
+        }
+
+        .color-6 {
+            background: #20b2aa;
+            color: #fff;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(.9);
+                opacity: .6
+            }
+            60% {
+                transform: scale(1.05);
+                opacity: 1
+            }
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        @keyframes bounceUp {
+            0% {
+                transform: translateY(6px);
+                opacity: 0
+            }
+            60% {
+                transform: translateY(-3px);
+                opacity: 1
+            }
+            100% {
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0)
+            }
+            20% {
+                transform: translateX(-6px)
+            }
+            40% {
+                transform: translateX(6px)
+            }
+            60% {
+                transform: translateX(-4px)
+            }
+            80% {
+                transform: translateX(4px)
+            }
+        }
+
+        @keyframes dotIn {
+            0% {
+                opacity: 0;
+                transform: scale(.8)
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.08)
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .pop {
+            animation: pop .26s ease-out
+        }
+
+        .bounce {
+            animation: bounceUp .35s ease-out
+        }
+
+        /* 气泡提示 */
+        .bubble {
+            position: absolute;
+            left: 50%;
+            top: -36px;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            font-size: 12px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, .18);
+            opacity: 0;
+            animation: bubbleIn .18s ease-out forwards, bubbleOut .18s ease-in forwards 1.6s;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .bubble::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #111;
+        }
+
+        @keyframes bubbleIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(4px)
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0)
+            }
+        }
+
+        @keyframes bubbleOut {
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-2px)
+            }
+        }
+
+        /* 彩带 */
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 14px;
+            background: var(--ok);
+            opacity: .8;
+            animation: fall 3s linear forwards
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 排行榜 */
+        .board {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .06)
+        }
+
+        .board h3 {
+            margin: 0 0 10px
+        }
+
+        .board table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px
+        }
+
+        .board th, .board td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            text-align: left
+        }
+
+        .board tr:last-child td {
+            border-bottom: none
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #eef3ff;
+            color: #335;
+            font-weight: 600;
+            font-size: 12px
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="subtitle">从 0–6 中选 4 个不同数字并排序，直到 <b>4A0B</b> 获胜</div>
+
+    <div class="game-box">
+        <div class="controls">
+            <div class="left-controls">
+                <button onclick="resetGame()">重新开始</button>
+                <button class="secondary" onclick="openHelp()">📖 游戏说明</button>
+                <button class="secondary" onclick="toggleTheme()">切换主题</button>
+            </div>
+
+            <!-- 计时器 -->
+            <div class="timer" id="timer">
+                <span class="dot-live" id="timerDot" title="计时中"></span>
+                <span class="time" id="timerText">00:00.00</span>
+                <span class="label">计时</span>
+            </div>
+        </div>
+
+        <div id="message"></div>
+        <div id="history"></div>
+    </div>
+
+    <div class="board">
+        <h3>🏆 排行榜 <span id="boardInfo" class="pill">按用时升序</span></h3>
+        <table id="boardTable">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>用时</th>
+                <th>次数</th>
+                <th>日期</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 详细说明弹窗 -->
+<div id="helpModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:10">
+    <div class="content"
+         style="background:#fff; margin:8% auto; padding:18px; border-radius:12px; width:min(720px,92%); line-height:1.7; color:#000">
+        <span class="close" style="float:right; font-size:24px; cursor:pointer" onclick="closeHelp()">&times;</span>
+        <h2>📖 详细说明</h2>
+        <p>系统会在 0–6 中随机生成 4 个互不重复的数字；玩家每轮在方格中输入 4 个不同数字并提交。</p>
+        <ul>
+            <li><b>绿色圆点</b>（A）：数字<b>和位置</b>都对。</li>
+            <li><b>白色圆点</b>（B）：数字对，但位置不对。</li>
+        </ul>
+        <p>例如：答案=1234，猜测=1325 → 1 个绿色点 + 2 个白色点（即 1A2B）。</p>
+    </div>
+</div>
+
+<div id="confettiContainer" class="confetti"></div>
+
+<script>
+    /*** 状态 ***/
+    let answer = [], tries = 1, gameOver = false;
+    let historyBox = document.getElementById("history"), messageBox = document.getElementById("message");
+    let counterSpan = document.createElement('span'); // 旧的“第X次”不再需要显示在右侧
+    // 计时：从“重新开始后第一次输入数字”开始
+    let timerStarted = false, startTime = 0, timerInterval = null;
+    const timerTextEl = document.getElementById('timerText');
+    const timerDotEl = document.getElementById('timerDot');
+
+    /*** 计时器 ***/
+    function msToText(ms) {
+        const s = Math.floor(ms / 1000), m = Math.floor(s / 60), sec = s % 60, cs = Math.floor((ms % 1000) / 10);
+        return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+        if (timerStarted) return;
+        timerStarted = true;
+        startTime = Date.now();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (!timerStarted) return;
+            const elapsed = Date.now() - startTime;
+            timerTextEl.textContent = msToText(elapsed);
+        }, 80); // 每 80ms 刷新
+        timerDotEl.style.opacity = 1; // 点亮
+        timerDotEl.title = "计时中";
+    }
+
+    function stopTimer() {
+        timerStarted = false;
+        if (timerInterval) clearInterval(timerInterval);
+        timerDotEl.style.opacity = 0.6;
+        timerDotEl.title = "已停止";
+    }
+
+    function resetTimer() {
+        stopTimer();
+        timerTextEl.textContent = "00:00.00";
+        timerDotEl.style.opacity = 0.6;
+        timerDotEl.title = "等待开始";
+    }
+
+    /*** 工具 ***/
+    function generateAnswer() {
+        const pool = [0, 1, 2, 3, 4, 5, 6];
+        answer = [];
+        for (let i = 0; i < 4; i++) {
+            const idx = Math.floor(Math.random() * pool.length);
+            answer.push(pool[idx]);
+            pool.splice(idx, 1);
+        }
+        console.log("调试用答案:", answer.join(""));
+    }
+
+    function removeColorClasses(el) {
+        for (let n = 0; n <= 6; n++) el.classList.remove("color-" + n);
+    }
+
+    function showBubble(target, text) {
+        const cell = target.closest('.cell') || target.parentElement || target;
+        const old = cell.querySelector('.bubble');
+        if (old) old.remove();
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        b.textContent = text;
+        cell.appendChild(b);
+        setTimeout(() => {
+            b && b.remove();
+        }, 1800);
+    }
+
+    /*** 行为：创建输入行 ***/
+    function newGuessRow() {
+        const row = document.createElement("div");
+        row.className = "guess-row bounce";
+
+        for (let i = 0; i < 4; i++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            const inp = document.createElement("input");
+            inp.className = "digit-input";
+            inp.maxLength = 1;
+            inp.inputMode = "numeric";
+            inp.autocomplete = "off";
+
+            inp.addEventListener("input", (e) => {
+                const last = e.target.value.slice(-1);
+                if (/\d/.test(last)) {
+                    e.target.value = last;
+                    // ✅ 第一次真正输入时启动计时
+                    if (!timerStarted) startTimer();
+                } else {
+                    e.target.value = "";
+                }
+                e.target.classList.remove("error", "shake");
+                removeColorClasses(e.target);
+                if (/^[0-6]$/.test(e.target.value)) e.target.classList.add("color-" + e.target.value, "pop");
+
+                // ✅ 自动跳到“下一个输入框”
+                if (e.target.value) {
+                    const nextCell = cell.nextElementSibling; // 下一个 cell
+                    const nextInput = nextCell ? nextCell.querySelector(".digit-input") : null;
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            });
+
+            inp.addEventListener("keydown", (e) => {
+                if (e.key === "Backspace" && !inp.value) {
+                    const prev = cell.previousElementSibling?.querySelector?.(".digit-input");
+                    if (prev) {
+                        prev.focus();
+                        prev.value = "";
+                        prev.classList.remove("error", "shake");
+                        removeColorClasses(prev);
+                    }
+                }
+                if (e.key === "Enter") {
+                    makeGuess(row);
+                }
+                if (e.key === "ArrowLeft") {
+                    const prev = cell.previousElementSibling?.querySelector?.(".digit-input");
+                    if (prev) prev.focus();
+                }
+                if (e.key === "ArrowRight") {
+                    const next = cell.nextElementSibling?.querySelector?.(".digit-input");
+                    if (next) next.focus();
+                }
+            });
+
+            cell.appendChild(inp);
+            row.appendChild(cell);
+        }
+
+        const submitBtn = document.createElement("button");
+        submitBtn.textContent = "提交";
+        submitBtn.onclick = () => makeGuess(row);
+        row.appendChild(submitBtn);
+        historyBox.appendChild(row);
+        row.querySelector(".digit-input").focus();
+    }
+
+    /*** 校验 ***/
+    function validateRow(row) {
+        const inputs = [...row.querySelectorAll(".digit-input")];
+        const vals = inputs.map(el => el.value);
+        if (vals.some(v => v === "")) return {
+            ok: false,
+            reason: "请输入完整的 4 个数字。",
+            idxs: vals.map((v, i) => v === "" ? i : null).filter(v => v !== null)
+        };
+        if (vals.some(v => !/^[0-6]$/.test(v))) return {
+            ok: false,
+            reason: "只允许 0–6 的数字。",
+            idxs: vals.map((v, i) => !/^[0-6]$/.test(v) ? i : null).filter(v => v !== null)
+        };
+        const nums = vals.map(Number);
+        const seen = new Map();
+        const dup = [];
+        nums.forEach((n, i) => {
+            if (seen.has(n)) dup.push(i, seen.get(n)); else seen.set(n, i);
+        });
+        if (dup.length) return {ok: false, reason: "不能有重复数字。", idxs: [...new Set(dup)]};
+        return {ok: true, nums};
+    }
+
+    function markErrors(row, idxs, msg) {
+        const inputs = [...row.querySelectorAll(".digit-input")];
+        idxs.forEach(i => {
+            const el = inputs[i];
+            el.classList.add("error", "shake");
+            showBubble(el, msg);
+        });
+        if (idxs.length) inputs[idxs[0]].focus();
+    }
+
+    /*** 评分 / 显示 ***/
+    function score(g) {
+        let bulls = 0, cows = 0;
+        for (let i = 0; i < 4; i++) {
+            if (g[i] === answer[i]) bulls++; else if (answer.includes(g[i])) cows++;
+        }
+        return {bulls, cows};
+    }
+
+    function renderDots2x2(bulls, cows) {
+        const wrap = document.createElement("div");
+        wrap.className = "dots";
+        const nodes = [];
+        for (let i = 0; i < bulls; i++) nodes.push('a');
+        for (let i = 0; i < cows; i++) nodes.push('b');
+        while (nodes.length < 4) nodes.push('x');
+        nodes.forEach((t, i) => {
+            if (t === 'x') {
+                const p = document.createElement("span");
+                wrap.appendChild(p);
+            } else {
+                const d = document.createElement("span");
+                d.className = "dot " + (t === 'a' ? "dot-a" : "dot-b");
+                d.style.animationDelay = (i * 0.08) + "s";
+                wrap.appendChild(d);
+            }
+        });
+        return wrap;
+    }
+
+    function lockRow(row, guess, fb) {
+        row.innerHTML = "";
+        const left = document.createElement("div");
+        left.style.display = "flex";
+        left.style.gap = "10px";
+        guess.forEach(n => {
+            const box = document.createElement("div");
+            box.className = "digit color-" + n + " pop";
+            box.textContent = n;
+            left.appendChild(box);
+        });
+        const right = document.createElement("div");
+        right.className = "feedback";
+        right.appendChild(renderDots2x2(fb.bulls, fb.cows));
+        const tag = document.createElement("span");
+        tag.className = "try-tag";
+        tag.textContent = `第 ${tries} 次`;
+        right.appendChild(tag);
+        row.appendChild(left);
+        row.appendChild(right);
+    }
+
+    /*** 主流程 ***/
+    function makeGuess(row) {
+        if (gameOver) return;
+        row.querySelectorAll(".digit-input").forEach(el => el.classList.remove("error", "shake"));
+        const res = validateRow(row);
+        if (!res.ok) {
+            markErrors(row, res.idxs, res.reason);
+            messageBox.textContent = res.reason;
+            return;
+        }
+
+        const {nums} = res;
+        const fb = score(nums);
+        lockRow(row, nums, fb);
+
+        if (fb.bulls === 4) {
+            const elapsed = timerStarted ? Date.now() - startTime : 0;
+            messageBox.textContent = "🎉 恭喜你猜对了！答案是 " + answer.join("") + "。用时 " + msToText(elapsed) + "，共 " + tries + " 次。";
+            gameOver = true;
+            stopTimer();
+            saveRecord(elapsed, tries);
+            renderBoard();
+            launchConfetti();
+        } else {
+            tries++;
+            messageBox.textContent = "继续尝试...";
+            setTimeout(() => newGuessRow(), 90);
+        }
+    }
+
+    function resetGame() {
+        historyBox.innerHTML = "";
+        messageBox.textContent = "";
+        tries = 1;
+        gameOver = false;
+        resetTimer();
+        generateAnswer();
+        newGuessRow();
+        renderBoard();
+    }
+
+    /*** 主题 & 帮助 ***/
+    let themes = ["light", "dark", "contrast"], current = 0;
+
+    function toggleTheme() {
+        current = (current + 1) % themes.length;
+        document.body.dataset.theme = themes[current];
+    }
+
+    function openHelp() {
+        document.getElementById("helpModal").style.display = "block";
+    }
+
+    function closeHelp() {
+        document.getElementById("helpModal").style.display = "none";
+    }
+
+    /*** 彩带 ***/
+    function launchConfetti() {
+        const container = document.getElementById("confettiContainer");
+        container.innerHTML = "";
+        for (let i = 0; i < 120; i++) {
+            const c = document.createElement("div");
+            c.className = "confetti-piece";
+            c.style.left = Math.random() * 100 + "%";
+            c.style.background = `hsl(${Math.random() * 360},80%,60%)`;
+            c.style.animationDuration = (2 + Math.random() * 2) + "s";
+            container.appendChild(c);
+        }
+        setTimeout(() => container.innerHTML = "", 4000);
+    }
+
+    /*** 排行榜（localStorage） ***/
+    const LS_KEY = "guess_game_leaderboard_v1";
+
+    function loadBoard() {
+        try {
+            return JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+        } catch {
+            return [];
+        }
+    }
+
+    function saveBoard(list) {
+        localStorage.setItem(LS_KEY, JSON.stringify(list));
+    }
+
+    function saveRecord(timeMs, triesUsed) {
+        const list = loadBoard();
+        list.push({timeMs, tries: triesUsed, date: new Date().toISOString()});
+        list.sort((a, b) => a.timeMs - b.timeMs || a.tries - b.tries);
+        saveBoard(list.slice(0, 10)); // 只保留前10
+    }
+
+    function renderBoard() {
+        const tbody = document.querySelector("#boardTable tbody");
+        tbody.innerHTML = "";
+        const list = loadBoard();
+        if (list.length === 0) {
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 4;
+            td.textContent = "暂无记录，快来挑战吧！";
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            return;
+        }
+        list.forEach((r, i) => {
+            const tr = document.createElement("tr");
+            const rank = document.createElement("td");
+            rank.textContent = i + 1;
+            const time = document.createElement("td");
+            time.textContent = (function () {
+                const s = Math.floor(r.timeMs / 1000), m = Math.floor(s / 60), sec = s % 60,
+                    cs = Math.floor((r.timeMs % 1000) / 10);
+                return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+            })();
+            const triesTd = document.createElement("td");
+            triesTd.textContent = r.tries;
+            const date = document.createElement("td");
+            date.textContent = new Date(r.date).toLocaleString();
+            tr.append(rank, time, triesTd, date);
+            tbody.appendChild(tr);
+        });
+    }
+
+    /*** 启动 ***/
+    (function init() {
+        document.body.dataset.theme = "light";
+        resetTimer();
+        generateAnswer();
+        newGuessRow();
+        renderBoard();
+    })();
+</script>
+</body>
+</html>
