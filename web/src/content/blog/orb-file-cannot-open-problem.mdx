@@ -1,0 +1,165 @@
+---
+title: 'OrbStack “Too many open files in system” 排查与解决全流程文档'
+description: 'OrbStack 容器内文件打开报错 “Too many open files in system” 排查与解决全流程文档'
+pubDate: 'Oct 25 2025'
+heroImage: '../../assets/my_hero_img.png'
+---
+
+- **环境**：macOS 15 + OrbStack 1.x/2.x（内核 6.15.11-orbstack）（aarch64）
+- **触发容器**：qBittorrent / 任意高并发小文件场景
+
+## 1. 现象
+- 容器内 `ls /media/DSC_1343.jpg` 报
+`Too many open files in system`
+- `cat /proc/sys/fs/file-nr` 仅 **~5 k / 9e18**（系统级句柄远未满）
+- `ulimit -n` 20480（进程级）也未耗尽
+- **其他容器同样报错** → 排除单容器问题
+
+---
+
+## 2. 初步排除（系统级视角）
+| 检查项 | 命令 | 结果 | 结论 |
+|--------|------|------|------|
+| 系统句柄 | `cat /proc/sys/fs/file-nr` | 5 k / 9e18 | 未耗尽 |
+| 容器 fd 计数 | `ls /proc/*/fd 2>/dev/null | wc -l` | ~548 | 极低 |
+| dmesg overlayfs | `dmesg | grep -i overlayfs` | 无报错 | 非内核报错 |
+| slabinfo | `cat /proc/slabinfo` | 文件不存在 | 内核关闭 CONFIG_SLABINFO |
+
+→ **全局资源正常**，报错是 **假阳性**。
+
+---
+
+## 3. 精确定位 errno
+```bash
+strace -e trace=openat cat /media/DSC_1343.jpg
+```
+最后一行：
+```
+openat(...) = -1 ENFILE (Too many open files in system)
+```
+→ **系统级 fd 上限（ENFILE）** 被触发，但 **/proc/sys/fs/file-nr 未打满** ⇒ **限制不在 Linux 全局，而在 virtiofs daemon (vmgr)**。
+
+---
+
+## 4. 确认 vmgr fd 限制与现场
+| 步骤 | 命令 | 输出 | 说明 |
+|------|------|------|------|
+| 找进程 | `pgrep -f vmgr` | 33792 | OrbStack 唯一 virtiofs 后端 |
+| 当前 fd | `lsof -p 33792 | wc -l` | **8237** | 已用 fd |
+| 进程 rlimit | `plimit 33792 | grep nofile` | **8192 / 65536** | 软上限 **8192** |
+
+**8237 > 8192** → **vmgr 自身 fd 表耗尽** 导致 ENFILE。
+
+---
+
+## 5. 根因分析
+- OrbStack 使用 **内核 virtiofs** → **fd 由用户态 daemon (vmgr)** 持有
+- macOS 侧默认 **soft nofile = 8192**（OrbStack 启动时显式 setrlimit 到 8192）
+- 当 **bind mount 目录文件量大 + 并发 open** 时，**关闭的 fd 被标记为 `REVOKED` 但延迟释放**，队列积压到 8192 后 **新 open 被拒绝** → 容器侧看到 `ENFILE` → glibc 翻译为 `Too many open files in system`
+
+---
+
+## 6. 验证重启即恢复
+```bash
+killall OrbStack   # 或菜单栏 Quit
+```
+重启后：
+```bash
+lsof -p $(pgrep -f vmgr) | wc -l   # → 降到 < 500
+```
+容器 `ls /media/DSC_1343.jpg` **立即正常**。
+
+---
+
+## 7. 长期解决方案
+
+### 7.1 提升 vmgr fd 上限（可选）
+```bash
+# 创建 LaunchDaemon 把系统 maxfiles 调到 65536
+sudo tee /Library/LaunchDaemons/com.orbstack.nofile.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" ...>
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.orbstack.nofile</string>
+  <key>ProgramArguments</key>
+  <array><string>launchctl</string><string>limit</string>
+          <string>maxfiles</string><string>65536</string><string>65536</string></array>
+  <key>RunAtLoad</key><true/>
+</dict>
+</plist>
+EOF
+sudo launchctl load -w /Library/LaunchDaemons/com.orbstack.nofile.plist
+```
+重启 OrbStack 后 vmgr 继承 **65536**，**REVOKED 队列空间 ×8**。
+
+### 7.2 改用 Docker NFS Volume（**彻底绕过 virtiofs**）
+```bash
+# 在 macOS 端无需先挂载；Docker 会直接内核挂载
+docker volume create \
+  --driver local \
+  --opt type=nfs \
+  --opt o=addr=192.168.x.x,rw,nfsvers=4,soft \
+  --opt device=:/export/path \
+  path-nfs
+
+# 容器使用
+docker run -v path-nfs:/media/path ... your-torrent-image
+```
+- fd 消耗转移到 **内核 nfs 客户端** → **上限 = /proc/sys/fs/file-nr**（几十万）
+- **不再经过 vmgr**，**不再计入 8192 限制**
+- **可同时 bind 低频配置目录**（无影响）
+
+### 7.3 周期重启（保守方案）
+- **launchd 每周日凌晨 4 点自动重启 OrbStack** → 清空 REVOKED 队列
+- 或 **fd 使用率 >90% 自动重启**（见下方脚本）
+
+---
+
+## 8. 一键监控脚本（可选）
+```bash
+#!/bin/bash
+pid=$(pgrep -f vmgr)
+used=$(lsof -p "$pid" 2>/dev/null | wc -l)
+limit=$(plimit "$pid" | awk '/nofile/{print $2}')
+if (( used > limit * 90 / 100 )); then
+  logger "OrbStack vmgr fd $used/$limit >90%, restarting..."
+  killall OrbStack
+fi
+```
+保存为 `/usr/local/bin/orbstack-fd-guard.sh`，**launchd 每 5 分钟调用一次**。
+
+---
+
+## 9. 总结决策树
+```
+报错出现
+├─ 系统 file-nr 满？ → 调大 fs.file-max
+├─ 容器 ulimit 满？ → 调大 ulimit -n
+├─ vmgr fd ≥ plimit？ → 是（本例）
+│   ├─ 立即重启 OrbStack（秒恢复）
+│   ├─ 长期
+│   │   ├─ 提升 vmgr nofile → 65526（plist）
+│   │   ├─ 高并发目录改用 Docker NFS Volume（最彻底）
+│   │   └─ 周期重启 / 自动守护脚本
+└─ 完毕
+```
+
+---
+
+## 10. 快速命令清单
+```bash
+# 1. 确认现场
+pgrep -f vmgr | xargs -I{} sh -c 'echo PID {}; plimit {} | grep nofile; lsof -p {} | wc -l'
+
+# 2. 立即恢复
+killall OrbStack
+
+# 3. 创建 NFS Volume（示例）
+docker volume create --driver local --opt type=nfs \
+  --opt o=addr=192.168.1.100,rw,nfsvers=4,soft \
+  --opt device=:/export/path path-nfs
+
+# 4. 使用
+docker run -v path-nfs:/media/path ... your-image
+```
