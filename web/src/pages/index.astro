@@ -1,4 +1,5 @@
 ---
+import { Card, CardGrid } from '@astrojs/starlight/components'
 import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProjectCard from '../components/ProjectCard.astro'
 import { fetchGitHubProfile, fetchGitHubRepos } from '../lib/github'
@@ -61,5 +62,20 @@ const repos = await fetchGitHubRepos()
                 url={repo.html_url}
             />
         ))}
+    </div>
+
+    <h3 class="text-2xl md:text-4xl mt-10">可求欢迎恁来俺嘞网站，还能搁这儿：</h3>
+
+    <div class="flex flex-col md:px-32 md:py-10">
+        <CardGrid stagger={true}>
+            <Card title="怼点文章" icon="rocket">
+            </Card>
+            <Card title="怼点想法" icon="star">
+            </Card>
+            <Card title="怼点项目" icon="puzzle">
+            </Card>
+            <Card title="怼点日特怼想怼嘞" icon="approve-check-circle">
+            </Card>
+        </CardGrid>
     </div>
 </WithSidebar>
