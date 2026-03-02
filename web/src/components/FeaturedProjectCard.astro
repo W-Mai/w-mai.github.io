@@ -127,8 +127,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
 
       {/* Title + Owner */}
       <div class:list={["min-w-0 flex-1", { "pt-2": !hasLogo }]}>
-        <h3 class="m-0 text-[15px] font-bold truncate text-slate-800
-                    group-hover:text-blue-600 transition-colors duration-300">
+        <h3 class="m-0 text-lg font-bold truncate text-slate-800
+                    group-hover:text-slate-900 transition-colors duration-300">
           {name}
         </h3>
         <div class="flex items-center gap-1.5 mt-0.5">
@@ -159,8 +159,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
 
       {homepage && (
         <span
-          class="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-500
-                 hover:text-blue-700 transition-colors cursor-pointer"
+          class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400
+                 hover:text-slate-600 transition-colors cursor-pointer"
           onclick={`event.preventDefault(); event.stopPropagation(); window.open('${homepage}', '_blank')`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3">
@@ -176,9 +176,9 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
 <style>
   .featured-card {
     will-change: transform, box-shadow;
-    color: inherit;
+    color: rgb(30 41 59) !important;
   }
   .featured-card:hover {
-    color: inherit;
+    color: rgb(30 41 59) !important;
   }
 </style>
