@@ -44,11 +44,11 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
   target="_blank"
   rel="noopener noreferrer"
   class="featured-card group block relative rounded-2xl overflow-hidden
-         bg-white/80 backdrop-blur-sm
-         border border-slate-200/60
+         bg-white backdrop-blur-sm
+         border border-slate-200 shadow-sm
          transition-all duration-500 ease-out no-underline
          hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)]
-         hover:-translate-y-2 hover:border-transparent"
+         hover:-translate-y-2 hover:border-slate-300"
   style={`--card-accent: ${languageColor}; --card-hue: ${hue}`}
 >
   {/* Hover glow border effect */}
@@ -87,7 +87,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
     )}
 
     {/* Bottom gradient fade */}
-    <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/80 to-transparent" />
+    <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/40 to-transparent" />
 
     {/* Stars badge */}
     {stars > 0 && (
