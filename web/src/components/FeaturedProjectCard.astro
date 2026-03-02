@@ -1,0 +1,91 @@
+---
+import { getLanguageColor } from '../lib/language-colors'
+
+interface Props {
+  name: string
+  description: string | null
+  language: string | null
+  stars: number
+  url: string
+  bannerUrl: string | null
+  owner: string
+}
+
+const { name, description, language, stars, url, bannerUrl, owner } = Astro.props
+const languageColor = getLanguageColor(language)
+
+// Generate a gradient background based on language color as fallback
+const bgGradient = `linear-gradient(135deg, ${languageColor}22 0%, ${languageColor}08 100%)`
+---
+
+<a
+  href={url}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="group block rounded-2xl border border-slate-200 bg-white
+         no-underline text-slate-800 overflow-hidden
+         transition-all duration-300 ease-in-out
+         hover:shadow-xl hover:-translate-y-1 hover:border-slate-300"
+>
+  {/* Banner area */}
+  <div
+    class="relative h-36 overflow-hidden"
+    style={bannerUrl ? undefined : `background: ${bgGradient}`}
+  >
+    {bannerUrl ? (
+      <img
+        src={bannerUrl}
+        alt={`${name} banner`}
+        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+        loading="lazy"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+    ) : (
+      <div class="flex items-center justify-center h-full">
+        <span class="text-5xl font-black opacity-10 select-none" style={`color: ${languageColor}`}>
+          {name.slice(0, 2).toUpperCase()}
+        </span>
+      </div>
+    )}
+    {/* Language badge */}
+    {language && (
+      <span
+        class="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5
+               rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-slate-700 shadow-sm"
+      >
+        <span class="inline-block size-2 rounded-full" style={`background-color: ${languageColor}`} />
+        {language}
+      </span>
+    )}
+  </div>
+
+  {/* Content area */}
+  <div class="p-5">
+    <div class="flex items-center gap-2 mb-2">
+      <img
+        src={`https://github.com/${owner}.png`}
+        alt={owner}
+        class="size-5 rounded-full"
+        loading="lazy"
+      />
+      <span class="text-xs text-slate-400">{owner}</span>
+    </div>
+
+    <h3 class="m-0 text-lg font-bold truncate group-hover:text-blue-600 transition-colors">
+      {name}
+    </h3>
+
+    <p class="mt-2 mb-3 text-sm text-slate-500 line-clamp-2">
+      {description ?? 'No description provided'}
+    </p>
+
+    <div class="flex items-center gap-4 text-xs text-slate-500">
+      <span class="flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5 text-amber-400">
+          <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z" />
+        </svg>
+        {stars}
+      </span>
+    </div>
+  </div>
+</a>

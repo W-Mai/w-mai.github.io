@@ -6,6 +6,14 @@ export const NICK_NAME = 'B3n1gn X';
 export const SITE_TITLE = 'B3n1gn X';
 export const SITE_DESCRIPTION = 'B3n1gn X | Personal Website';
 
+// Pinned projects displayed as featured cards on homepage
+// Format: 'owner/repo' or just 'repo' (defaults to USER_NAME as owner)
+export const PINNED_PROJECTS = [
+    'PicoRVD',
+    'vegravis',
+    'icu-compress',
+];
+
 export const SOCIALS = [
     {
         name: 'GitHub',

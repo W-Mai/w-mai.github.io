@@ -113,3 +113,88 @@ export async function fetchGitHubRepos(
   }
 }
 
+
+// Featured project with banner/logo extracted from README
+export interface FeaturedProject {
+  name: string
+  description: string | null
+  html_url: string
+  language: string | null
+  stargazers_count: number
+  bannerUrl: string | null
+  owner: string
+}
+
+// Extract the first image URL from README markdown content
+export function extractBannerFromReadme(readme: string, owner: string, repo: string): string | null {
+  // Match markdown image syntax: ![alt](url) or HTML <img src="url">
+  const mdImageMatch = readme.match(/!\[.*?\]\((.*?)\)/)
+  const htmlImageMatch = readme.match(/<img[^>]+src=["']([^"']+)["']/)
+
+  const rawUrl = mdImageMatch?.[1] || htmlImageMatch?.[1] || null
+  if (!rawUrl) return null
+
+  // Convert relative URLs to absolute GitHub raw URLs
+  if (rawUrl.startsWith('http')) return rawUrl
+  const cleanPath = rawUrl.replace(/^\.?\//, '')
+  return `https://raw.githubusercontent.com/${owner}/${repo}/HEAD/${cleanPath}`
+}
+
+// Fetch featured project details including banner from README
+export async function fetchFeaturedProjects(
+  pinnedRepos: string[],
+  username: string = USER_NAME,
+): Promise<FeaturedProject[]> {
+  const headers = {
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': `astro-blog-${username}`,
+  }
+
+  const projects = await Promise.all(
+    pinnedRepos.map(async (repoSpec): Promise<FeaturedProject | null> => {
+      try {
+        const [owner, repo] = repoSpec.includes('/')
+          ? repoSpec.split('/')
+          : [username, repoSpec]
+
+        // Fetch repo metadata
+        const repoRes = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}`,
+          { headers },
+        )
+        if (!repoRes.ok) throw new Error(`Repo API error: ${repoRes.status}`)
+        const repoData = await repoRes.json()
+
+        // Fetch README content
+        let bannerUrl: string | null = null
+        try {
+          const readmeRes = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/readme`,
+            { headers: { ...headers, Accept: 'application/vnd.github.v3.raw' } },
+          )
+          if (readmeRes.ok) {
+            const readmeText = await readmeRes.text()
+            bannerUrl = extractBannerFromReadme(readmeText, owner, repo)
+          }
+        } catch {
+          // README fetch failure is non-critical
+        }
+
+        return {
+          name: repoData.name,
+          description: repoData.description,
+          html_url: repoData.html_url,
+          language: repoData.language,
+          stargazers_count: repoData.stargazers_count,
+          bannerUrl,
+          owner,
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch featured project ${repoSpec}:`, error)
+        return null
+      }
+    }),
+  )
+
+  return projects.filter((p): p is FeaturedProject => p !== null)
+}

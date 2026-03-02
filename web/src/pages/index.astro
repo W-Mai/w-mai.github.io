@@ -1,11 +1,13 @@
 ---
 import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProjectCard from '../components/ProjectCard.astro'
-import { fetchGitHubProfile, fetchGitHubRepos } from '../lib/github'
-import { SOCIALS, USER_NAME, NICK_NAME } from '../consts'
+import FeaturedProjectCard from '../components/FeaturedProjectCard.astro'
+import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '../lib/github'
+import { SOCIALS, USER_NAME, NICK_NAME, PINNED_PROJECTS } from '../consts'
 
 const profile = await fetchGitHubProfile()
 const repos = await fetchGitHubRepos()
+const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
 ---
 
 <WithSidebar>
@@ -72,6 +74,22 @@ const repos = await fetchGitHubRepos()
             <span class="text-2xl">✅</span>
             <span class="text-sm font-medium">怼点日特怼想怼嘞</span>
         </div>
+    </div>
+
+    <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800">📌 置顶项目</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        {featured.map((project) => (
+            <FeaturedProjectCard
+                name={project.name}
+                description={project.description}
+                language={project.language}
+                stars={project.stargazers_count}
+                url={project.html_url}
+                bannerUrl={project.bannerUrl}
+                owner={project.owner}
+            />
+        ))}
     </div>
 
     <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800">开源项目</h2>
