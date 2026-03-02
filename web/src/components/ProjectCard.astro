@@ -1,0 +1,53 @@
+---
+import { getLanguageColor } from '../lib/language-colors'
+
+interface Props {
+  name: string
+  description: string | null
+  language: string | null
+  stars: number
+  url: string
+}
+
+const { name, description, language, stars, url } = Astro.props
+const languageColor = getLanguageColor(language)
+---
+
+<a
+  href={url}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="block rounded-xl border border-slate-200 bg-white p-5
+         no-underline text-slate-800
+         transition-all duration-200 ease-in-out
+         hover:shadow-lg hover:-translate-y-0.5 hover:border-slate-300"
+>
+  <h3 class="m-0 text-base font-bold truncate">{name}</h3>
+
+  <p class="mt-2 mb-3 text-sm text-slate-500 line-clamp-2">
+    {description ?? 'No description provided'}
+  </p>
+
+  <div class="flex items-center gap-4 text-xs text-slate-500">
+    {language && (
+      <span class="flex items-center gap-1">
+        <span
+          class="inline-block size-3 rounded-full"
+          style={`background-color: ${languageColor}`}
+        />
+        {language}
+      </span>
+    )}
+    <span class="flex items-center gap-1">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 16 16"
+        fill="currentColor"
+        class="size-3.5 text-amber-400"
+      >
+        <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z" />
+      </svg>
+      {stars}
+    </span>
+  </div>
+</a>
