@@ -12,7 +12,9 @@ export const PINNED_PROJECTS = [
     'icu',
     'vegravis',
     'filmr',
-    'git_rnd_name'
+    'git_rnd_name',
+    'BuZhiYin',
+    'macmemana',
 ];
 
 export const SOCIALS = [
