@@ -60,7 +60,6 @@ const ownerAvatar = await getImage({
     {bannerImage ? (
       <img
         src={bannerImage.src}
-        {...bannerImage.attributes}
         alt=""
         class="absolute inset-0 w-full h-full object-cover
                transition-transform duration-700 ease-out
@@ -115,7 +114,6 @@ const ownerAvatar = await getImage({
                        flex items-center justify-center">
             <img
               src={logoImage.src}
-              {...logoImage.attributes}
               alt={`${name} logo`}
               class="size-full object-contain p-1.5"
               loading="lazy"
@@ -132,8 +130,9 @@ const ownerAvatar = await getImage({
         <div class="flex items-center gap-1.5 mt-0.5">
           <img
             src={ownerAvatar.src}
-            {...ownerAvatar.attributes}
             alt=""
+            width="14"
+            height="14"
             class="size-3.5 rounded-full opacity-60"
             loading="lazy"
           />
