@@ -127,7 +127,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
 
       {/* Title + Owner */}
       <div class:list={["min-w-0 flex-1", { "pt-2": !hasLogo }]}>
-        <h3 class="m-0 text-lg font-bold truncate text-slate-800
+        <h3 class="featured-title m-0 font-bold truncate text-slate-800
                     group-hover:text-slate-900 transition-colors duration-300">
           {name}
         </h3>
@@ -180,5 +180,9 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
   }
   .featured-card:hover {
     color: rgb(30 41 59) !important;
+  }
+  .featured-title {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
   }
 </style>
