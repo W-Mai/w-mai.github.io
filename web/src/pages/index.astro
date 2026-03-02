@@ -1,5 +1,4 @@
 ---
-import { Card, CardGrid } from '@astrojs/starlight/components'
 import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProjectCard from '../components/ProjectCard.astro'
 import { fetchGitHubProfile, fetchGitHubRepos } from '../lib/github'
@@ -50,7 +49,32 @@ const repos = await fetchGitHubRepos()
         </aside>
     </Fragment>
 
-    <h1 class="text-4xl md:text-6xl md font-bold mb-10">👋 恁好，吃了冇</h1>
+    <h1 class="text-4xl md:text-6xl font-bold mb-4">👋 恁好，吃了冇</h1>
+
+    <p class="text-lg text-slate-500 mb-8">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-12">
+        <a href="/blog" class="group flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-4
+                                no-underline text-slate-700 transition-all duration-200
+                                hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300">
+            <span class="text-2xl">🚀</span>
+            <span class="text-sm font-medium group-hover:text-blue-600">怼点文章</span>
+        </a>
+        <div class="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-slate-700">
+            <span class="text-2xl">⭐</span>
+            <span class="text-sm font-medium">怼点想法</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-slate-700">
+            <span class="text-2xl">🧩</span>
+            <span class="text-sm font-medium">怼点项目</span>
+        </div>
+        <div class="flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-4 text-slate-700">
+            <span class="text-2xl">✅</span>
+            <span class="text-sm font-medium">怼点日特怼想怼嘞</span>
+        </div>
+    </div>
+
+    <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800">开源项目</h2>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {repos.map((repo) => (
@@ -62,20 +86,5 @@ const repos = await fetchGitHubRepos()
                 url={repo.html_url}
             />
         ))}
-    </div>
-
-    <h3 class="text-2xl md:text-4xl mt-10">可求欢迎恁来俺嘞网站，还能搁这儿：</h3>
-
-    <div class="flex flex-col md:px-32 md:py-10">
-        <CardGrid stagger={true}>
-            <Card title="怼点文章" icon="rocket">
-            </Card>
-            <Card title="怼点想法" icon="star">
-            </Card>
-            <Card title="怼点项目" icon="puzzle">
-            </Card>
-            <Card title="怼点日特怼想怼嘞" icon="approve-check-circle">
-            </Card>
-        </CardGrid>
     </div>
 </WithSidebar>
