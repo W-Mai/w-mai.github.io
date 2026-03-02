@@ -168,7 +168,7 @@ export async function fetchGitHubRepos(
 }
 
 
-// Featured project with banner/logo extracted from README
+// Featured project with banner and logo extracted from README
 export interface FeaturedProject {
   name: string
   description: string | null
@@ -177,22 +177,71 @@ export interface FeaturedProject {
   language: string | null
   stargazers_count: number
   bannerUrl: string | null
+  logoUrl: string | null
   owner: string
 }
 
-// Extract the first image URL from README markdown content
-export function extractBannerFromReadme(readme: string, owner: string, repo: string): string | null {
-  // Match markdown image syntax: ![alt](url) or HTML <img src="url">
-  const mdImageMatch = readme.match(/!\[.*?\]\((.*?)\)/)
-  const htmlImageMatch = readme.match(/<img[^>]+src=["']([^"']+)["']/)
-
-  const rawUrl = mdImageMatch?.[1] || htmlImageMatch?.[1] || null
-  if (!rawUrl) return null
-
-  // Convert relative URLs to absolute GitHub raw URLs
+// Resolve a raw image URL to an absolute URL
+function resolveImageUrl(rawUrl: string, owner: string, repo: string): string {
   if (rawUrl.startsWith('http')) return rawUrl
   const cleanPath = rawUrl.replace(/^\.?\//, '')
   return `https://raw.githubusercontent.com/${owner}/${repo}/HEAD/${cleanPath}`
+}
+
+// Heuristic: classify an image as logo or banner based on alt text and path
+function isLogoImage(alt: string, url: string): boolean {
+  const lowerAlt = alt.toLowerCase()
+  const lowerUrl = url.toLowerCase()
+  return /logo|icon|badge|avatar|favicon/.test(lowerAlt) || /logo|icon/.test(lowerUrl)
+}
+
+// Extract images from README, classifying them as banner or logo
+export interface ReadmeImages {
+  bannerUrl: string | null
+  logoUrl: string | null
+}
+
+export function extractImagesFromReadme(readme: string, owner: string, repo: string): ReadmeImages {
+  const result: ReadmeImages = { bannerUrl: null, logoUrl: null }
+
+  // Collect all markdown images: ![alt](url)
+  const mdImages = [...readme.matchAll(/!\[(.*?)\]\((.*?)\)/g)]
+  // Collect all HTML images: <img ... src="url" ... alt="alt">
+  const htmlImages = [...readme.matchAll(/<img[^>]*\bsrc=["']([^"']+)["'][^>]*>/g)]
+
+  interface ImageInfo { alt: string; url: string }
+  const allImages: ImageInfo[] = []
+
+  for (const m of mdImages) {
+    allImages.push({ alt: m[1] || '', url: m[2] })
+  }
+  for (const m of htmlImages) {
+    const altMatch = m[0].match(/\balt=["']([^"']*)["']/)
+    allImages.push({ alt: altMatch?.[1] || '', url: m[1] })
+  }
+
+  // Skip badge images (shields.io, img.shields.io, badge URLs)
+  const filtered = allImages.filter(img => {
+    const u = img.url.toLowerCase()
+    return !u.includes('shields.io') && !u.includes('badge') && !u.includes('codecov')
+      && !u.includes('travis-ci') && !u.includes('github.com/') && !u.endsWith('.svg')
+  })
+
+  for (const img of filtered) {
+    const resolved = resolveImageUrl(img.url, owner, repo)
+    if (isLogoImage(img.alt, img.url)) {
+      if (!result.logoUrl) result.logoUrl = resolved
+    } else {
+      if (!result.bannerUrl) result.bannerUrl = resolved
+    }
+  }
+
+  return result
+}
+
+// Backward-compatible wrapper
+export function extractBannerFromReadme(readme: string, owner: string, repo: string): string | null {
+  return extractImagesFromReadme(readme, owner, repo).bannerUrl
 }
 
 // Fetch featured project details including banner from README
@@ -218,8 +267,9 @@ export async function fetchFeaturedProjects(
           if (!repoRes.ok) throw new Error(`Repo API error: ${repoRes.status}`)
           const repoData = await repoRes.json()
 
-          // Fetch README content
+          // Fetch README content for banner/logo extraction
           let bannerUrl: string | null = null
+          let logoUrl: string | null = null
           try {
             const readmeRes = await fetch(
               `https://api.github.com/repos/${owner}/${repo}/readme`,
@@ -227,7 +277,9 @@ export async function fetchFeaturedProjects(
             )
             if (readmeRes.ok) {
               const readmeText = await readmeRes.text()
-              bannerUrl = extractBannerFromReadme(readmeText, owner, repo)
+              const images = extractImagesFromReadme(readmeText, owner, repo)
+              bannerUrl = images.bannerUrl
+              logoUrl = images.logoUrl
             }
           } catch {
             // README fetch failure is non-critical
@@ -241,6 +293,7 @@ export async function fetchFeaturedProjects(
             language: repoData.language,
             stargazers_count: repoData.stargazers_count,
             bannerUrl,
+            logoUrl,
             owner,
           }
         } catch (error) {
