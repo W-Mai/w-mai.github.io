@@ -2,7 +2,7 @@
 
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import {defineConfig, passthroughImageService} from 'astro/config';
+import {defineConfig} from 'astro/config';
 import {astroExpressiveCode} from "@astrojs/starlight/expressive-code";
 import tailwindcss from '@tailwindcss/vite';
 import astroMermaid from 'astro-mermaid';
@@ -13,7 +13,13 @@ export default defineConfig({
   integrations: [astroMermaid(), astroExpressiveCode(), mdx(), sitemap()],
 
   image: {
-      service: passthroughImageService()
+      domains: [
+          'github.com',
+          'raw.githubusercontent.com',
+          'avatars.githubusercontent.com',
+          'user-images.githubusercontent.com',
+          'opengraph.githubassets.com',
+      ],
   },
 
   vite: {

@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets'
 import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProjectCard from '../components/ProjectCard.astro'
 import FeaturedProjectCard from '../components/FeaturedProjectCard.astro'
@@ -16,10 +17,12 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
         flex flex-col gap-y-2 md:text-sm text-2xl text-slate-800">
 
             <div class="flex flex-col items-center">
-                <img
+                <Image
                         class="size-46 md:size-36 rounded-full border-4 border-white shadow-md"
                         src={profile.avatar_url}
                         alt={USER_NAME}
+                        width={184}
+                        height={184}
                 />
                 <h4 class="mt-3 font-bold">{NICK_NAME}</h4>
                 <h5 class="m-3 text-slate-500">@{USER_NAME}</h5>
