@@ -78,7 +78,7 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
 
     <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800">📌 置顶项目</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
         {featured.map((project) => (
             <FeaturedProjectCard
                 name={project.name}
