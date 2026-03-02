@@ -21,7 +21,7 @@ jobs:
         with:
            path: web
            node-version: 20
-           package-manager: yarn@latest # 应使用哪个 Node.js 包管理器来安装依赖项和构建站点。会根据存储库中的 lockfile 自动检测。（可选）
+           package-manager: bun@latest
 
   deploy:
     needs: build
