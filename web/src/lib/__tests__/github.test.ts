@@ -5,8 +5,8 @@ import {
   fetchGitHubRepos,
   FALLBACK_PROFILE,
   FALLBACK_REPOS,
-  type GitHubProfile,
-  type GitHubRepo,
+  _disableCache,
+  _enableCache,
 } from '../github'
 
 // Arbitrary: generate a valid GitHubProfile-shaped API response
@@ -48,17 +48,19 @@ describe('GitHub Data Fetcher - Property Tests', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks()
+    _disableCache()
   })
 
   afterEach(() => {
+    _enableCache()
     globalThis.fetch = originalFetch
   })
 
   // Feature: modern-blog-github-showcase, Property 1: GitHub API response parsing round-trip
   // Validates: Requirements 1.1, 1.2
   describe('Property 1: GitHub API response parsing round-trip', () => {
-    it('fetchGitHubProfile preserves all field values from API response', () => {
-      fc.assert(
+    it('fetchGitHubProfile preserves all field values from API response', async () => {
+      await fc.assert(
         fc.asyncProperty(arbGitHubProfileResponse, async (profileData) => {
           globalThis.fetch = vi.fn().mockResolvedValue({
             ok: true,
@@ -82,8 +84,8 @@ describe('GitHub Data Fetcher - Property Tests', () => {
       )
     })
 
-    it('fetchGitHubRepos preserves all field values from API response for non-fork repos', () => {
-      fc.assert(
+    it('fetchGitHubRepos preserves all field values from API response for non-fork repos', async () => {
+      await fc.assert(
         fc.asyncProperty(arbGitHubRepoList, async (repoData) => {
           globalThis.fetch = vi.fn().mockResolvedValue({
             ok: true,
@@ -113,8 +115,8 @@ describe('GitHub Data Fetcher - Property Tests', () => {
   // Feature: modern-blog-github-showcase, Property 2: Error fallback guarantees
   // Validates: Requirements 1.3
   describe('Property 2: Error fallback guarantees', () => {
-    it('fetchGitHubProfile returns fallback for any HTTP error status', () => {
-      fc.assert(
+    it('fetchGitHubProfile returns fallback for any HTTP error status', async () => {
+      await fc.assert(
         fc.asyncProperty(arbErrorStatusCode, async (statusCode) => {
           globalThis.fetch = vi.fn().mockResolvedValue({
             ok: false,
@@ -129,8 +131,8 @@ describe('GitHub Data Fetcher - Property Tests', () => {
       )
     })
 
-    it('fetchGitHubRepos returns fallback for any HTTP error status', () => {
-      fc.assert(
+    it('fetchGitHubRepos returns fallback for any HTTP error status', async () => {
+      await fc.assert(
         fc.asyncProperty(arbErrorStatusCode, async (statusCode) => {
           globalThis.fetch = vi.fn().mockResolvedValue({
             ok: false,
@@ -145,8 +147,8 @@ describe('GitHub Data Fetcher - Property Tests', () => {
       )
     })
 
-    it('fetchGitHubProfile returns fallback on network failure', () => {
-      fc.assert(
+    it('fetchGitHubProfile returns fallback on network failure', async () => {
+      await fc.assert(
         fc.asyncProperty(fc.string({ minLength: 1 }), async (errorMsg) => {
           globalThis.fetch = vi.fn().mockRejectedValue(new Error(errorMsg))
 
@@ -157,8 +159,8 @@ describe('GitHub Data Fetcher - Property Tests', () => {
       )
     })
 
-    it('fetchGitHubRepos returns fallback on network failure', () => {
-      fc.assert(
+    it('fetchGitHubRepos returns fallback on network failure', async () => {
+      await fc.assert(
         fc.asyncProperty(fc.string({ minLength: 1 }), async (errorMsg) => {
           globalThis.fetch = vi.fn().mockRejectedValue(new Error(errorMsg))
 
@@ -173,8 +175,8 @@ describe('GitHub Data Fetcher - Property Tests', () => {
   // Feature: modern-blog-github-showcase, Property 3: Repository list invariants
   // Validates: Requirements 2.4, 2.7
   describe('Property 3: Repository list invariants', () => {
-    it('output is sorted by stars descending, has at most 12 items, and contains no forks', () => {
-      fc.assert(
+    it('output is sorted by stars descending, has at most 12 items, and contains no forks', async () => {
+      await fc.assert(
         fc.asyncProperty(arbGitHubRepoList, async (repoData) => {
           globalThis.fetch = vi.fn().mockResolvedValue({
             ok: true,

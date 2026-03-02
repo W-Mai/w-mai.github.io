@@ -1,4 +1,51 @@
 import { USER_NAME, NICK_NAME } from '../consts'
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// File-based cache persisted to .astro/github-cache.json
+const CACHE_TTL = 30 * 60 * 1000 // 30 minutes
+const cacheDir = join(dirname(fileURLToPath(import.meta.url)), '../../.astro')
+const cacheFile = join(cacheDir, 'github-cache.json')
+
+interface CacheEntry { data: unknown; expiry: number }
+type CacheStore = Record<string, CacheEntry>
+
+// Allow tests to bypass cache
+let _cacheDisabled = false
+export function _disableCache() { _cacheDisabled = true }
+export function _enableCache() { _cacheDisabled = false }
+
+function readCache(): CacheStore {
+  if (_cacheDisabled) return {}
+  try {
+    return JSON.parse(readFileSync(cacheFile, 'utf-8'))
+  } catch {
+    return {}
+  }
+}
+
+function writeCache(store: CacheStore): void {
+  if (_cacheDisabled) return
+  try {
+    mkdirSync(cacheDir, { recursive: true })
+    writeFileSync(cacheFile, JSON.stringify(store, null, 2))
+  } catch {
+    // Write failure is non-critical
+  }
+}
+
+async function cachedFetch<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
+  const store = readCache()
+  const cached = store[key]
+  if (cached && Date.now() < cached.expiry) {
+    return cached.data as T
+  }
+  const data = await fetcher()
+  store[key] = { data, expiry: Date.now() + CACHE_TTL }
+  writeCache(store)
+  return data
+}
 
 // GitHub user profile data model
 export interface GitHubProfile {
@@ -45,39 +92,41 @@ export const FALLBACK_REPOS: GitHubRepo[] = []
 export async function fetchGitHubProfile(
   username: string = USER_NAME,
 ): Promise<GitHubProfile> {
-  try {
-    const response = await fetch(
-      `https://api.github.com/users/${username}`,
-      {
-        headers: {
-          Accept: 'application/vnd.github.v3+json',
-          'User-Agent': `astro-blog-${username}`,
+  return cachedFetch(`profile:${username}`, async () => {
+    try {
+      const response = await fetch(
+        `https://api.github.com/users/${username}`,
+        {
+          headers: {
+            Accept: 'application/vnd.github.v3+json',
+            'User-Agent': `astro-blog-${username}`,
+          },
         },
-      },
-    )
+      )
 
-    if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      return {
+        login: data.login,
+        avatar_url: data.avatar_url,
+        bio: data.bio,
+        name: data.name,
+        location: data.location,
+        company: data.company,
+        blog: data.blog,
+        followers: data.followers,
+        following: data.following,
+        public_repos: data.public_repos,
+      }
+    } catch (error) {
+      console.warn('Failed to fetch GitHub profile, using fallback:', error)
+      return FALLBACK_PROFILE
     }
-
-    const data = await response.json()
-
-    return {
-      login: data.login,
-      avatar_url: data.avatar_url,
-      bio: data.bio,
-      name: data.name,
-      location: data.location,
-      company: data.company,
-      blog: data.blog,
-      followers: data.followers,
-      following: data.following,
-      public_repos: data.public_repos,
-    }
-  } catch (error) {
-    console.warn('Failed to fetch GitHub profile, using fallback:', error)
-    return FALLBACK_PROFILE
-  }
+  })
 }
 
 
@@ -85,32 +134,34 @@ export async function fetchGitHubProfile(
 export async function fetchGitHubRepos(
   username: string = USER_NAME,
 ): Promise<GitHubRepo[]> {
-  try {
-    const response = await fetch(
-      `https://api.github.com/users/${username}/repos?type=public&per_page=100&sort=stars&direction=desc`,
-      {
-        headers: {
-          Accept: 'application/vnd.github.v3+json',
-          'User-Agent': `astro-blog-${username}`,
+  return cachedFetch(`repos:${username}`, async () => {
+    try {
+      const response = await fetch(
+        `https://api.github.com/users/${username}/repos?type=public&per_page=100&sort=stars&direction=desc`,
+        {
+          headers: {
+            Accept: 'application/vnd.github.v3+json',
+            'User-Agent': `astro-blog-${username}`,
+          },
         },
-      },
-    )
+      )
 
-    if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data: GitHubRepo[] = await response.json()
+
+      // Filter out forked repos, sort by stars descending, take first 12
+      return data
+        .filter((repo) => !repo.fork)
+        .sort((a, b) => b.stargazers_count - a.stargazers_count)
+        .slice(0, 12)
+    } catch (error) {
+      console.warn('Failed to fetch GitHub repos, using fallback:', error)
+      return FALLBACK_REPOS
     }
-
-    const data: GitHubRepo[] = await response.json()
-
-    // Filter out forked repos, sort by stars descending, take first 12
-    return data
-      .filter((repo) => !repo.fork)
-      .sort((a, b) => b.stargazers_count - a.stargazers_count)
-      .slice(0, 12)
-  } catch (error) {
-    console.warn('Failed to fetch GitHub repos, using fallback:', error)
-    return FALLBACK_REPOS
-  }
+  })
 }
 
 
@@ -145,56 +196,58 @@ export async function fetchFeaturedProjects(
   pinnedRepos: string[],
   username: string = USER_NAME,
 ): Promise<FeaturedProject[]> {
-  const headers = {
-    Accept: 'application/vnd.github.v3+json',
-    'User-Agent': `astro-blog-${username}`,
-  }
+  return cachedFetch(`featured:${pinnedRepos.join(',')}`, async () => {
+    const headers = {
+      Accept: 'application/vnd.github.v3+json',
+      'User-Agent': `astro-blog-${username}`,
+    }
 
-  const projects = await Promise.all(
-    pinnedRepos.map(async (repoSpec): Promise<FeaturedProject | null> => {
-      try {
-        const [owner, repo] = repoSpec.includes('/')
-          ? repoSpec.split('/')
-          : [username, repoSpec]
-
-        // Fetch repo metadata
-        const repoRes = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}`,
-          { headers },
-        )
-        if (!repoRes.ok) throw new Error(`Repo API error: ${repoRes.status}`)
-        const repoData = await repoRes.json()
-
-        // Fetch README content
-        let bannerUrl: string | null = null
+    const projects = await Promise.all(
+      pinnedRepos.map(async (repoSpec): Promise<FeaturedProject | null> => {
         try {
-          const readmeRes = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/readme`,
-            { headers: { ...headers, Accept: 'application/vnd.github.v3.raw' } },
+          const [owner, repo] = repoSpec.includes('/')
+            ? repoSpec.split('/')
+            : [username, repoSpec]
+
+          // Fetch repo metadata
+          const repoRes = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}`,
+            { headers },
           )
-          if (readmeRes.ok) {
-            const readmeText = await readmeRes.text()
-            bannerUrl = extractBannerFromReadme(readmeText, owner, repo)
+          if (!repoRes.ok) throw new Error(`Repo API error: ${repoRes.status}`)
+          const repoData = await repoRes.json()
+
+          // Fetch README content
+          let bannerUrl: string | null = null
+          try {
+            const readmeRes = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}/readme`,
+              { headers: { ...headers, Accept: 'application/vnd.github.v3.raw' } },
+            )
+            if (readmeRes.ok) {
+              const readmeText = await readmeRes.text()
+              bannerUrl = extractBannerFromReadme(readmeText, owner, repo)
+            }
+          } catch {
+            // README fetch failure is non-critical
           }
-        } catch {
-          // README fetch failure is non-critical
-        }
 
-        return {
-          name: repoData.name,
-          description: repoData.description,
-          html_url: repoData.html_url,
-          language: repoData.language,
-          stargazers_count: repoData.stargazers_count,
-          bannerUrl,
-          owner,
+          return {
+            name: repoData.name,
+            description: repoData.description,
+            html_url: repoData.html_url,
+            language: repoData.language,
+            stargazers_count: repoData.stargazers_count,
+            bannerUrl,
+            owner,
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch featured project ${repoSpec}:`, error)
+          return null
         }
-      } catch (error) {
-        console.warn(`Failed to fetch featured project ${repoSpec}:`, error)
-        return null
-      }
-    }),
-  )
+      }),
+    )
 
-  return projects.filter((p): p is FeaturedProject => p !== null)
+    return projects.filter((p): p is FeaturedProject => p !== null)
+  })
 }

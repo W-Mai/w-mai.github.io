@@ -9,9 +9,10 @@ export const SITE_DESCRIPTION = 'B3n1gn X | Personal Website';
 // Pinned projects displayed as featured cards on homepage
 // Format: 'owner/repo' or just 'repo' (defaults to USER_NAME as owner)
 export const PINNED_PROJECTS = [
-    'PicoRVD',
+    'icu',
     'vegravis',
-    'icu-compress',
+    'filmr',
+    'git_rnd_name'
 ];
 
 export const SOCIALS = [
