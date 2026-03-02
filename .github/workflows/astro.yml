@@ -28,7 +28,7 @@ jobs:
         working-directory: web
 
       - name: Build site
-        run: bun run build
+        run: bunx --bun astro build
         working-directory: web
 
       - name: Upload artifact
