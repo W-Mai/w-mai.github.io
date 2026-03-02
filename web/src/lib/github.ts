@@ -220,12 +220,14 @@ export function extractImagesFromReadme(readme: string, owner: string, repo: str
     allImages.push({ alt: altMatch?.[1] || '', url: m[1] })
   }
 
-  // Skip badge/CI images but keep normal SVG logos
+  // Skip badge/CI/chart images but keep normal SVG logos
   const filtered = allImages.filter(img => {
     const u = img.url.toLowerCase()
     return !u.includes('shields.io') && !u.includes('badge') && !u.includes('codecov')
       && !u.includes('travis-ci') && !u.includes('ci.appveyor.com')
       && !u.includes('github.com/workflows') && !u.includes('coveralls.io')
+      && !u.includes('star-history.com') && !u.includes('starchart.cc')
+      && !u.includes('github-readme-stats') && !u.includes('contrib.rocks')
   })
 
   for (const img of filtered) {
