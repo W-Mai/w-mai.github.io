@@ -30,7 +30,7 @@ const logoSrc = hasLogo
   ? (await getImage({ src: logoUrl, inferSize: true })).src
   : null
 const ownerAvatarSrc = (await getImage({
-  src: `https://github.com/${owner}.png`,
+  src: `https://avatars.githubusercontent.com/${owner}`,
   width: 28,
   height: 28,
 })).src
