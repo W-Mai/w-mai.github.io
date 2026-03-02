@@ -28,7 +28,7 @@ jobs:
         working-directory: web
 
       - name: Build site
-        run: ./node_modules/.bin/astro build
+        run: bunx --bun astro build
         working-directory: web
 
       - name: Upload artifact
