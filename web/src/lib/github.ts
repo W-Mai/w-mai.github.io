@@ -35,6 +35,19 @@ function writeCache(store: CacheStore): void {
   }
 }
 
+// Build common headers for GitHub API requests
+function githubHeaders(username: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': `astro-blog-${username}`,
+  }
+  const token = import.meta.env.GITHUB_TOKEN || process.env.GITHUB_TOKEN
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  return headers
+}
+
 async function cachedFetch<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
   const store = readCache()
   const cached = store[key]
@@ -96,12 +109,7 @@ export async function fetchGitHubProfile(
     try {
       const response = await fetch(
         `https://api.github.com/users/${username}`,
-        {
-          headers: {
-            Accept: 'application/vnd.github.v3+json',
-            'User-Agent': `astro-blog-${username}`,
-          },
-        },
+        { headers: githubHeaders(username) },
       )
 
       if (!response.ok) {
@@ -138,12 +146,7 @@ export async function fetchGitHubRepos(
     try {
       const response = await fetch(
         `https://api.github.com/users/${username}/repos?type=public&per_page=100&sort=stars&direction=desc`,
-        {
-          headers: {
-            Accept: 'application/vnd.github.v3+json',
-            'User-Agent': `astro-blog-${username}`,
-          },
-        },
+        { headers: githubHeaders(username) },
       )
 
       if (!response.ok) {
@@ -197,10 +200,7 @@ export async function fetchFeaturedProjects(
   username: string = USER_NAME,
 ): Promise<FeaturedProject[]> {
   return cachedFetch(`featured:${pinnedRepos.join(',')}`, async () => {
-    const headers = {
-      Accept: 'application/vnd.github.v3+json',
-      'User-Agent': `astro-blog-${username}`,
-    }
+    const headers = githubHeaders(username)
 
     const projects = await Promise.all(
       pinnedRepos.map(async (repoSpec): Promise<FeaturedProject | null> => {
