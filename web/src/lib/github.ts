@@ -173,6 +173,7 @@ export interface FeaturedProject {
   name: string
   description: string | null
   html_url: string
+  homepage: string | null
   language: string | null
   stargazers_count: number
   bannerUrl: string | null
@@ -236,6 +237,7 @@ export async function fetchFeaturedProjects(
             name: repoData.name,
             description: repoData.description,
             html_url: repoData.html_url,
+            homepage: repoData.homepage || null,
             language: repoData.language,
             stargazers_count: repoData.stargazers_count,
             bannerUrl,

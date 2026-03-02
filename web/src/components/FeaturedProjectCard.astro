@@ -7,85 +7,115 @@ interface Props {
   language: string | null
   stars: number
   url: string
+  homepage: string | null
   bannerUrl: string | null
   owner: string
 }
 
-const { name, description, language, stars, url, bannerUrl, owner } = Astro.props
+const { name, description, language, stars, url, homepage, bannerUrl, owner } = Astro.props
 const languageColor = getLanguageColor(language)
-
-// Generate a gradient background based on language color as fallback
-const bgGradient = `linear-gradient(135deg, ${languageColor}22 0%, ${languageColor}08 100%)`
 ---
 
-<a
-  href={url}
-  target="_blank"
-  rel="noopener noreferrer"
-  class="group block rounded-2xl border border-slate-200 bg-white
-         no-underline text-slate-800 overflow-hidden
-         transition-all duration-300 ease-in-out
+<div
+  class="group relative rounded-2xl border border-slate-200 bg-white
+         overflow-hidden transition-all duration-300 ease-in-out
          hover:shadow-xl hover:-translate-y-1 hover:border-slate-300"
 >
-  {/* Banner area */}
-  <div
-    class="relative h-36 overflow-hidden"
-    style={bannerUrl ? undefined : `background: ${bgGradient}`}
-  >
-    {bannerUrl ? (
-      <img
-        src={bannerUrl}
-        alt={`${name} banner`}
-        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        loading="lazy"
-      />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-    ) : (
-      <div class="flex items-center justify-center h-full">
-        <span class="text-5xl font-black opacity-10 select-none" style={`color: ${languageColor}`}>
-          {name.slice(0, 2).toUpperCase()}
-        </span>
-      </div>
-    )}
-    {/* Language badge */}
-    {language && (
-      <span
-        class="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5
-               rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-slate-700 shadow-sm"
-      >
-        <span class="inline-block size-2 rounded-full" style={`background-color: ${languageColor}`} />
-        {language}
-      </span>
-    )}
-  </div>
+  {/* Top accent bar with language color */}
+  <div class="h-1" style={`background: ${languageColor}`} />
 
-  {/* Content area */}
   <div class="p-5">
-    <div class="flex items-center gap-2 mb-2">
-      <img
-        src={`https://github.com/${owner}.png`}
-        alt={owner}
-        class="size-5 rounded-full"
-        loading="lazy"
-      />
-      <span class="text-xs text-slate-400">{owner}</span>
-    </div>
+    {/* Header: logo + name + owner */}
+    <div class="flex items-start gap-4 mb-3">
+      {/* Logo area */}
+      <div
+        class="shrink-0 size-14 rounded-xl overflow-hidden flex items-center justify-center border border-slate-100"
+        style={`background: ${languageColor}10`}
+      >
+        {bannerUrl ? (
+          <img
+            src={bannerUrl}
+            alt={`${name} logo`}
+            class="size-full object-contain p-1"
+            loading="lazy"
+          />
+        ) : (
+          <span class="text-xl font-black select-none" style={`color: ${languageColor}`}>
+            {name.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+      </div>
 
-    <h3 class="m-0 text-lg font-bold truncate group-hover:text-blue-600 transition-colors">
-      {name}
-    </h3>
+      {/* Title and owner */}
+      <div class="min-w-0 flex-1">
+        <h3 class="m-0 text-lg font-bold truncate text-slate-800">
+          {name}
+        </h3>
+        <div class="flex items-center gap-1.5 mt-1">
+          <img
+            src={`https://github.com/${owner}.png`}
+            alt={owner}
+            class="size-4 rounded-full"
+            loading="lazy"
+          />
+          <span class="text-xs text-slate-400">{owner}</span>
+        </div>
+      </div>
 
-    <p class="mt-2 mb-3 text-sm text-slate-500 line-clamp-2">
-      {description ?? 'No description provided'}
-    </p>
-
-    <div class="flex items-center gap-4 text-xs text-slate-500">
-      <span class="flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5 text-amber-400">
+      {/* Stars badge */}
+      <span class="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-xs font-medium text-amber-700">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
           <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z" />
         </svg>
         {stars}
       </span>
     </div>
+
+    {/* Description */}
+    <p class="mt-0 mb-4 text-sm text-slate-500 line-clamp-2 leading-relaxed">
+      {description ?? 'No description provided'}
+    </p>
+
+    {/* Language tag */}
+    {language && (
+      <div class="mb-4">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-50 text-slate-600">
+          <span class="inline-block size-2 rounded-full" style={`background-color: ${languageColor}`} />
+          {language}
+        </span>
+      </div>
+    )}
+
+    {/* Action buttons */}
+    <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+               no-underline bg-slate-800 text-white
+               transition-colors hover:bg-slate-700"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3.5">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+        </svg>
+        GitHub
+      </a>
+      {homepage && (
+        <a
+          href={homepage}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                 no-underline bg-blue-50 text-blue-700 border border-blue-200
+                 transition-colors hover:bg-blue-100"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-3.5">
+            <path fill-rule="evenodd" d="M4.25 5.5a.75.75 0 0 0-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 1 1.5 0v4A2.25 2.25 0 0 1 12.75 17h-8.5A2.25 2.25 0 0 1 2 14.75v-8.5A2.25 2.25 0 0 1 4.25 4h5a.75.75 0 0 1 0 1.5h-5Zm7.25-.75a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V6.31l-5.47 5.47a.75.75 0 1 1-1.06-1.06l5.47-5.47H12.25a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd" />
+          </svg>
+          Homepage
+        </a>
+      )}
+    </div>
   </div>
-</a>
+</div>

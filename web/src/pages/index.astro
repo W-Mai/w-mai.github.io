@@ -86,6 +86,7 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
                 language={project.language}
                 stars={project.stargazers_count}
                 url={project.html_url}
+                homepage={project.homepage}
                 bannerUrl={project.bannerUrl}
                 owner={project.owner}
             />
