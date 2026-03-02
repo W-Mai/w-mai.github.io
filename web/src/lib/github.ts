@@ -221,14 +221,14 @@ export function extractImagesFromReadme(readme: string, owner: string, repo: str
   }
 
   // Skip badge/CI/chart images but keep normal SVG logos
-  const filtered = allImages.filter(img => {
-    const u = img.url.toLowerCase()
-    return !u.includes('shields.io') && !u.includes('badge') && !u.includes('codecov')
-      && !u.includes('travis-ci') && !u.includes('ci.appveyor.com')
-      && !u.includes('github.com/workflows') && !u.includes('coveralls.io')
-      && !u.includes('star-history.com') && !u.includes('starchart.cc')
-      && !u.includes('github-readme-stats') && !u.includes('contrib.rocks')
-  })
+  const blocklist = [
+    'shields.io', 'badge', 'codecov', 'travis-ci', 'ci.appveyor.com',
+    'github.com/workflows', 'coveralls.io', 'star-history.com',
+    'starchart.cc', 'github-readme-stats', 'contrib.rocks',
+  ]
+  const filtered = allImages.filter(img =>
+    !blocklist.some(b => img.url.toLowerCase().includes(b))
+  )
 
   for (const img of filtered) {
     const resolved = resolveImageUrl(img.url, owner, repo)
