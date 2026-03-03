@@ -1,5 +1,6 @@
 @import "tailwindcss/theme";
 @tailwind utilities;
+@plugin "@tailwindcss/typography";
 
 @theme {
     --color-accent-board: #6b7280;
