@@ -19,47 +19,22 @@ function editorApiPlugin(postsDir: string): Plugin {
         return [];
       }
     },
+    // Inject embed styles when ?embed is in the URL
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        if (!ctx.originalUrl?.includes('embed')) return html;
+        if (!ctx.originalUrl?.includes('/blog/')) return html;
+        const embedStyle = `<style id="embed-style">
+          body > header, body > footer, #progress-bar { display: none !important; }
+          main > a[href="/blog"] { display: none !important; }
+          main > div:last-child { display: none !important; }
+          main { padding-top: 1rem !important; }
+        </style>`;
+        return html.replace('</head>', `${embedStyle}\n</head>`);
+      },
+    },
     configureServer(server) {
-      // Intercept /blog/[slug]?embed requests and strip header/footer from response
-      server.middlewares.use((req, res, next) => {
-        const parsedUrl = new URL(req.url || '', 'http://localhost');
-        if (!parsedUrl.searchParams.has('embed')) return next();
-        if (!parsedUrl.pathname.startsWith('/blog/')) return next();
-
-        // Proxy to the same Vite server without embed param, then modify HTML
-        const cleanUrl = parsedUrl.pathname;
-        const originalWrite = res.write.bind(res);
-        const originalEnd = res.end.bind(res);
-        const chunks: Buffer[] = [];
-
-        res.write = (chunk: any, ...args: any[]) => {
-          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-          return true;
-        };
-
-        res.end = (chunk?: any, ...args: any[]) => {
-          if (chunk) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-          let html = Buffer.concat(chunks).toString('utf-8');
-
-          // Inject style to hide header/footer/progress-bar/back-links
-          const embedStyle = `<style id="embed-style">
-            body > header, body > footer, #progress-bar { display: none !important; }
-            main > a[href="/blog"] { display: none !important; }
-            main > div:last-child { display: none !important; }
-            main { padding-top: 1rem !important; }
-          </style>`;
-          html = html.replace('</head>', `${embedStyle}</head>`);
-
-          const buf = Buffer.from(html, 'utf-8');
-          res.setHeader('Content-Length', buf.length);
-          return originalEnd(buf);
-        };
-
-        // Rewrite the request URL to strip embed param, then pass through
-        req.url = cleanUrl;
-        next();
-      });
-
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || '';
 
