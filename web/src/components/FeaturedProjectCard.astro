@@ -45,11 +45,10 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
   target="_blank"
   rel="noopener noreferrer"
   class="featured-card group block relative rounded-2xl overflow-hidden
-         bg-white backdrop-blur-sm
-         border border-slate-200 shadow-sm
+         bg-white shadow-md
          transition-all duration-300 ease-out no-underline
-         hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]
-         hover:-translate-y-1 hover:border-slate-300"
+         hover:shadow-xl hover:-translate-y-1
+         focus-visible:ring-2 focus-visible:ring-accent-board focus-visible:outline-none"
   style={`--card-accent: ${languageColor}; --card-hue: ${hue}`}
 >
 
@@ -61,7 +60,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
         alt=""
         class="absolute inset-0 w-full h-full object-cover
                transition-transform duration-700 ease-out
-               group-hover:scale-110"
+               group-hover:scale-105"
         loading="lazy"
       />
     ) : (
@@ -167,10 +166,9 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
         <span
           class="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wide uppercase
                  rounded-md px-3 py-1.5 cursor-pointer
-                 text-white shadow-sm
-                 hover:shadow-md hover:brightness-110
+                 text-white shadow-sm bg-accent-board
+                 hover:shadow-md hover:bg-accent-board-dark
                  transition-all duration-200 active:scale-95"
-          style={`background: ${languageColor}; box-shadow: 0 2px 8px ${languageColor}44`}
           onclick={`event.preventDefault(); event.stopPropagation(); window.open('${homepage}', '_blank')`}
         >
           Homepage

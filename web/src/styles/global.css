@@ -5,6 +5,11 @@
     --theme-background: #f6f8fa;  /* Light gray background */
     --theme-accent: #1a7f37;      /* GitHub green accent */
 
+    /* Accent color system for project board */
+    --accent-board: #0d9488;        /* teal-600, primary accent */
+    --accent-board-light: #ccfbf1;  /* teal-100, decorative backgrounds */
+    --accent-board-dark: #0f766e;   /* teal-700, hover states */
+
 	--accent: #2337ff;
 	--accent-dark: #000d8a;
 	--black: 15, 18, 25;

@@ -86,36 +86,44 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
         </div>
     </div>
 
-    <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800">📌 置顶项目</h2>
+    <section class="board-container bg-slate-50 rounded-2xl p-4 md:p-8 -mx-2 md:-mx-4">
+        <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+            📌 置顶项目
+            <span class="h-0.5 flex-1 bg-accent-board/20 rounded-full"></span>
+        </h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
-        {featured.map((project) => (
-            <FeaturedProjectCard
-                name={project.name}
-                description={project.description}
-                language={project.language}
-                stars={project.stargazers_count}
-                url={project.html_url}
-                homepage={project.homepage}
-                bannerUrl={project.bannerUrl}
-                logoUrl={project.logoUrl}
-                owner={project.owner}
-                badges={project.badges}
-            />
-        ))}
-    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
+            {featured.map((project) => (
+                <FeaturedProjectCard
+                    name={project.name}
+                    description={project.description}
+                    language={project.language}
+                    stars={project.stargazers_count}
+                    url={project.html_url}
+                    homepage={project.homepage}
+                    bannerUrl={project.bannerUrl}
+                    logoUrl={project.logoUrl}
+                    owner={project.owner}
+                    badges={project.badges}
+                />
+            ))}
+        </div>
 
-    <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800">开源项目</h2>
+        <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+            开源项目
+            <span class="h-0.5 flex-1 bg-accent-board/20 rounded-full"></span>
+        </h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {repos.map((repo) => (
-            <ProjectCard
-                name={repo.name}
-                description={repo.description}
-                language={repo.language}
-                stars={repo.stargazers_count}
-                url={repo.html_url}
-            />
-        ))}
-    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {repos.map((repo) => (
+                <ProjectCard
+                    name={repo.name}
+                    description={repo.description}
+                    language={repo.language}
+                    stars={repo.stargazers_count}
+                    url={repo.html_url}
+                />
+            ))}
+        </div>
+    </section>
 </WithSidebar>
