@@ -69,12 +69,12 @@ const uid = Math.random().toString(36).slice(2, 8);
 
 <style>
   .multitab-preview {
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     overflow: hidden;
     border: 1px solid #e2e8f0;
     background: #fff;
-    margin: 1.5rem 0;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    margin: 2rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
 
   /* Tab bar */
@@ -85,14 +85,15 @@ const uid = Math.random().toString(36).slice(2, 8);
     border-bottom: 1px solid #e2e8f0;
     overflow-x: auto;
     scrollbar-width: none;
+    padding: 0 0.5rem;
   }
   .tab-bar::-webkit-scrollbar { display: none; }
 
   .tab-btn {
-    padding: 0.6rem 1.1rem;
+    padding: 0.75rem 1.25rem;
     font-size: 0.8rem;
     font-weight: 500;
-    color: #64748b;
+    color: #94a3b8;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
@@ -100,44 +101,44 @@ const uid = Math.random().toString(36).slice(2, 8);
     white-space: nowrap;
     transition: color 0.15s, border-color 0.15s;
     font-family: inherit;
+    letter-spacing: 0.01em;
   }
-  .tab-btn:hover { color: #1e293b; }
+  .tab-btn:hover { color: #475569; }
   .tab-btn.active {
     color: #1e293b;
-    border-bottom-color: #334155;
-    background: #fff;
+    border-bottom-color: #475569;
+    background: transparent;
   }
 
-  /* Tab panels */
-  .tab-panel { display: block; }
+  /* Tab panels — add breathing room around code blocks */
+  .tab-panel { display: block; padding: 1rem; }
   .tab-panel.hidden { display: none; }
 
-  /* Strip top margin from first child inside panel (code blocks) */
-  .tab-panel :global(> *:first-child),
-  .tab-panel :global(.expressive-code:first-child) {
-    margin-top: 0 !important;
-    border-radius: 0 !important;
+  .tab-panel :global(.expressive-code),
+  .tab-panel :global(pre) {
+    margin: 0 !important;
+    border-radius: 0.5rem !important;
   }
 
   /* Preview section */
   .preview-panel {
     border-top: 1px solid #e2e8f0;
     background: #f8fafc;
+    padding: 0 1rem 1rem;
   }
   .preview-label {
     display: block;
-    padding: 0.4rem 1rem 0;
-    font-size: 0.7rem;
+    padding: 0.6rem 0 0.4rem;
+    font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     color: #94a3b8;
   }
-  .preview-content :global(> *:first-child),
-  .preview-content :global(.expressive-code:first-child) {
-    margin-top: 0 !important;
-    border-radius: 0 !important;
-    border-top: none !important;
+  .preview-content :global(.expressive-code),
+  .preview-content :global(pre) {
+    margin: 0 !important;
+    border-radius: 0.5rem !important;
   }
 </style>
 
