@@ -167,6 +167,34 @@ export async function fetchGitHubRepos(
   })
 }
 
+// Fetch all public repositories (no limit) for the projects page
+export async function fetchAllGitHubRepos(
+  username: string = USER_NAME,
+): Promise<GitHubRepo[]> {
+  return cachedFetch(`all-repos:${username}`, async () => {
+    try {
+      const response = await fetch(
+        `https://api.github.com/users/${username}/repos?type=public&per_page=100&sort=stars&direction=desc`,
+        { headers: githubHeaders(username) },
+      )
+
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+      }
+
+      const data: GitHubRepo[] = await response.json()
+
+      return data
+        .filter((repo) => !repo.fork)
+        .sort((a, b) => b.stargazers_count - a.stargazers_count)
+    } catch (error) {
+      console.warn('Failed to fetch all GitHub repos, using fallback:', error)
+      return FALLBACK_REPOS
+    }
+  })
+}
+
+
 
 // Featured project with banner and logo extracted from README
 export interface FeaturedProject {
