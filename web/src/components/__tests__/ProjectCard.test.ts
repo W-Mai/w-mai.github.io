@@ -25,7 +25,7 @@ function renderProjectCard(props: {
 
   return (
     `<a href="${url}" target="_blank" rel="noopener noreferrer" ` +
-    `class="block rounded-xl bg-white shadow-sm p-5 border-l-4 border-slate-300 no-underline text-slate-800 transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none">` +
+    `class="block rounded-2xl bg-white shadow-sm p-5 border-l-4 border-slate-300 no-underline text-slate-800 transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none">` +
     `<h3 class="m-0 text-base font-bold truncate text-slate-800">${name}</h3>` +
     `<p class="mt-2 mb-3 text-sm text-slate-500 line-clamp-2">${description ?? 'No description provided'}</p>` +
     `<div class="flex items-center gap-4 text-xs text-slate-500">` +
