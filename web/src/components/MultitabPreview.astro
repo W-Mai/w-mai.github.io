@@ -1,102 +1,181 @@
 ---
-import {Tabs, TabItem} from '@astrojs/starlight/components';
+// Tab keys supported (tab0 ~ tab10)
+const TAB_KEYS = ['tab0','tab1','tab2','tab3','tab4','tab5','tab6','tab7','tab8','tab9','tab10'];
 
 const slots = Astro.slots;
-const labels = Astro.props.labels;
-const syncKey = Astro.props.syncKey;
+const labels: Record<string, string> = Astro.props.labels ?? {};
+const syncKey: string | undefined = Astro.props.syncKey;
+
+// Collect active tabs in order
+const activeTabs = TAB_KEYS.filter(k => slots.has(k));
+const hasPreview = slots.has('preview');
+const hasTabs = activeTabs.length > 0;
+
+// Unique ID for this instance to avoid conflicts when multiple on same page
+const uid = Math.random().toString(36).slice(2, 8);
 ---
 
-<figure>
-    {
-        slots.has("tab0") || slots.has("tab1") || slots.has("tab2") || slots.has("tab3") || slots.has("tab4") || slots.has("tab5") || slots.has("tab6") || slots.has("tab7") || slots.has("tab8") || slots.has("tab9") || slots.has("tab10") ?
-                <Tabs syncKey={syncKey}>
-                    {slots.has("tab0") &&
-                            <TabItem label={labels["tab0"]}>
-                                <slot name="tab0"/>
-                            </TabItem>}
-                    {slots.has("tab1") &&
-                            <TabItem label={labels["tab1"]}>
-                                <slot name="tab1"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab2") &&
-                            <TabItem label={labels["tab2"]}>
-                                <slot name="tab2"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab3") &&
-                            <TabItem label={labels["tab3"]}>
-                                <slot name="tab3"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab4") &&
-                            <TabItem label={labels["tab4"]}>
-                                <slot name="tab4"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab5") &&
-                            <TabItem label={labels["tab5"]}>
-                                <slot name="tab5"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab6") &&
-                            <TabItem label={labels["tab6"]}>
-                                <slot name="tab6"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab7") &&
-                            <TabItem label={labels["tab7"]}>
-                                <slot name="tab7"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab8") &&
-                            <TabItem label={labels["tab8"]}>
-                                <slot name="tab8"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab9") &&
-                            <TabItem label={labels["tab9"]}>
-                                <slot name="tab9"/>
-                            </TabItem>
-                    }
-                    {slots.has("tab10") &&
-                            <TabItem label={labels["tab10"]}>
-                                <slot name="tab10"/>
-                            </TabItem>
-                    }
-                </Tabs> :
-                <slot/>
-    }
+<div class="multitab-preview" data-sync-key={syncKey} data-uid={uid}>
+  {hasTabs && (
+    <div class="tab-bar" role="tablist">
+      {activeTabs.map((key, i) => (
+        <button
+          role="tab"
+          class:list={['tab-btn', { active: i === 0 }]}
+          data-tab={key}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          aria-controls={`panel-${uid}-${key}`}
+          id={`tab-${uid}-${key}`}
+        >
+          {labels[key] ?? key}
+        </button>
+      ))}
+    </div>
+  )}
 
-    {
-        slots.has("preview") &&
-            <div class="preview">
-                <div class="preview-content">
-                    <slot name="preview"/>
-                </div>
-            </div>
-    }
-</figure>
+  {activeTabs.map((key, i) => (
+    <div
+      role="tabpanel"
+      id={`panel-${uid}-${key}`}
+      aria-labelledby={`tab-${uid}-${key}`}
+      class:list={['tab-panel', { hidden: i !== 0 }]}
+      data-tab={key}
+    >
+      {key === 'tab0' && <slot name="tab0" />}
+      {key === 'tab1' && <slot name="tab1" />}
+      {key === 'tab2' && <slot name="tab2" />}
+      {key === 'tab3' && <slot name="tab3" />}
+      {key === 'tab4' && <slot name="tab4" />}
+      {key === 'tab5' && <slot name="tab5" />}
+      {key === 'tab6' && <slot name="tab6" />}
+      {key === 'tab7' && <slot name="tab7" />}
+      {key === 'tab8' && <slot name="tab8" />}
+      {key === 'tab9' && <slot name="tab9" />}
+      {key === 'tab10' && <slot name="tab10" />}
+    </div>
+  ))}
+
+  {!hasTabs && <slot />}
+
+  {hasPreview && (
+    <div class="preview-panel">
+      <span class="preview-label">Output</span>
+      <div class="preview-content">
+        <slot name="preview" />
+      </div>
+    </div>
+  )}
+</div>
 
 <style>
-    .preview {
-        border: 1px solid var(--sl-color-gray-5);
-        border-top: none;
-        margin-top: 0;
-    }
+  .multitab-preview {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    margin: 1.5rem 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
 
-    .preview:only-child {
-        border-top: 1px solid var(--sl-color-gray-5);
-    }
+  /* Tab bar */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
 
-    figcaption {
-        font-size: var(--sl-text-sm);
-        font-weight: 600;
-        padding: 0.5rem 1rem 0;
-    }
+  .tab-btn {
+    padding: 0.6rem 1.1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    font-family: inherit;
+  }
+  .tab-btn:hover { color: #1e293b; }
+  .tab-btn.active {
+    color: #1e293b;
+    border-bottom-color: #334155;
+    background: #fff;
+  }
 
-    .preview-content {
-        margin-top: 0;
-        padding: 1rem;
-    }
+  /* Tab panels */
+  .tab-panel { display: block; }
+  .tab-panel.hidden { display: none; }
+
+  /* Strip top margin from first child inside panel (code blocks) */
+  .tab-panel :global(> *:first-child),
+  .tab-panel :global(.expressive-code:first-child) {
+    margin-top: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Preview section */
+  .preview-panel {
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+  .preview-label {
+    display: block;
+    padding: 0.4rem 1rem 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+  }
+  .preview-content :global(> *:first-child),
+  .preview-content :global(.expressive-code:first-child) {
+    margin-top: 0 !important;
+    border-radius: 0 !important;
+    border-top: none !important;
+  }
 </style>
+
+<script>
+  // Tab switching logic — runs once per component instance
+  document.querySelectorAll<HTMLElement>('.multitab-preview').forEach(container => {
+    const uid = container.dataset.uid;
+    const syncKey = container.dataset.syncKey;
+
+    container.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab!;
+
+        // Update buttons
+        container.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === target);
+          b.setAttribute('aria-selected', b.dataset.tab === target ? 'true' : 'false');
+        });
+
+        // Update panels
+        container.querySelectorAll<HTMLElement>('.tab-panel').forEach(p => {
+          p.classList.toggle('hidden', p.dataset.tab !== target);
+        });
+
+        // Sync other instances with same syncKey
+        if (syncKey) {
+          document.querySelectorAll<HTMLElement>(`.multitab-preview[data-sync-key="${syncKey}"]`).forEach(other => {
+            if (other === container) return;
+            other.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(b => {
+              b.classList.toggle('active', b.dataset.tab === target);
+              b.setAttribute('aria-selected', b.dataset.tab === target ? 'true' : 'false');
+            });
+            other.querySelectorAll<HTMLElement>('.tab-panel').forEach(p => {
+              p.classList.toggle('hidden', p.dataset.tab !== target);
+            });
+          });
+        }
+      });
+    });
+  });
+</script>
