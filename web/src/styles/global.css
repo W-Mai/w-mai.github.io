@@ -2,9 +2,9 @@
 @tailwind utilities;
 
 @theme {
-    --color-accent-board: #0d9488;
-    --color-accent-board-light: #ccfbf1;
-    --color-accent-board-dark: #0f766e;
+    --color-accent-board: #6b7280;
+    --color-accent-board-light: #f3f4f6;
+    --color-accent-board-dark: #4b5563;
 }
 
 :root {

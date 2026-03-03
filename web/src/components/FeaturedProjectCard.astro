@@ -48,7 +48,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
          bg-white shadow-md
          transition-all duration-300 ease-out no-underline
          hover:shadow-xl hover:-translate-y-1
-         focus-visible:ring-2 focus-visible:ring-accent-board focus-visible:outline-none"
+         focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
   style={`--card-accent: ${languageColor}; --card-hue: ${hue}`}
 >
 
@@ -166,8 +166,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
         <span
           class="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-wide uppercase
                  rounded-md px-3 py-1.5 cursor-pointer
-                 text-white shadow-sm bg-accent-board
-                 hover:shadow-md hover:bg-accent-board-dark
+                 text-white shadow-sm bg-slate-600
+                 hover:shadow-md hover:bg-slate-700
                  transition-all duration-200 active:scale-95"
           onclick={`event.preventDefault(); event.stopPropagation(); window.open('${homepage}', '_blank')`}
         >
