@@ -12,7 +12,7 @@ import HeaderLink from './HeaderLink.astro';
 			<HeaderLink href="/about">自个儿</HeaderLink>
 			<div class="more-menu">
 				<button class="more-btn" aria-expanded="false" aria-haspopup="true">
-					更多 <span class="more-arrow">▾</span>
+					瞅瞅 <span class="more-arrow">▾</span>
 				</button>
 				<div class="more-dropdown" role="menu">
 					<a href="/gamev1.8" role="menuitem">🎮 不大点儿游戏</a>
@@ -105,6 +105,8 @@ import HeaderLink from './HeaderLink.astro';
 		display: inline-flex;
 		align-items: center;
 		gap: 0.2em;
+		border-bottom: 4px solid transparent;
+		line-height: inherit;
 	}
 	.more-btn:hover {
 		color: rgb(var(--black));
