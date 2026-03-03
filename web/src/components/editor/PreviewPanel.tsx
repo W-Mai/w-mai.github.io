@@ -27,7 +27,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
       savedScrollTop.current = null;
     }
 
-    iframe.src = `/blog/${slug}?t=${refreshKey}`;
+    iframe.src = `/blog/${slug}?embed&t=${refreshKey}`;
   }, [slug, refreshKey]);
 
   // Restore scroll position after iframe loads
@@ -88,7 +88,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
           onClick={() => {
             if (iframeRef.current && slug) {
               try { savedScrollTop.current = iframeRef.current.contentWindow?.scrollY ?? null; } catch {}
-              iframeRef.current.src = `/blog/${slug}?t=${Date.now()}`;
+              iframeRef.current.src = `/blog/${slug}?embed&t=${Date.now()}`;
             }
           }}
           style={{

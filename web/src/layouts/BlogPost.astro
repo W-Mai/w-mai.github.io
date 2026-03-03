@@ -100,19 +100,6 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 		<Footer />
 
 		<script>
-			// Hide chrome when embedded in an iframe (e.g. live editor preview)
-			if (window !== window.parent) {
-				const style = document.createElement('style');
-				style.textContent = `
-					body > header, body > footer,
-					#progress-bar { display: none !important; }
-					main > a[href="/blog"] { display: none !important; }
-					main > div:last-child { display: none !important; }
-					main { padding-top: 1rem !important; }
-				`;
-				document.head.appendChild(style);
-			}
-
 			// Update reading progress bar on scroll
 			const bar = document.getElementById('progress-bar');
 			function updateProgress() {
