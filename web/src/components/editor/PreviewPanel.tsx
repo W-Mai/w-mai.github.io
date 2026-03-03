@@ -8,14 +8,45 @@ interface PreviewPanelProps {
 
 const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const savedScrollTop = useRef<number | null>(null);
+  const prevRefreshKey = useRef(refreshKey);
 
   useEffect(() => {
-    if (!iframeRef.current) return;
-    if (slug) {
-      // Load the actual blog page rendered by Astro dev server
-      iframeRef.current.src = `/blog/${slug}?t=${refreshKey}`;
+    const iframe = iframeRef.current;
+    if (!iframe || !slug) return;
+
+    // Save scroll position before reload (only on refreshKey change, not slug change)
+    if (refreshKey !== prevRefreshKey.current) {
+      try {
+        savedScrollTop.current = iframe.contentWindow?.scrollY ?? null;
+      } catch {
+        savedScrollTop.current = null;
+      }
+      prevRefreshKey.current = refreshKey;
+    } else {
+      savedScrollTop.current = null;
     }
+
+    iframe.src = `/blog/${slug}?t=${refreshKey}`;
   }, [slug, refreshKey]);
+
+  // Restore scroll position after iframe loads
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const handleLoad = () => {
+      if (savedScrollTop.current !== null) {
+        try {
+          iframe.contentWindow?.scrollTo(0, savedScrollTop.current);
+        } catch {}
+        savedScrollTop.current = null;
+      }
+    };
+
+    iframe.addEventListener('load', handleLoad);
+    return () => iframe.removeEventListener('load', handleLoad);
+  }, []);
 
   // Sync scroll position from editor
   useEffect(() => {
@@ -29,9 +60,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
       if (maxScroll > 0) {
         iframe.contentWindow?.scrollTo({ top: scrollRatio * maxScroll });
       }
-    } catch {
-      // Cross-origin or not loaded yet — ignore
-    }
+    } catch {}
   }, [scrollRatio, slug]);
 
   if (!slug) {
@@ -58,6 +87,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
         <button
           onClick={() => {
             if (iframeRef.current && slug) {
+              try { savedScrollTop.current = iframeRef.current.contentWindow?.scrollY ?? null; } catch {}
               iframeRef.current.src = `/blog/${slug}?t=${Date.now()}`;
             }
           }}

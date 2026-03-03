@@ -16,6 +16,32 @@ if (!import.meta.env.DEV) {
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body { height: 100%; overflow: hidden; }
     </style>
+    <script is:inline>
+      // Intercept Vite HMR full-reload to prevent editor page from refreshing
+      // when posts/*.mdx files are saved. Instead, dispatch a custom event
+      // that the React editor component listens for to refresh the preview iframe.
+      (function() {
+        const OrigWebSocket = window.WebSocket;
+        window.WebSocket = function(url, protocols) {
+          const ws = new OrigWebSocket(url, protocols);
+
+          ws.addEventListener('message', function(event) {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.type === 'full-reload') {
+                event.stopImmediatePropagation();
+                window.dispatchEvent(new CustomEvent('editor:hmr-reload'));
+                return;
+              }
+            } catch {}
+          }, true);
+
+          return ws;
+        };
+        window.WebSocket.prototype = OrigWebSocket.prototype;
+        Object.defineProperty(window, 'WebSocket', { writable: true, configurable: true });
+      })();
+    </script>
   </head>
   <body>
     <LiveEditor client:only="react" />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, type FC } from 'react';
+import { useState, useEffect, useCallback, type FC } from 'react';
 import PostList from './PostList';
 import MdxEditor from './MdxEditor';
 import PreviewPanel from './PreviewPanel';
@@ -44,6 +44,21 @@ const LiveEditor: FC = () => {
         });
       });
     }
+
+    // Listen for intercepted full-reload events from the page-level script
+    const handleHmrReload = () => {
+      setState((s) => {
+        if (s.selectedSlug) {
+          return { ...s, previewKey: s.previewKey + 1 };
+        }
+        return s;
+      });
+    };
+    window.addEventListener('editor:hmr-reload', handleHmrReload);
+
+    return () => {
+      window.removeEventListener('editor:hmr-reload', handleHmrReload);
+    };
   }, []);
 
   const selectPost = useCallback(async (slug: string) => {
