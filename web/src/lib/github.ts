@@ -82,6 +82,7 @@ export interface GitHubRepo {
   language: string | null
   stargazers_count: number
   fork: boolean
+  pushed_at: string
 }
 
 // Fallback profile used when GitHub API is unavailable
@@ -186,7 +187,10 @@ export async function fetchAllGitHubRepos(
 
       return data
         .filter((repo) => !repo.fork)
-        .sort((a, b) => b.stargazers_count - a.stargazers_count)
+        .sort((a, b) => {
+          if (b.stargazers_count !== a.stargazers_count) return b.stargazers_count - a.stargazers_count
+          return new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime()
+        })
     } catch (error) {
       console.warn('Failed to fetch all GitHub repos, using fallback:', error)
       return FALLBACK_REPOS
