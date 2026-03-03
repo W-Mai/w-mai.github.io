@@ -5,6 +5,7 @@ import {SOCIALS} from '../consts';
 
 <footer>
 	&copy; {today.getFullYear()} Benign X. All rights reserved.
+	<a href="/gamev1.8" class="game-link">🎮</a>
 	<div class="social-links">
         {
             SOCIALS.map((social) => (
@@ -35,5 +36,15 @@ import {SOCIALS} from '../consts';
 	}
 	.social-links a:hover {
 		color: rgb(var(--gray-dark));
+	}
+	.game-link {
+		text-decoration: none;
+		opacity: 0.3;
+		transition: opacity 0.2s;
+		margin-left: 0.5em;
+		font-size: 0.8em;
+	}
+	.game-link:hover {
+		opacity: 0.8;
 	}
 </style>
