@@ -110,25 +110,27 @@ const uid = Math.random().toString(36).slice(2, 8);
     background: transparent;
   }
 
-  /* Tab panels — add breathing room around code blocks */
-  .tab-panel { display: block; padding: 1rem; }
+  /* Tab panels — no padding, code blocks fill edge to edge */
+  .tab-panel { display: block; }
   .tab-panel.hidden { display: none; }
 
   .tab-panel :global(.expressive-code),
-  .tab-panel :global(pre) {
+  .tab-panel :global(.expressive-code figure),
+  .tab-panel :global(.expressive-code pre) {
     margin: 0 !important;
-    border-radius: 0 0 0.5rem 0.5rem !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 
   /* Preview section */
   .preview-panel {
     border-top: 1px solid #e2e8f0;
     background: #f8fafc;
-    padding: 0 1rem 1rem;
   }
   .preview-label {
     display: block;
-    padding: 0.6rem 0 0.4rem;
+    padding: 0.6rem 1rem 0.4rem;
     font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -136,9 +138,12 @@ const uid = Math.random().toString(36).slice(2, 8);
     color: #94a3b8;
   }
   .preview-content :global(.expressive-code),
-  .preview-content :global(pre) {
+  .preview-content :global(.expressive-code figure),
+  .preview-content :global(.expressive-code pre) {
     margin: 0 !important;
-    border-radius: 0 0 0.5rem 0.5rem !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 </style>
 
