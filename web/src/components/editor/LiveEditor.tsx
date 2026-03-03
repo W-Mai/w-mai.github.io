@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type FC } from 'react';
+import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import PostList from './PostList';
 import MdxEditor from './MdxEditor';
 import PreviewPanel from './PreviewPanel';
@@ -11,6 +11,7 @@ interface LiveEditorState {
   isDirty: boolean;
   isLoading: boolean;
   error: string | null;
+  previewKey: number;
 }
 
 const LiveEditor: FC = () => {
@@ -22,6 +23,7 @@ const LiveEditor: FC = () => {
     isDirty: false,
     isLoading: false,
     error: null,
+    previewKey: 0,
   });
 
   // Fetch post list on mount
@@ -30,6 +32,18 @@ const LiveEditor: FC = () => {
       .then((res) => res.json())
       .then((posts: string[]) => setState((s) => ({ ...s, posts })))
       .catch((err) => setState((s) => ({ ...s, error: err.message })));
+
+    // Listen for HMR events when posts are saved to disk
+    if (import.meta.hot) {
+      import.meta.hot.on('editor:post-updated', (data: { slug: string }) => {
+        setState((s) => {
+          if (s.selectedSlug === data.slug) {
+            return { ...s, previewKey: s.previewKey + 1 };
+          }
+          return s;
+        });
+      });
+    }
   }, []);
 
   const selectPost = useCallback(async (slug: string) => {
@@ -80,6 +94,7 @@ const LiveEditor: FC = () => {
         savedContent: s.content,
         isDirty: false,
         isLoading: false,
+        previewKey: s.previewKey + 1,
       }));
     } catch (err: any) {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
@@ -89,6 +104,8 @@ const LiveEditor: FC = () => {
   const dismissError = useCallback(() => {
     setState((s) => ({ ...s, error: null }));
   }, []);
+
+  const [scrollRatio, setScrollRatio] = useState(0);
 
   return (
     <div style={{
@@ -190,6 +207,7 @@ const LiveEditor: FC = () => {
                 content={state.content}
                 onChange={handleChange}
                 onSave={handleSave}
+                onScroll={setScrollRatio}
               />
             ) : (
               <div style={{
@@ -201,7 +219,7 @@ const LiveEditor: FC = () => {
             )}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <PreviewPanel mdxContent={state.content} />
+            <PreviewPanel slug={state.selectedSlug} refreshKey={state.previewKey} scrollRatio={scrollRatio} />
           </div>
         </div>
       </div>

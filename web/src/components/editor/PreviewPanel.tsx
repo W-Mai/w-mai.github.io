@@ -1,91 +1,79 @@
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useRef, type FC } from 'react';
 
 interface PreviewPanelProps {
-  mdxContent: string;
+  slug: string | null;
+  refreshKey: number;
+  scrollRatio: number;
 }
 
-const PreviewPanel: FC<PreviewPanelProps> = ({ mdxContent }) => {
+const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-
-    if (!mdxContent.trim()) {
-      if (iframeRef.current) {
-        iframeRef.current.srcdoc = '<html><body style="color:#9ca3af;font-family:sans-serif;padding:2rem;">Start typing to see preview...</body></html>';
-      }
-      return;
+    if (!iframeRef.current) return;
+    if (slug) {
+      // Load the actual blog page rendered by Astro dev server
+      iframeRef.current.src = `/blog/${slug}?t=${refreshKey}`;
     }
+  }, [slug, refreshKey]);
 
-    // 500ms debounce
-    timerRef.current = setTimeout(async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const res = await fetch('/api/editor/preview', {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: mdxContent,
-        });
-        const html = await res.text();
-        if (iframeRef.current) {
-          iframeRef.current.srcdoc = html;
-        }
-        if (!res.ok) {
-          setError('Preview rendering failed');
-        }
-      } catch (err: any) {
-        setError(err?.message || 'Failed to fetch preview');
-      } finally {
-        setIsLoading(false);
+  // Sync scroll position from editor
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !slug) return;
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc) return;
+      const { scrollHeight, clientHeight } = doc.documentElement;
+      const maxScroll = scrollHeight - clientHeight;
+      if (maxScroll > 0) {
+        iframe.contentWindow?.scrollTo({ top: scrollRatio * maxScroll });
       }
-    }, 500);
+    } catch {
+      // Cross-origin or not loaded yet — ignore
+    }
+  }, [scrollRatio, slug]);
 
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [mdxContent]);
+  if (!slug) {
+    return (
+      <div style={{
+        height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#9ca3af', fontSize: '0.9rem', fontFamily: 'sans-serif',
+      }}>
+        Select a post to preview
+      </div>
+    );
+  }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      {isLoading && (
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0,
-          height: '2px', background: '#d1d5db', zIndex: 10,
-        }}>
-          <div style={{
-            height: '100%', width: '30%', background: '#6b7280',
-            animation: 'preview-loading 1s ease-in-out infinite',
-          }} />
-        </div>
-      )}
-      {error && (
-        <div style={{
-          padding: '0.5rem 1rem', background: '#fef2f2',
-          color: '#dc2626', fontSize: '0.8rem', borderBottom: '1px solid #fecaca',
-        }}>
-          {error}
-        </div>
-      )}
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        padding: '0.375rem 0.75rem', background: '#f9fafb',
+        borderBottom: '1px solid #e5e7eb',
+        fontSize: '0.75rem', color: '#9ca3af',
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+      }}>
+        <span>/blog/{slug}</span>
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={() => {
+            if (iframeRef.current && slug) {
+              iframeRef.current.src = `/blog/${slug}?t=${Date.now()}`;
+            }
+          }}
+          style={{
+            background: 'none', border: '1px solid #e5e7eb', borderRadius: '0.25rem',
+            padding: '0.15rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem', color: '#6b7280',
+          }}
+        >
+          ↻ Refresh
+        </button>
+      </div>
       <iframe
         ref={iframeRef}
-        title="MDX Preview"
-        sandbox="allow-scripts"
-        style={{
-          flex: 1, border: 'none', width: '100%',
-          background: '#fff',
-        }}
-        srcDoc='<html><body style="color:#9ca3af;font-family:sans-serif;padding:2rem;">Select a post to preview...</body></html>'
+        title="Blog Preview"
+        style={{ flex: 1, border: 'none', width: '100%', background: '#fff' }}
       />
-      <style>{`
-        @keyframes preview-loading {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(400%); }
-        }
-      `}</style>
     </div>
   );
 };

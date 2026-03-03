@@ -11,6 +11,7 @@ interface MdxEditorProps {
   content: string;
   onChange: (value: string) => void;
   onSave: () => void;
+  onScroll?: (ratio: number) => void;
 }
 
 const editorTheme = EditorView.theme({
@@ -29,14 +30,16 @@ const editorTheme = EditorView.theme({
   '.cm-activeLine': { background: '#f9fafb' },
 });
 
-const MdxEditor: FC<MdxEditorProps> = ({ content, onChange, onSave }) => {
+const MdxEditor: FC<MdxEditorProps> = ({ content, onChange, onSave, onScroll }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
   const onSaveRef = useRef(onSave);
+  const onScrollRef = useRef(onScroll);
 
   onChangeRef.current = onChange;
   onSaveRef.current = onSave;
+  onScrollRef.current = onScroll;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -78,7 +81,19 @@ const MdxEditor: FC<MdxEditorProps> = ({ content, onChange, onSave }) => {
     const view = new EditorView({ state, parent: containerRef.current });
     viewRef.current = view;
 
+    // Scroll sync: emit scroll ratio
+    const scroller = containerRef.current.querySelector('.cm-scroller');
+    const handleScroll = () => {
+      if (!scroller || !onScrollRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = scroller;
+      const maxScroll = scrollHeight - clientHeight;
+      const ratio = maxScroll > 0 ? scrollTop / maxScroll : 0;
+      onScrollRef.current(ratio);
+    };
+    scroller?.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => {
+      scroller?.removeEventListener('scroll', handleScroll);
       view.destroy();
       viewRef.current = null;
     };

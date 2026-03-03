@@ -14,6 +14,15 @@ function validateSlug(slug: string): boolean {
 function editorApiPlugin(postsDir: string): Plugin {
   return {
     name: 'editor-dev-api',
+    handleHotUpdate({ file, server }) {
+      // Intercept HMR for posts/*.mdx — send custom event instead of full reload
+      if (file.startsWith(postsDir) && file.endsWith('.mdx')) {
+        const slug = file.slice(postsDir.length + 1).replace(/\.mdx$/, '');
+        server.ws.send({ type: 'custom', event: 'editor:post-updated', data: { slug } });
+        // Return empty array to prevent default HMR / full reload
+        return [];
+      }
+    },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || '';
