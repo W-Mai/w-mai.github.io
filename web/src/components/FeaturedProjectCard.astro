@@ -159,17 +159,15 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
 
       {homepage && (
         <span
-          class="inline-flex items-center gap-1.5 text-[11px] font-semibold
-                 text-blue-500 bg-blue-50 rounded-full px-2.5 py-1
-                 hover:bg-blue-100 hover:text-blue-700
-                 transition-all duration-200 cursor-pointer
-                 group-hover:shadow-sm"
+          class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400
+                 hover:text-slate-600 transition-colors duration-200 cursor-pointer"
           onclick={`event.preventDefault(); event.stopPropagation(); window.open('${homepage}', '_blank')`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-3">
-            <path fill-rule="evenodd" d="M4.22 11.78a.75.75 0 0 1 0-1.06L9.44 5.5H5.75a.75.75 0 0 1 0-1.5h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V6.56l-5.22 5.22a.75.75 0 0 1-1.06 0Z" clip-rule="evenodd" />
-          </svg>
           Homepage
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
+               class="size-2.5 transition-transform duration-200 group-hover:translate-x-0.5">
+            <path fill-rule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+          </svg>
         </span>
       )}
     </div>
