@@ -179,6 +179,7 @@ export interface FeaturedProject {
   bannerUrl: string | null
   logoUrl: string | null
   owner: string
+  badges: string[]
 }
 
 // Resolve a raw image URL to an absolute URL
@@ -247,6 +248,27 @@ export function extractBannerFromReadme(readme: string, owner: string, repo: str
   return extractImagesFromReadme(readme, owner, repo).bannerUrl
 }
 
+// Extract badge image URLs from README (shields.io, github workflow badges, etc.)
+export function extractBadgesFromReadme(readme: string, owner: string, repo: string): string[] {
+  const mdImages = [...readme.matchAll(/!\[(.*?)\]\((.*?)\)/g)]
+  const htmlImages = [...readme.matchAll(/<img[^>]*\bsrc=["']([^"']+)["'][^>]*>/g)]
+
+  const allUrls: string[] = []
+  for (const m of mdImages) allUrls.push(m[2])
+  for (const m of htmlImages) allUrls.push(m[1])
+
+  const badgePatterns = [
+    'shields.io', 'img.shields.io',
+    'github.com/workflows', '/actions/workflows/',
+    'badge', 'codecov.io', 'coveralls.io',
+  ]
+
+  return allUrls
+    .filter(url => badgePatterns.some(p => url.toLowerCase().includes(p)))
+    .map(url => resolveImageUrl(url, owner, repo))
+    .slice(0, 6)
+}
+
 // Fetch featured project details including banner from README
 export async function fetchFeaturedProjects(
   pinnedRepos: string[],
@@ -273,6 +295,7 @@ export async function fetchFeaturedProjects(
           // Fetch README content for banner/logo extraction
           let bannerUrl: string | null = null
           let logoUrl: string | null = null
+          let badges: string[] = []
           try {
             const readmeRes = await fetch(
               `https://api.github.com/repos/${owner}/${repo}/readme`,
@@ -283,6 +306,7 @@ export async function fetchFeaturedProjects(
               const images = extractImagesFromReadme(readmeText, owner, repo)
               bannerUrl = images.bannerUrl
               logoUrl = images.logoUrl
+              badges = extractBadgesFromReadme(readmeText, owner, repo)
             }
           } catch {
             // README fetch failure is non-critical
@@ -298,6 +322,7 @@ export async function fetchFeaturedProjects(
             bannerUrl,
             logoUrl,
             owner,
+            badges,
           }
         } catch (error) {
           console.warn(`Failed to fetch featured project ${repoSpec}:`, error)
