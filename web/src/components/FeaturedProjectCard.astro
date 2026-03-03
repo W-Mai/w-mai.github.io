@@ -46,15 +46,11 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
   class="featured-card group block relative rounded-2xl overflow-hidden
          bg-white backdrop-blur-sm
          border border-slate-200 shadow-sm
-         transition-all duration-500 ease-out no-underline
-         hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)]
-         hover:-translate-y-2 hover:border-slate-300"
+         transition-all duration-300 ease-out no-underline
+         hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.12)]
+         hover:-translate-y-1 hover:border-slate-300"
   style={`--card-accent: ${languageColor}; --card-hue: ${hue}`}
 >
-  {/* Hover glow border effect */}
-  <div class="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100
-              transition-opacity duration-500 -z-10 blur-sm"
-       style={`background: linear-gradient(135deg, ${languageColor}66, ${languageColor}22, ${languageColor}66)`} />
 
   {/* Banner / Visual area */}
   <div class="relative h-40 overflow-hidden">
