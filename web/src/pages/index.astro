@@ -114,15 +114,17 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
             <span class="h-0.5 flex-1 bg-slate-200 rounded-full"></span>
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="columns-1 md:columns-3 gap-4 space-y-4">
             {repos.map((repo) => (
-                <ProjectCard
-                    name={repo.name}
-                    description={repo.description}
-                    language={repo.language}
-                    stars={repo.stargazers_count}
-                    url={repo.html_url}
-                />
+                <div class="break-inside-avoid">
+                    <ProjectCard
+                        name={repo.name}
+                        description={repo.description}
+                        language={repo.language}
+                        stars={repo.stargazers_count}
+                        url={repo.html_url}
+                    />
+                </div>
             ))}
         </div>
     </section>
