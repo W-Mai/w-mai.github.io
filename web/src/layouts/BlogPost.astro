@@ -9,7 +9,6 @@ import Header from '../components/Header.astro';
 type Props = CollectionEntry<'blog'>['data'];
 
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
-const isEmbed = Astro.url.searchParams.has('embed');
 ---
 
 <html lang="en">
@@ -18,24 +17,22 @@ const isEmbed = Astro.url.searchParams.has('embed');
 		<title>{title}</title>
 	</head>
 	<body>
-		{!isEmbed && (
+		<!-- Reading progress bar -->
 		<div id="progress-bar"
 			class="fixed top-0 left-0 h-0.5 bg-slate-700 z-50 transition-all duration-100"
 			style="width: 0%">
 		</div>
-		)}
 
-		{!isEmbed && <Header />}
+		<Header />
 
 		<main class="max-w-3xl mx-auto px-4 py-10">
-			{!isEmbed && (
+			<!-- Back link -->
 			<a href="/blog"
 			   class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700
 			          transition-colors mb-8 no-underline group">
 				<span class="group-hover:-translate-x-0.5 transition-transform">←</span>
 				<span>返回文章列表</span>
 			</a>
-			)}
 
 			<article>
 				{heroImage && (
@@ -89,7 +86,7 @@ const isEmbed = Astro.url.searchParams.has('embed');
 				</div>
 			</article>
 
-			{!isEmbed && (
+			<!-- Bottom back link -->
 			<div class="mt-16 pt-8 border-t border-slate-200">
 				<a href="/blog"
 				   class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700
@@ -98,10 +95,9 @@ const isEmbed = Astro.url.searchParams.has('embed');
 					<span>返回文章列表</span>
 				</a>
 			</div>
-			)}
 		</main>
 
-		{!isEmbed && <Footer />}
+		<Footer />
 
 		<script>
 			// Update reading progress bar on scroll

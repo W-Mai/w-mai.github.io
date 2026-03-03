@@ -27,8 +27,28 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
       savedScrollTop.current = null;
     }
 
-    iframe.src = `/blog/${slug}?embed&t=${refreshKey}`;
+    iframe.src = `/blog/${slug}?t=${refreshKey}`;
   }, [slug, refreshKey]);
+
+  // Inject embed styles to hide header/footer in preview iframe
+  const injectEmbedStyles = (iframe: HTMLIFrameElement) => {
+    try {
+      const doc = iframe.contentDocument;
+      if (!doc) return;
+      const id = 'editor-embed-style';
+      if (doc.getElementById(id)) return;
+      const style = doc.createElement('style');
+      style.id = id;
+      style.textContent = `
+        body > header, body > footer,
+        #progress-bar,
+        main > a[href="/blog"],
+        main > div:last-child { display: none !important; }
+        main { padding-top: 1rem !important; }
+      `;
+      doc.head.appendChild(style);
+    } catch {}
+  };
 
   // Restore scroll position after iframe loads
   useEffect(() => {
@@ -36,6 +56,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
     if (!iframe) return;
 
     const handleLoad = () => {
+      injectEmbedStyles(iframe);
       if (savedScrollTop.current !== null) {
         try {
           iframe.contentWindow?.scrollTo(0, savedScrollTop.current);
@@ -88,7 +109,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
           onClick={() => {
             if (iframeRef.current && slug) {
               try { savedScrollTop.current = iframeRef.current.contentWindow?.scrollY ?? null; } catch {}
-              iframeRef.current.src = `/blog/${slug}?embed&t=${Date.now()}`;
+              iframeRef.current.src = `/blog/${slug}?t=${Date.now()}`;
             }
           }}
           style={{
