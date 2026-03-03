@@ -10,6 +10,15 @@ import HeaderLink from './HeaderLink.astro';
 			<HeaderLink href="/">当门</HeaderLink>
 			<HeaderLink href="/blog">怼点文章</HeaderLink>
 			<HeaderLink href="/about">自个儿</HeaderLink>
+			<div class="more-menu">
+				<button class="more-btn" aria-expanded="false" aria-haspopup="true">
+					更多 <span class="more-arrow">▾</span>
+				</button>
+				<div class="more-dropdown" role="menu">
+					<a href="/gamev1.8" role="menuitem">🎮 不大点儿游戏</a>
+					<a href="/rss.xml" target="_blank" role="menuitem">📡 RSS</a>
+				</div>
+			</div>
 		</div>
 		<div class="social-links">
             {
@@ -23,6 +32,23 @@ import HeaderLink from './HeaderLink.astro';
 		</div>
 	</nav>
 </header>
+
+<script>
+	const btn = document.querySelector('.more-btn');
+	const dropdown = document.querySelector('.more-dropdown');
+	if (btn && dropdown) {
+		btn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			const expanded = btn.getAttribute('aria-expanded') === 'true';
+			btn.setAttribute('aria-expanded', String(!expanded));
+			dropdown.classList.toggle('show');
+		});
+		document.addEventListener('click', () => {
+			btn.setAttribute('aria-expanded', 'false');
+			dropdown.classList.remove('show');
+		});
+	}
+</script>
 <style>
 	header {
 		margin: 0;
@@ -34,7 +60,6 @@ import HeaderLink from './HeaderLink.astro';
 		margin: 0;
 		font-size: 1em;
 	}
-
 	h2 a,
 	h2 a.active {
 		text-decoration: none;
@@ -54,13 +79,100 @@ import HeaderLink from './HeaderLink.astro';
 		text-decoration: none;
 		border-bottom-color: var(--accent);
 	}
+	.internal-links {
+		display: flex;
+		align-items: center;
+	}
 	.social-links,
 	.social-links a {
 		display: flex;
 	}
+
+	/* More dropdown menu */
+	.more-menu {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+	}
+	.more-btn {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 1em 0.5em;
+		font-size: inherit;
+		font-family: inherit;
+		color: rgb(var(--gray-dark));
+		display: inline-flex;
+		align-items: center;
+		gap: 0.2em;
+	}
+	.more-btn:hover {
+		color: rgb(var(--black));
+	}
+	.more-arrow {
+		font-size: 0.7em;
+		transition: transform 0.2s ease;
+	}
+	.more-btn[aria-expanded="true"] .more-arrow {
+		transform: rotate(180deg);
+	}
+	.more-dropdown {
+		display: none;
+		position: absolute;
+		top: 100%;
+		right: 0;
+		background: white;
+		border-radius: 0.75rem;
+		box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+		min-width: 10rem;
+		padding: 0.4rem;
+		z-index: 50;
+	}
+	.more-dropdown.show {
+		display: flex;
+		flex-direction: column;
+	}
+	.more-dropdown a {
+		padding: 0.6em 0.8em;
+		border-bottom: none;
+		border-radius: 0.5rem;
+		font-size: 0.85em;
+		white-space: nowrap;
+		color: rgb(var(--gray-dark));
+		transition: background 0.15s ease;
+	}
+	.more-dropdown a:hover {
+		background: rgb(var(--gray-light));
+	}
+
 	@media (max-width: 720px) {
+		nav {
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 0;
+		}
+		h2 {
+			width: 100%;
+			text-align: center;
+			padding-top: 0.5em;
+		}
+		.internal-links {
+			display: flex;
+			justify-content: center;
+			width: 100%;
+		}
 		.social-links {
 			display: none;
+		}
+	}
+	@media (max-width: 400px) {
+		nav a,
+		.more-btn {
+			padding: 0.8em 0.3em;
+			font-size: 0.85em;
+		}
+		h2 {
+			font-size: 0.85em;
 		}
 	}
 </style>
