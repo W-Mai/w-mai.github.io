@@ -51,7 +51,7 @@ export const SOCIALS = [
 
 ## 写文章
 
-文章放在 `web/src/content/blog/` 目录下，支持 `.md` 和 `.mdx` 格式。
+文章放在根目录 `posts/` 下，支持 `.md` 和 `.mdx` 格式。图片等资源放在 `posts/assets/`。
 
 **文章 frontmatter：**
 
@@ -60,16 +60,18 @@ export const SOCIALS = [
 title: '文章标题'
 description: '文章描述'
 pubDate: 'Jan 1 2025'
-heroImage: '../../assets/your-image.png'  # 可选封面图
+heroImage: './assets/your-image.png'  # 可选封面图，相对于 posts/ 目录
 ---
 ```
 
 ### 在 MDX 中使用组件
 
+组件通过 `~` 别名引用（指向 `web/src/`）：
+
 #### MultitabPreview — 多标签代码预览
 
 ```mdx
-import MultitabPreview from "../../components/MultitabPreview.astro"
+import MultitabPreview from "~/components/MultitabPreview.astro"
 import { Fragment } from "astro/jsx-runtime"
 
 <MultitabPreview labels={{tab0: "Python", tab1: "JavaScript", preview: "输出"}}>
@@ -159,14 +161,14 @@ export default defineConfig({
 ## 项目结构
 
 ```
-web/
-├── src/
-│   ├── components/       # 通用组件
-│   ├── content/blog/     # 文章（.md / .mdx）
-│   ├── layouts/          # 页面布局
-│   ├── lib/              # 工具函数（GitHub API 等）
-│   ├── pages/            # 路由页面
-│   └── styles/           # 全局样式
-├── public/               # 静态资源
-└── astro.config.mjs      # Astro 配置
+├── posts/                # 文章（.md / .mdx）和资源
+│   └── assets/           # 文章用到的图片等资源
+├── web/
+│   └── src/
+│       ├── components/   # 通用组件
+│       ├── layouts/      # 页面布局
+│       ├── lib/          # 工具函数（GitHub API 等）
+│       ├── pages/        # 路由页面
+│       └── styles/       # 全局样式
+└── web/public/           # 静态资源
 ```
