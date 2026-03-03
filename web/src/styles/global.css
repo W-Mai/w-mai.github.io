@@ -106,8 +106,11 @@ a:hover {
 p {
 	margin-bottom: 1em;
 }
-.prose p {
-	margin-bottom: 2em;
+.prose .expressive-code figure,
+.prose .expressive-code {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
 }
 textarea {
 	width: 100%;
@@ -171,4 +174,17 @@ hr {
 	clip-path: inset(50%);
 	/* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
 	white-space: nowrap;
+}
+
+.prose p {
+  margin-bottom: 2em;
+}
+
+/* Restore border and shadow for standalone code blocks inside article prose */
+.prose .expressive-code,
+.prose .expressive-code figure {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
 }

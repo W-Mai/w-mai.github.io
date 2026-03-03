@@ -10,7 +10,21 @@ import astroMermaid from 'astro-mermaid';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://benign.host',
-  integrations: [astroMermaid(), astroExpressiveCode(), mdx(), sitemap()],
+  integrations: [
+    astroMermaid(),
+    astroExpressiveCode({
+      styleOverrides: {
+        borderRadius: '0.5rem',
+        borderColor: 'transparent',
+        borderWidth: '0',
+        frames: {
+          frameBoxShadowCssValue: 'none',
+        },
+      },
+    }),
+    mdx(),
+    sitemap(),
+  ],
 
   image: {
       domains: [
