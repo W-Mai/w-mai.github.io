@@ -36,7 +36,12 @@ function editorApiPlugin(postsDir: string): Plugin {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const url = req.url || '';
+        const fullUrl = req.url || '';
+
+        // Only handle /api/editor/* routes
+        if (!fullUrl.startsWith('/api/editor/')) return next();
+
+        const url = fullUrl.split('?')[0];
 
         // GET /api/editor/posts - list all posts
         if (url === '/api/editor/posts' && req.method === 'GET') {
