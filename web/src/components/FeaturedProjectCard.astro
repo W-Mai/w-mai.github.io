@@ -15,7 +15,7 @@ interface Props {
   badges: string[]
 }
 
-const { name, description, language, stars, url, homepage, bannerUrl, logoUrl, owner, badges } = Astro.props
+const { name, description, language, stars, url, homepage, bannerUrl, logoUrl, owner, badges = [] } = Astro.props
 const languageColor = getLanguageColor(language)
 const hasBanner = !!bannerUrl
 const hasLogo = !!logoUrl
