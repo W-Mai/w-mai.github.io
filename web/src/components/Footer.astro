@@ -21,12 +21,21 @@ import {SOCIALS} from '../consts';
 	footer {
 		padding: 2em 1em 6em 1em;
 		background: #e8ecf1;
-		/* Neumorphism top separation shadow */
-		box-shadow: 0 -4px 8px #c8ccd1;
+		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.06);
 		position: relative;
 		z-index: 10;
 		color: rgb(var(--gray));
 		text-align: center;
+	}
+	footer::before {
+		content: '';
+		position: absolute;
+		bottom: 100%;
+		left: 3%;
+		right: 3%;
+		height: 14px;
+		background: radial-gradient(ellipse at bottom center, rgba(0,0,0,0.15) 0%, transparent 70%);
+		z-index: -1;
 	}
 	.social-links {
 		display: flex;
