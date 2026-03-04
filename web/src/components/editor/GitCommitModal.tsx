@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type FC } from 'react';
+import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 
@@ -27,14 +27,16 @@ const GitCommitModal: FC<GitCommitModalProps> = ({
   const [messages, setMessages] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
 
-  // Reset messages when modal opens
+  // Reset messages only when modal first opens
+  const prevOpen = useRef(false);
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevOpen.current) {
       const defaults: Record<string, string> = {};
       for (const p of pending) defaults[p.slug] = defaultMsg(p.title);
       setMessages(defaults);
       setAiLoading({});
     }
+    prevOpen.current = isOpen;
   }, [isOpen, pending]);
 
   const updateMessage = useCallback((slug: string, msg: string) => {

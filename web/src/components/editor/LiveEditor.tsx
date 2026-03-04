@@ -128,7 +128,7 @@ const LiveEditor: FC = () => {
   }, []);
   useEffect(() => { refreshAssetNames(); }, [refreshAssetNames]);
 
-  // Fetch pending git posts and poll periodically
+  // Fetch pending git posts and poll periodically (pause while modal is open)
   const refreshGitPending = useCallback(() => {
     fetch('/api/editor/git')
       .then((res) => res.json())
@@ -137,9 +137,10 @@ const LiveEditor: FC = () => {
   }, []);
   useEffect(() => {
     refreshGitPending();
+    if (showGitModal) return;
     const interval = setInterval(refreshGitPending, 10000);
     return () => clearInterval(interval);
-  }, [refreshGitPending]);
+  }, [refreshGitPending, showGitModal]);
 
   const handleGitCommit = useCallback(() => {
     if (gitPending.length === 0 || gitCommitting) return;
