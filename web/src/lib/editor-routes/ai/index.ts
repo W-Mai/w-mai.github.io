@@ -19,17 +19,18 @@ function json(data: unknown, status = 200) {
 }
 
 /** Read AI config from environment variables */
-function getAIConfig(): { baseUrl: string; apiKey: string } {
+function getAIConfig(): { baseUrl: string; apiKey: string; model: string } {
   const baseUrl = import.meta.env.OPENAI_API_BASE || process.env.OPENAI_API_BASE;
   const apiKey = import.meta.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  const model = import.meta.env.OPENAI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
   if (!baseUrl) throw new Error('OPENAI_API_BASE environment variable is not configured');
   if (!apiKey) throw new Error('OPENAI_API_KEY environment variable is not configured');
-  return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey };
+  return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model };
 }
 
 /** POST /api/editor/ai — AI proxy with SSE streaming */
 export const POST: APIRoute = async ({ request }) => {
-  let config: { baseUrl: string; apiKey: string };
+  let config: { baseUrl: string; apiKey: string; model: string };
   try {
     config = getAIConfig();
   } catch (err: any) {
@@ -71,7 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
         Authorization: `Bearer ${config.apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: config.model,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
