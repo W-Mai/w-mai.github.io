@@ -66,8 +66,10 @@ const LiveEditor: FC = () => {
     try {
       const res = await fetch(`/api/editor/posts/${slug}`);
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to load post');
+        const text = await res.text();
+        let msg = 'Failed to load post';
+        try { msg = JSON.parse(text).error || msg; } catch {}
+        throw new Error(msg);
       }
       const content = await res.text();
       setState((s) => ({
@@ -101,8 +103,10 @@ const LiveEditor: FC = () => {
         body: state.content,
       });
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to save');
+        const text = await res.text();
+        let msg = 'Failed to save';
+        try { msg = JSON.parse(text).error || msg; } catch {}
+        throw new Error(msg);
       }
       setState((s) => ({
         ...s,
@@ -118,6 +122,58 @@ const LiveEditor: FC = () => {
 
   const dismissError = useCallback(() => {
     setState((s) => ({ ...s, error: null }));
+  }, []);
+
+  const createPost = useCallback(async () => {
+    const slug = prompt('Enter new post slug (e.g. my-new-post):');
+    if (!slug || !slug.trim()) return;
+    const trimmed = slug.trim();
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
+      setState((s) => ({ ...s, error: 'Slug can only contain letters, numbers, hyphens and underscores' }));
+      return;
+    }
+    setState((s) => ({ ...s, isLoading: true, error: null }));
+    try {
+      const res = await fetch(`/api/editor/posts/${trimmed}`, { method: 'POST' });
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
+      if (!res.ok) throw new Error(data.error || 'Failed to create post');
+      const listRes = await fetch('/api/editor/posts');
+      const listText = await listRes.text();
+      let posts: string[] = [];
+      try { posts = JSON.parse(listText); } catch {}
+      setState((s) => ({ ...s, posts, isLoading: false }));
+      await selectPost(trimmed);
+    } catch (err: any) {
+      setState((s) => ({ ...s, isLoading: false, error: err.message }));
+    }
+  }, [selectPost]);
+
+  const deletePost = useCallback(async (slug: string) => {
+    if (!confirm(`Delete "${slug}"? This cannot be undone.`)) return;
+    setState((s) => ({ ...s, isLoading: true, error: null }));
+    try {
+      const res = await fetch(`/api/editor/posts/${slug}`, { method: 'DELETE' });
+      const text = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(text); } catch {}
+      if (!res.ok) throw new Error(data.error || 'Failed to delete post');
+      const listRes = await fetch('/api/editor/posts');
+      const listText = await listRes.text();
+      let posts: string[] = [];
+      try { posts = JSON.parse(listText); } catch {}
+      setState((s) => ({
+        ...s,
+        posts,
+        isLoading: false,
+        ...(s.selectedSlug === slug ? {
+          selectedSlug: null, content: '', savedContent: '', isDirty: false,
+        } : {}),
+      }));
+    } catch (err: any) {
+      setState((s) => ({ ...s, isLoading: false, error: err.message }));
+    }
   }, []);
 
   const [scrollRatio, setScrollRatio] = useState(0);
@@ -140,14 +196,27 @@ const LiveEditor: FC = () => {
           fontSize: '0.75rem', fontWeight: 600,
           textTransform: 'uppercase', letterSpacing: '0.05em',
           color: '#9ca3af',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          Posts
+          <span>Posts</span>
+          <button
+            onClick={createPost}
+            title="New post"
+            style={{
+              background: 'none', border: '1px solid #e5e7eb', borderRadius: '0.25rem',
+              cursor: 'pointer', fontSize: '0.8rem', color: '#6b7280',
+              padding: '0.1rem 0.4rem', lineHeight: 1,
+            }}
+          >
+            +
+          </button>
         </div>
         <div style={{ flex: 1, overflow: 'auto' }}>
           <PostList
             posts={state.posts}
             selectedSlug={state.selectedSlug}
             onSelect={selectPost}
+            onDelete={deletePost}
           />
         </div>
       </div>

@@ -1,0 +1,84 @@
+import type { APIRoute } from 'astro';
+import { readFile, writeFile, unlink, access } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { validateSlug } from '~/lib/editor-utils';
+
+export const prerender = false;
+
+const postsDir = resolve(process.cwd(), '..', 'posts');
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+/** GET /api/editor/posts/[slug] — read post content */
+export const GET: APIRoute = async ({ params }) => {
+  const { slug } = params;
+  if (!slug || !validateSlug(slug)) return json({ error: 'Invalid slug' }, 400);
+
+  const filePath = resolve(postsDir, `${slug}.mdx`);
+  try {
+    const content = await readFile(filePath, 'utf-8');
+    return new Response(content, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+  } catch (err: any) {
+    if (err?.code === 'ENOENT') return json({ error: `Post not found: ${slug}` }, 404);
+    return json({ error: 'Failed to read file' }, 500);
+  }
+};
+
+/** PUT /api/editor/posts/[slug] — update post content */
+export const PUT: APIRoute = async ({ params, request }) => {
+  const { slug } = params;
+  if (!slug || !validateSlug(slug)) return json({ error: 'Invalid slug' }, 400);
+
+  const filePath = resolve(postsDir, `${slug}.mdx`);
+  try {
+    const content = await request.text();
+    await writeFile(filePath, content, 'utf-8');
+    return json({ success: true, slug });
+  } catch {
+    return json({ error: 'Failed to write file' }, 500);
+  }
+};
+
+/** POST /api/editor/posts/[slug] — create new post */
+export const POST: APIRoute = async ({ params }) => {
+  const { slug } = params;
+  if (!slug || !validateSlug(slug)) return json({ error: 'Invalid slug' }, 400);
+
+  const filePath = resolve(postsDir, `${slug}.mdx`);
+  try {
+    await access(filePath);
+    return json({ error: `Post already exists: ${slug}` }, 409);
+  } catch {
+    // File doesn't exist — create it
+    try {
+      const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const template = `---\ntitle: '${slug}'\ndescription: ''\npubDate: '${today}'\n---\n\nStart writing here.\n`;
+      await writeFile(filePath, template, 'utf-8');
+      return json({ success: true, slug });
+    } catch {
+      return json({ error: 'Failed to create file' }, 500);
+    }
+  }
+};
+
+/** DELETE /api/editor/posts/[slug] — delete post */
+export const DELETE: APIRoute = async ({ params }) => {
+  const { slug } = params;
+  if (!slug || !validateSlug(slug)) return json({ error: 'Invalid slug' }, 400);
+
+  const filePath = resolve(postsDir, `${slug}.mdx`);
+  try {
+    await unlink(filePath);
+    return json({ success: true, slug });
+  } catch (err: any) {
+    if (err?.code === 'ENOENT') return json({ error: `Post not found: ${slug}` }, 404);
+    return json({ error: 'Failed to delete file' }, 500);
+  }
+};
