@@ -75,6 +75,7 @@ export function deduplicateAssetName(name: string, existingNames: Set<string>): 
 
 const MD_IMAGE_RE = /!\[.*?\]\(\.?\/?\/?assets\/([^)]+)\)/g;
 const MDX_IMPORT_RE = /import\s+.*?\s+from\s+['"]\.?\/?\/?assets\/([^'"]+)['"]/g;
+const FRONTMATTER_ASSET_RE = /:\s*['"]\.?\/?\/?assets\/([^'"]+)['"]/g;
 
 /** Scan all .mdx files and count references to each asset */
 export async function computeAssetReferences(
@@ -106,7 +107,7 @@ export async function computeAssetReferences(
 
     const found = new Set<string>();
 
-    for (const re of [MD_IMAGE_RE, MDX_IMPORT_RE]) {
+    for (const re of [MD_IMAGE_RE, MDX_IMPORT_RE, FRONTMATTER_ASSET_RE]) {
       re.lastIndex = 0;
       let m: RegExpExecArray | null;
       while ((m = re.exec(content)) !== null) {
