@@ -189,6 +189,52 @@ hr {
   box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
 }
 
+/* Neumorphism design system */
+.neu-bg {
+  background: #e8ecf1 !important;
+}
+
+.neu-card {
+  background: #e8ecf1;
+  box-shadow: 6px 6px 12px #c8ccd1, -6px -6px 12px #ffffff;
+  border: none;
+}
+
+.neu-card-warm {
+  background: linear-gradient(135deg, #f0e6d6, #ece2d4);
+  box-shadow: 6px 6px 12px #c8c0b4, -6px -6px 12px #fff8ee;
+  border: none;
+}
+
+.neu-btn {
+  background: #e8ecf1;
+  box-shadow: 4px 4px 8px #c8ccd1, -4px -4px 8px #ffffff;
+  border: none;
+  transition: box-shadow 0.2s ease;
+}
+.neu-btn:hover {
+  box-shadow: 2px 2px 4px #c8ccd1, -2px -2px 4px #ffffff;
+}
+.neu-btn:active {
+  box-shadow: inset 2px 2px 5px #c8ccd1, inset -2px -2px 5px #ffffff;
+}
+
+.neu-avatar-ring {
+  background: #e8ecf1;
+  box-shadow: 3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff;
+  padding: 4px;
+}
+
+/* Responsive: smaller shadows on small screens */
+@media (max-width: 400px) {
+  .neu-card {
+    box-shadow: 4px 4px 8px #c8ccd1, -4px -4px 8px #ffffff;
+  }
+  .neu-btn {
+    box-shadow: 3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff;
+  }
+}
+
 /* Scroll-triggered fade-in + slide-up animation */
 .anim-fade {
   opacity: 0;

@@ -44,10 +44,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
   href={url}
   target="_blank"
   rel="noopener noreferrer"
-  class="featured-card group block relative rounded-3xl overflow-hidden
-         bg-white shadow-md
+  class="featured-card neu-card group block relative rounded-3xl overflow-hidden
          transition-all duration-300 ease-out no-underline
-         hover:shadow-xl hover:-translate-y-1
          focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
   style={`--card-accent: ${languageColor}; --card-hue: ${hue}`}
 >
@@ -82,8 +80,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
       </div>
     )}
 
-    {/* Bottom gradient fade */}
-    <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/40 to-transparent" />
+    {/* Bottom gradient fade to neumorphism background */}
+    <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#e8ecf1]/60 to-transparent" />
 
     {/* Stars badge */}
     {stars > 0 && (
@@ -108,8 +106,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
       {/* Logo */}
       {logoSrc && (
         <div class="shrink-0 -mt-7 relative z-10">
-          <div class="size-14 rounded-xl overflow-hidden bg-white
-                       shadow-lg ring-[3px] ring-white
+          <div class="size-14 rounded-xl overflow-hidden bg-[#e8ecf1]
+                       shadow-lg ring-[3px] ring-[#e8ecf1]
                        flex items-center justify-center">
             <img
               src={logoSrc}
@@ -189,6 +187,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
   }
   .featured-card:hover {
     color: rgb(30 41 59) !important;
+    box-shadow: 8px 8px 16px #c8ccd1, -8px -8px 16px #ffffff;
+    transform: translateY(-2px);
   }
   .featured-title {
     font-size: 1.5rem !important;

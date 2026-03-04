@@ -17,10 +17,9 @@ const languageColor = getLanguageColor(language)
   href={url}
   target="_blank"
   rel="noopener noreferrer"
-  class="project-card block rounded-2xl bg-white shadow-sm p-3.5
+  class="project-card neu-card block rounded-2xl p-3.5
          no-underline text-slate-800
          transition-all duration-300 ease-out
-         hover:shadow-lg hover:-translate-y-0.5
          focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
 >
   <h3 class="m-0 text-sm font-bold truncate text-slate-800">{name}</h3>
@@ -60,5 +59,9 @@ const languageColor = getLanguageColor(language)
   }
   .project-card:hover {
     color: rgb(30 41 59) !important;
+    box-shadow: 2px 2px 5px #c8ccd1, -2px -2px 5px #ffffff;
+  }
+  .project-card:active {
+    box-shadow: inset 2px 2px 5px #c8ccd1, inset -2px -2px 5px #ffffff;
   }
 </style>
