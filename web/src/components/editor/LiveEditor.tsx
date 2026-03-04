@@ -13,8 +13,13 @@ import GitCommitModal from './GitCommitModal';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import { persistEditorState, restoreEditorState } from '../../lib/editor-utils';
 
+interface PostInfo {
+  slug: string;
+  title: string;
+}
+
 interface LiveEditorState {
-  posts: string[];
+  posts: PostInfo[];
   selectedSlug: string | null;
   content: string;
   savedContent: string;
@@ -85,11 +90,11 @@ const LiveEditor: FC = () => {
   // Restore selected slug from localStorage
   useEffect(() => {
     const savedSlug = restoreEditorState('selectedSlug');
-    fetch('/api/editor/posts')
+    fetch('/api/editor/posts?detail')
       .then((res) => res.json())
-      .then((posts: string[]) => {
+      .then((posts: PostInfo[]) => {
         setState((s) => ({ ...s, posts }));
-        if (savedSlug && posts.includes(savedSlug)) {
+        if (savedSlug && posts.some((p) => p.slug === savedSlug)) {
           selectPost(savedSlug);
         }
       })
@@ -282,8 +287,8 @@ const LiveEditor: FC = () => {
       let data: any = {};
       try { data = JSON.parse(text); } catch {}
       if (!res.ok) throw new Error(data.error || 'Failed to create post');
-      const listRes = await fetch('/api/editor/posts');
-      const posts: string[] = await listRes.json();
+      const listRes = await fetch('/api/editor/posts?detail');
+      const posts: PostInfo[] = await listRes.json();
       setState((s) => ({ ...s, posts, isLoading: false }));
       await selectPost(slug);
       refreshGitPending();
@@ -301,8 +306,8 @@ const LiveEditor: FC = () => {
       let data: any = {};
       try { data = JSON.parse(text); } catch {}
       if (!res.ok) throw new Error(data.error || 'Failed to delete post');
-      const listRes = await fetch('/api/editor/posts');
-      const posts: string[] = await listRes.json();
+      const listRes = await fetch('/api/editor/posts?detail');
+      const posts: PostInfo[] = await listRes.json();
       setState((s) => ({
         ...s, posts, isLoading: false,
         ...(s.selectedSlug === slug ? { selectedSlug: null, content: '', savedContent: '', isDirty: false } : {}),
@@ -703,7 +708,7 @@ const LiveEditor: FC = () => {
       {/* Create Post Modal */}
       <CreatePostModal
         isOpen={showCreateModal}
-        existingSlugs={state.posts}
+        existingSlugs={state.posts.map((p) => p.slug)}
         aiEnabled={aiEnabled}
         onConfirm={createPost}
         onCancel={() => setShowCreateModal(false)}
