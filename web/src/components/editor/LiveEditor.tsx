@@ -126,14 +126,18 @@ const LiveEditor: FC = () => {
   }, []);
   useEffect(() => { refreshAssetNames(); }, [refreshAssetNames]);
 
-  // Fetch pending git posts
+  // Fetch pending git posts and poll periodically
   const refreshGitPending = useCallback(() => {
     fetch('/api/editor/git')
       .then((res) => res.json())
       .then((data: any) => setGitPending(data.pending || []))
       .catch(() => {});
   }, []);
-  useEffect(() => { refreshGitPending(); }, [refreshGitPending]);
+  useEffect(() => {
+    refreshGitPending();
+    const interval = setInterval(refreshGitPending, 10000);
+    return () => clearInterval(interval);
+  }, [refreshGitPending]);
 
   const handleGitCommit = useCallback(async () => {
     if (gitPending.length === 0 || gitCommitting) return;
@@ -225,10 +229,11 @@ const LiveEditor: FC = () => {
       setState((s) => ({
         ...s, savedContent: s.content, isDirty: false, isLoading: false, previewKey: s.previewKey + 1,
       }));
+      refreshGitPending();
     } catch (err: any) {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
     }
-  }, [state.selectedSlug, state.isDirty, state.content]);
+  }, [state.selectedSlug, state.isDirty, state.content, refreshGitPending]);
 
   // Auto-save debounce
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -271,10 +276,11 @@ const LiveEditor: FC = () => {
       const posts: string[] = await listRes.json();
       setState((s) => ({ ...s, posts, isLoading: false }));
       await selectPost(slug);
+      refreshGitPending();
     } catch (err: any) {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
     }
-  }, [selectPost]);
+  }, [selectPost, refreshGitPending]);
 
   const deletePost = useCallback(async (slug: string) => {
     if (!confirm(`Delete "${slug}"? This cannot be undone.`)) return;
@@ -291,10 +297,11 @@ const LiveEditor: FC = () => {
         ...s, posts, isLoading: false,
         ...(s.selectedSlug === slug ? { selectedSlug: null, content: '', savedContent: '', isDirty: false } : {}),
       }));
+      refreshGitPending();
     } catch (err: any) {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
     }
-  }, []);
+  }, [refreshGitPending]);
 
   const handleInsertAsset = useCallback((ref: string) => {
     const imgTag = `![](${ref})`;
@@ -586,25 +593,28 @@ const LiveEditor: FC = () => {
               {state.isLoading ? 'Saving...' : 'Save'}
             </button>
           )}
-          {gitPending.length > 0 && (
-            <button
-              onClick={handleGitCommit}
-              disabled={gitCommitting}
-              title={`Commit ${gitPending.length} post(s): ${gitPending.map((p) => p.title).join(', ')}`}
-              style={{
-                padding: `0.35rem ${T.spacingXl}`,
-                background: gitCommitting ? T.colorBorder : '#059669',
-                color: gitCommitting ? T.colorTextMuted : '#fff',
-                border: 'none', borderRadius: T.radiusMd,
-                fontSize: T.fontSizeMd, fontWeight: 500,
-                cursor: gitCommitting ? 'wait' : 'pointer',
-                transition: `all ${T.transitionFast}`,
-                display: 'flex', alignItems: 'center', gap: T.spacingSm,
-              }}
-            >
-              {gitCommitting ? '⏳ Committing...' : `📦 Commit ${gitPending.length} post${gitPending.length > 1 ? 's' : ''}`}
-            </button>
-          )}
+          <button
+            onClick={handleGitCommit}
+            disabled={gitCommitting || gitPending.length === 0}
+            title={gitPending.length > 0
+              ? `Commit ${gitPending.length} post(s): ${gitPending.map((p) => p.title).join(', ')}`
+              : 'No pending posts to commit'}
+            style={{
+              padding: `0.35rem ${T.spacingXl}`,
+              background: gitPending.length === 0 ? T.colorBorder
+                : gitCommitting ? T.colorBorder : '#059669',
+              color: gitPending.length === 0 ? T.colorTextMuted
+                : gitCommitting ? T.colorTextMuted : '#fff',
+              border: 'none', borderRadius: T.radiusMd,
+              fontSize: T.fontSizeMd, fontWeight: 500,
+              cursor: gitPending.length === 0 || gitCommitting ? 'default' : 'pointer',
+              transition: `all ${T.transitionFast}`,
+              display: 'flex', alignItems: 'center', gap: T.spacingSm,
+              opacity: gitPending.length === 0 ? 0.5 : 1,
+            }}
+          >
+            {gitCommitting ? '⏳ Committing...' : `📦 Commit${gitPending.length > 0 ? ` ${gitPending.length} post${gitPending.length > 1 ? 's' : ''}` : ''}`}
+          </button>
         </div>
 
         {/* Error banner */}
