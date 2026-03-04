@@ -138,9 +138,10 @@ const afterCount = Math.floor(Math.random() * 60) + 20
             🥕🐱🧻 臻棒！ 🎉
         </div>
         <script>
-            const container = document.getElementById('find-ren')
-            const toast = document.getElementById('find-ren-toast')
-            if (container && toast) {
+            function initFindRen() {
+                const container = document.getElementById('find-ren')
+                const toast = document.getElementById('find-ren-toast')
+                if (!container || !toast) return
                 container.addEventListener('click', (e) => {
                     const target = e.target as HTMLElement
                     if (!target.dataset.c) return
@@ -155,6 +156,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
                     }
                 })
             }
+            document.addEventListener('astro:page-load', initFindRen)
         </script>
         <style>
             #find-ren span {
