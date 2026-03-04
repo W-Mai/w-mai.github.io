@@ -29,9 +29,9 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 <main class="!w-full max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-12">
 
     <!-- Hero section -->
-    <section class="flex flex-col items-center text-center mb-8 sm:mb-12">
+    <section class="flex flex-col items-center text-center mb-8 sm:mb-12 anim-fade" style="--delay:0">
         <Image
-            class="size-24 sm:size-32 md:size-40 rounded-full border-4 border-white shadow-lg ring-4 ring-slate-100"
+            class="size-24 sm:size-32 md:size-40 rounded-full border-4 border-white shadow-lg ring-4 ring-slate-100 anim-zoom"
             src={profile.avatar_url}
             alt={USER_NAME}
             width={160}
@@ -57,7 +57,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     </section>
 
     <!-- Stats bar -->
-    <section class="flex justify-around max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12">
+    <section class="flex justify-around max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12 anim-fade" style="--delay:1">
         <div class="text-center">
             <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.public_repos}</span>
             <span class="text-[11px] sm:text-sm text-slate-500">Repos</span>
@@ -75,7 +75,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     </section>
 
     <!-- Info cards -->
-    <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-12">
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-12 anim-fade" style="--delay:2">
         {profile.location && (
             <div class="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-slate-50 border border-slate-100 px-3.5 sm:px-5 py-3 sm:py-4">
                 <span class="text-lg sm:text-xl">📍</span>
@@ -108,7 +108,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     </section>
 
     <!-- GitHub Activity -->
-    <section class="bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100 p-4 sm:p-6 md:p-8 mb-8 sm:mb-12">
+    <section class="bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100 p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:3">
         <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
             🟩 GitHub 活动
             <span class="h-0.5 flex-1 bg-slate-200 rounded-full"></span>
@@ -119,7 +119,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     </section>
 
     <!-- Easter egg: 找恁 -->
-    <section class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl sm:rounded-2xl border border-amber-100 p-4 sm:p-6 md:p-8">
+    <section class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl sm:rounded-2xl border border-amber-100 p-4 sm:p-6 md:p-8 anim-fade" style="--delay:4">
         <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4 flex items-center gap-2">
             🔍 找恁
             <span class="h-0.5 flex-1 bg-amber-200 rounded-full"></span>
@@ -173,5 +173,59 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 </main>
 
 <Footer />
+
+<style>
+    /* Scroll-triggered fade-in + slide-up */
+    .anim-fade {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        transition-delay: calc(var(--delay, 0) * 0.1s);
+    }
+    .anim-fade.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Avatar zoom-in entrance */
+    .anim-zoom {
+        opacity: 0;
+        transform: scale(0.7);
+        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .anim-zoom.visible {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* Respect reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+        .anim-fade, .anim-zoom {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+</style>
+
+<script>
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible')
+                    // Also reveal child anim-zoom elements
+                    entry.target.querySelectorAll('.anim-zoom').forEach(el => {
+                        el.classList.add('visible')
+                    })
+                    observer.unobserve(entry.target)
+                }
+            })
+        },
+        { threshold: 0.15 }
+    )
+    document.querySelectorAll('.anim-fade').forEach(el => observer.observe(el))
+</script>
+
 </body>
 </html>
