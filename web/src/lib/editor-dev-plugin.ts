@@ -19,21 +19,6 @@ function editorApiPlugin(postsDir: string): Plugin {
         return [];
       }
     },
-    // Inject embed styles when ?embed is in the URL
-    transformIndexHtml: {
-      order: 'post',
-      handler(html, ctx) {
-        if (!ctx.originalUrl?.includes('embed')) return html;
-        if (!ctx.originalUrl?.includes('/blog/')) return html;
-        const embedStyle = `<style id="embed-style">
-          body > header, body > footer, #progress-bar { display: none !important; }
-          main > a[href="/blog"] { display: none !important; }
-          main > div:last-child { display: none !important; }
-          main { padding-top: 1rem !important; }
-        </style>`;
-        return html.replace('</head>', `${embedStyle}\n</head>`);
-      },
-    },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const fullUrl = req.url || '';
@@ -126,6 +111,8 @@ export default function editorDevIntegration(): AstroIntegration {
         // Only inject in dev mode
         if (command !== 'dev') return;
 
+        const isEditorMode = process.env.EDITOR_MODE === 'true';
+
         const postsDir = resolve(
           fileURLToPath(config.root), '..', 'posts'
         );
@@ -133,6 +120,9 @@ export default function editorDevIntegration(): AstroIntegration {
         updateConfig({
           vite: {
             plugins: [editorApiPlugin(postsDir)],
+            define: {
+              'import.meta.env.EDITOR_MODE': JSON.stringify(isEditorMode),
+            },
           },
         });
       },

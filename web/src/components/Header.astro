@@ -1,6 +1,8 @@
 ---
 import {SITE_TITLE, SOCIALS} from '../consts';
 import HeaderLink from './HeaderLink.astro';
+
+const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 ---
 
 <header>
@@ -10,6 +12,7 @@ import HeaderLink from './HeaderLink.astro';
 			<HeaderLink href="/">当门</HeaderLink>
 			<HeaderLink href="/blog">怼点文章</HeaderLink>
 			<HeaderLink href="/about">自个儿</HeaderLink>
+			{isEditorMode && <HeaderLink href="/admin/live-editor">✏️ 编辑器</HeaderLink>}
 			<div class="more-menu">
 				<button class="more-btn" aria-expanded="false" aria-haspopup="true">
 					瞅瞅 <span class="more-arrow">▾</span>

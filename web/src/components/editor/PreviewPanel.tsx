@@ -8,40 +8,65 @@ interface PreviewPanelProps {
 
 const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const savedScrollTop = useRef<number | null>(null);
+  const savedRatio = useRef<number | null>(null);
   const prevRefreshKey = useRef(refreshKey);
 
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !slug) return;
 
-    // Save scroll position before reload (only on refreshKey change, not slug change)
+    // Save scroll ratio before reload (only on refreshKey change, not slug change)
     if (refreshKey !== prevRefreshKey.current) {
       try {
-        savedScrollTop.current = iframe.contentWindow?.scrollY ?? null;
+        const win = iframe.contentWindow;
+        const doc = iframe.contentDocument;
+        if (win && doc) {
+          const maxScroll = doc.documentElement.scrollHeight - win.innerHeight;
+          savedRatio.current = maxScroll > 0 ? win.scrollY / maxScroll : 0;
+        }
       } catch {
-        savedScrollTop.current = null;
+        savedRatio.current = null;
       }
       prevRefreshKey.current = refreshKey;
     } else {
-      savedScrollTop.current = null;
+      savedRatio.current = null;
     }
 
     iframe.src = `/blog/${slug}?embed&t=${refreshKey}`;
   }, [slug, refreshKey]);
 
-  // Restore scroll position after iframe loads
+  // Restore scroll position after iframe loads using ratio + ResizeObserver
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
     const handleLoad = () => {
-      if (savedScrollTop.current !== null) {
-        try {
-          iframe.contentWindow?.scrollTo(0, savedScrollTop.current);
-        } catch {}
-        savedScrollTop.current = null;
-      }
+      const ratio = savedRatio.current;
+      if (ratio === null || ratio <= 0) return;
+
+      try {
+        const doc = iframe.contentDocument;
+        const win = iframe.contentWindow;
+        if (!doc || !win) return;
+
+        const applyScroll = () => {
+          const maxScroll = doc.documentElement.scrollHeight - win.innerHeight;
+          if (maxScroll > 0) {
+            win.scrollTo(0, ratio * maxScroll);
+          }
+        };
+
+        // Apply immediately
+        applyScroll();
+
+        // Re-apply on layout shifts as content loads (images, fonts, etc.)
+        const observer = new ResizeObserver(applyScroll);
+        observer.observe(doc.body);
+
+        // Stop observing after content stabilizes
+        setTimeout(() => observer.disconnect(), 3000);
+      } catch {}
+      savedRatio.current = null;
     };
 
     iframe.addEventListener('load', handleLoad);
@@ -87,7 +112,14 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
         <button
           onClick={() => {
             if (iframeRef.current && slug) {
-              try { savedScrollTop.current = iframeRef.current.contentWindow?.scrollY ?? null; } catch {}
+              try {
+                const win = iframeRef.current.contentWindow;
+                const doc = iframeRef.current.contentDocument;
+                if (win && doc) {
+                  const maxScroll = doc.documentElement.scrollHeight - win.innerHeight;
+                  savedRatio.current = maxScroll > 0 ? win.scrollY / maxScroll : 0;
+                }
+              } catch {}
               iframeRef.current.src = `/blog/${slug}?embed&t=${Date.now()}`;
             }
           }}

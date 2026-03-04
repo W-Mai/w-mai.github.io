@@ -1,8 +1,8 @@
 ---
 import LiveEditor from '../../components/editor/LiveEditor';
 
-// Dev-only page: redirect to 404 in production
-if (!import.meta.env.DEV) {
+// Editor page: only available when EDITOR_MODE is enabled
+if (!import.meta.env.DEV || !import.meta.env.EDITOR_MODE) {
   return Astro.redirect('/404');
 }
 ---

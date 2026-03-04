@@ -15,6 +15,24 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 	<head>
 		<BaseHead title={title} description={description} />
 		<title>{title}</title>
+		<script is:inline>
+			// Hide chrome (header/footer/nav) when loaded as embed preview
+			if (new URLSearchParams(window.location.search).has('embed')) {
+				document.documentElement.dataset.embed = '';
+			}
+		</script>
+		<style is:global>
+			html[data-embed] body > header,
+			html[data-embed] body > footer,
+			html[data-embed] #progress-bar,
+			html[data-embed] main > a[href="/blog"],
+			html[data-embed] main > div:last-child {
+				display: none !important;
+			}
+			html[data-embed] main {
+				padding-top: 1rem !important;
+			}
+		</style>
 	</head>
 	<body>
 		<!-- Reading progress bar -->
