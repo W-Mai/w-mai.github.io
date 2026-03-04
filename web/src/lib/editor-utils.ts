@@ -1,6 +1,3 @@
-import { readdir, readFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
-
 // --- Legacy slug validation (kept for backward compatibility) ---
 
 const LEGACY_SLUG_PATTERN = /^[a-zA-Z0-9_-]+$/;
@@ -84,6 +81,9 @@ export async function computeAssetReferences(
   postsDir: string,
   assetNames: string[],
 ): Promise<Map<string, string[]>> {
+  const { readdir, readFile } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+
   const refs = new Map<string, string[]>(assetNames.map((n) => [n, []]));
 
   let entries: string[];
