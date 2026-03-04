@@ -28,6 +28,7 @@
         "date-fns": "^4.1.0",
         "html2canvas": "^1.4.1",
         "mermaid": "^11.12.0",
+        "pinyin-pro": "^3.28.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "sharp": "^0.34.5",
@@ -1248,6 +1249,8 @@
     "picocolors": ["picocolors@https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz", {}],
 
     "picomatch": ["picomatch@4.0.3", "", {}, "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q=="],
+
+    "pinyin-pro": ["pinyin-pro@3.28.0", "", {}, "sha512-mMRty6RisoyYNphJrTo3pnvp3w8OMZBrXm9YSWkxhAfxKj1KZk2y8T2PDIZlDDRsvZ0No+Hz6FI4sZpA6Ey25g=="],
 
     "pkg-types": ["pkg-types@https://registry.npmjs.org/pkg-types/-/pkg-types-2.3.0.tgz", { "dependencies": { "confbox": "^0.2.2", "exsolve": "^1.0.7", "pathe": "^2.0.3" } }],
 

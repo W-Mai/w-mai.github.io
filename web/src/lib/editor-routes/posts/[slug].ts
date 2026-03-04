@@ -47,9 +47,18 @@ export const PUT: APIRoute = async ({ params, request }) => {
 };
 
 /** POST /api/editor/posts/[slug] — create new post */
-export const POST: APIRoute = async ({ params }) => {
+export const POST: APIRoute = async ({ params, request }) => {
   const { slug } = params;
   if (!slug || !validateSlug(slug)) return json({ error: 'Invalid slug' }, 400);
+
+  // Read optional title from request body
+  let title = slug;
+  try {
+    const body = await request.json();
+    if (body.title && typeof body.title === 'string') title = body.title;
+  } catch {
+    // No body or invalid JSON — use slug as title
+  }
 
   const filePath = resolve(postsDir, `${slug}.mdx`);
   try {
@@ -59,7 +68,7 @@ export const POST: APIRoute = async ({ params }) => {
     // File doesn't exist — create it
     try {
       const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      const template = `---\ntitle: '${slug}'\ndescription: ''\npubDate: '${today}'\n---\n\nStart writing here.\n`;
+      const template = `---\ntitle: '${title.replace(/'/g, "''")}'\ndescription: ''\npubDate: '${today}'\n---\n\nStart writing here.\n`;
       await writeFile(filePath, template, 'utf-8');
       return json({ success: true, slug });
     } catch {

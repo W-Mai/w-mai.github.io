@@ -182,11 +182,15 @@ const LiveEditor: FC = () => {
 
   const dismissError = useCallback(() => setState((s) => ({ ...s, error: null })), []);
 
-  const createPost = useCallback(async (slug: string) => {
+  const createPost = useCallback(async (slug: string, title: string) => {
     setShowCreateModal(false);
     setState((s) => ({ ...s, isLoading: true, error: null }));
     try {
-      const res = await fetch(`/api/editor/posts/${slug}`, { method: 'POST' });
+      const res = await fetch(`/api/editor/posts/${slug}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
       const text = await res.text();
       let data: any = {};
       try { data = JSON.parse(text); } catch {}
@@ -588,6 +592,7 @@ const LiveEditor: FC = () => {
       <CreatePostModal
         isOpen={showCreateModal}
         existingSlugs={state.posts}
+        aiEnabled={aiEnabled}
         onConfirm={createPost}
         onCancel={() => setShowCreateModal(false)}
       />

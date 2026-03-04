@@ -8,7 +8,7 @@ const AI_PROMPTS: Record<string, string> = {
   simplify: 'Make the following text more concise while preserving the key information. Return only the simplified text without explanation.',
   expand: 'Add more detail and explanation to the following text. Return only the expanded text without explanation.',
   translate: 'Translate the following text to {language}. Preserve formatting. Return only the translated text without explanation.',
-  'suggest-slugs': 'Based on the post title and content, suggest 3 URL-friendly slugs. Rules: lowercase, hyphen-separated, descriptive, concise, max 80 chars. Return as a JSON array of strings, e.g. ["slug-one","slug-two","slug-three"].',
+  'suggest-slugs': 'Translate the given title (which may be in any language, e.g. Chinese) into 3 meaningful English URL-friendly slugs. Rules: use lowercase English words, hyphen-separated, concise but descriptive, max 80 chars each. The slugs should accurately convey the meaning of the original title in English. Return ONLY a JSON array of strings, e.g. ["todays-encounter","my-experience-today","what-happened-today"]. No explanation.',
 };
 
 function json(data: unknown, status = 200) {
