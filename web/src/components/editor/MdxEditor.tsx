@@ -14,6 +14,83 @@ interface MdxEditorProps {
   onScroll?: (ratio: number) => void;
 }
 
+const ALLOWED_EXT = /\.(png|jpe?g|gif|svg|webp|avif|ico|pdf)$/i;
+
+/** Upload a file to the assets API and return the MDX reference string */
+async function uploadAsset(file: File): Promise<string> {
+  const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  if (!ALLOWED_EXT.test(name)) throw new Error(`Unsupported file type: ${name}`);
+
+  const res = await fetch(`/api/editor/assets/${encodeURIComponent(name)}`, {
+    method: 'POST',
+    body: file,
+  });
+  if (res.status === 409) {
+    // Already exists — use existing file
+    return `./assets/${name}`;
+  }
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Upload failed: ${name}`);
+  }
+  return `./assets/${name}`;
+}
+
+/** Insert text at the current cursor position in a CodeMirror view */
+function insertAtCursor(view: EditorView, text: string) {
+  const pos = view.state.selection.main.head;
+  view.dispatch({ changes: { from: pos, insert: text } });
+}
+
+/** Handle dropped/pasted files: upload and insert references */
+async function handleFiles(files: File[], view: EditorView) {
+  for (const file of files) {
+    // Insert placeholder while uploading
+    const placeholder = `![Uploading ${file.name}...]()`;
+    const pos = view.state.selection.main.head;
+    view.dispatch({ changes: { from: pos, insert: placeholder } });
+
+    try {
+      const ref = await uploadAsset(file);
+      const imgRef = `![${file.name}](${ref})`;
+      // Find and replace the placeholder
+      const doc = view.state.doc.toString();
+      const idx = doc.indexOf(placeholder);
+      if (idx >= 0) {
+        view.dispatch({ changes: { from: idx, to: idx + placeholder.length, insert: imgRef } });
+      }
+    } catch {
+      // Remove placeholder on failure
+      const doc = view.state.doc.toString();
+      const idx = doc.indexOf(placeholder);
+      if (idx >= 0) {
+        view.dispatch({ changes: { from: idx, to: idx + placeholder.length, insert: '' } });
+      }
+    }
+  }
+}
+
+/** CodeMirror extension to handle drag-and-drop and paste file uploads */
+const dropPasteHandler = EditorView.domEventHandlers({
+  drop(event, view) {
+    const files = Array.from(event.dataTransfer?.files || []);
+    if (files.length === 0) return false;
+    event.preventDefault();
+    // Move cursor to drop position
+    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+    if (pos != null) view.dispatch({ selection: { anchor: pos } });
+    handleFiles(files, view);
+    return true;
+  },
+  paste(event, view) {
+    const files = Array.from(event.clipboardData?.files || []);
+    if (files.length === 0) return false;
+    event.preventDefault();
+    handleFiles(files, view);
+    return true;
+  },
+});
+
 const editorTheme = EditorView.theme({
   '&': { height: '100%', fontSize: '14px' },
   '.cm-scroller': {
@@ -75,6 +152,7 @@ const MdxEditor: FC<MdxEditorProps> = ({ content, onChange, onSave, onScroll }) 
         updateListener,
         editorTheme,
         EditorView.lineWrapping,
+        dropPasteHandler,
       ],
     });
 
