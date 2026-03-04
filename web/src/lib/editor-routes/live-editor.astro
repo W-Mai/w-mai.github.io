@@ -28,9 +28,16 @@ if (!import.meta.env.DEV || !import.meta.env.EDITOR_MODE) {
           ws.addEventListener('message', function(event) {
             try {
               const data = JSON.parse(event.data);
+              // Block full-reload to keep editor state
               if (data.type === 'full-reload') {
                 event.stopImmediatePropagation();
                 window.dispatchEvent(new CustomEvent('editor:hmr-reload'));
+                return;
+              }
+              // Block error overlay from covering the editor
+              if (data.type === 'error') {
+                event.stopImmediatePropagation();
+                console.warn('[editor] Suppressed Vite error overlay:', data.err?.message || data);
                 return;
               }
             } catch {}
@@ -40,6 +47,15 @@ if (!import.meta.env.DEV || !import.meta.env.EDITOR_MODE) {
         };
         window.WebSocket.prototype = OrigWebSocket.prototype;
         Object.defineProperty(window, 'WebSocket', { writable: true, configurable: true });
+
+        // Remove any existing Vite error overlay
+        new MutationObserver(function(mutations) {
+          for (var m of mutations) {
+            for (var node of m.addedNodes) {
+              if (node.tagName === 'VITE-ERROR-OVERLAY') node.remove();
+            }
+          }
+        }).observe(document.documentElement, { childList: true, subtree: true });
       })();
     </script>
   </head>
