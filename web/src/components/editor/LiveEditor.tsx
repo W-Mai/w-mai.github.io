@@ -460,7 +460,7 @@ const LiveEditor: FC = () => {
           {/* Assets tab */}
           {sidebarTab === 'assets' && (
             <div style={{ flex: 1, overflow: 'hidden' }}>
-              <AssetPanel onInsert={handleInsertAsset} />
+              <AssetPanel aiEnabled={aiEnabled} onInsert={handleInsertAsset} />
             </div>
           )}
         </div>

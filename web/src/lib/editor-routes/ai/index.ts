@@ -9,6 +9,7 @@ const AI_PROMPTS: Record<string, string> = {
   expand: 'Add more detail and explanation to the following text. Return only the expanded text without explanation.',
   translate: 'Translate the following text to {language}. Preserve formatting. Return only the translated text without explanation.',
   'suggest-slugs': 'Translate the given title (which may be in any language, e.g. Chinese) into 3 meaningful English URL-friendly slugs. Rules: use lowercase English words, hyphen-separated, concise but descriptive, max 80 chars each. The slugs should accurately convey the meaning of the original title in English. Return ONLY a JSON array of strings, e.g. ["todays-encounter","my-experience-today","what-happened-today"]. No explanation.',
+  'suggest-asset-name': 'Given the original filename (which may contain non-English characters), suggest 3 meaningful English filenames. Rules: lowercase, use hyphens or underscores, keep the original file extension, concise but descriptive, max 60 chars. The names should convey the meaning of the original name in English. Return ONLY a JSON array of strings, e.g. ["hero-banner.png","main-cover.png","top-image.png"]. No explanation.',
 };
 
 function json(data: unknown, status = 200) {
