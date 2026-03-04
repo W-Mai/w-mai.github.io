@@ -2,13 +2,17 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
+import BlogHeroFallback from '../components/BlogHeroFallback.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & {
+	bodyHeroImage?: ImageMetadata | null;
+};
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage } = Astro.props;
+const hasHero = heroImage || bodyHeroImage;
 ---
 
 <html lang="en">
@@ -96,16 +100,27 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			</a>
 
 			<article>
-				{heroImage && (
-					<div class="rounded-3xl overflow-hidden shadow-md mb-8">
+				<div class="rounded-3xl overflow-hidden shadow-md mb-8">
+					{heroImage ? (
 						<Image
 							width={1020} height={510}
 							src={heroImage}
 							alt=""
 							class="w-full object-cover rounded-none"
 						/>
-					</div>
-				)}
+					) : bodyHeroImage ? (
+						<Image
+							width={1020} height={510}
+							src={bodyHeroImage}
+							alt=""
+							class="w-full object-cover rounded-none"
+						/>
+					) : (
+						<div class="h-48 md:h-64">
+							<BlogHeroFallback title={title} />
+						</div>
+					)}
+				</div>
 
 				<!-- Article header -->
 				<header class="mb-10">

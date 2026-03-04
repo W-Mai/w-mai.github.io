@@ -2,10 +2,25 @@
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
+import BlogHeroFallback from '../../components/BlogHeroFallback.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { extractFirstBodyImage } from '../../lib/blog-hero';
+
+// Glob-import all post assets for body image fallback
+const assetImages = import.meta.glob<{ default: ImageMetadata }>(
+	'../../../posts/assets/*.{png,jpg,jpeg,gif,webp,svg}',
+	{ eager: true },
+);
+
+/** Resolve a body image path like ./assets/foo.png to an ImageMetadata object */
+function resolveBodyImage(path: string): ImageMetadata | null {
+	const name = path.replace(/^\.\/assets\//, '');
+	const key = Object.keys(assetImages).find((k) => k.endsWith(`/${name}`));
+	return key ? assetImages[key].default : null;
+}
 
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
@@ -24,21 +39,34 @@ const [featured, ...rest] = posts;
 			<h1 class="text-4xl md:text-5xl font-bold mb-2">🚀 怼点文章</h1>
 			<p class="text-slate-500 mb-10 text-lg">俺搁这儿写嘞东西</p>
 
-			{featured && (
+			{featured && (() => {
+			const bodyImg = !featured.data.heroImage ? extractFirstBodyImage(featured.body) : null;
+			const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
+			const hasAnyImage = featured.data.heroImage || bodyImgMeta;
+			return (
 				<a href={`/blog/${featured.id}/`}
 				   class="group block rounded-3xl overflow-hidden bg-white shadow-md
 				          hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out
 				          no-underline mb-8">
-					{featured.data.heroImage && (
-						<div class="overflow-hidden h-64 md:h-80">
+					<div class="overflow-hidden h-64 md:h-80">
+						{featured.data.heroImage ? (
 							<Image
 								width={960} height={480}
 								src={featured.data.heroImage}
 								alt=""
 								class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
 							/>
-						</div>
-					)}
+						) : bodyImgMeta ? (
+							<Image
+								width={960} height={480}
+								src={bodyImgMeta}
+								alt=""
+								class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
+							/>
+						) : (
+							<BlogHeroFallback title={featured.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
+						)}
+					</div>
 					<div class="p-6">
 						<p class="text-xs text-slate-400 mb-2">
 							<FormattedDate date={featured.data.pubDate} />
@@ -51,35 +79,49 @@ const [featured, ...rest] = posts;
 						)}
 					</div>
 				</a>
-			)}
+			);
+		})()}
 
 			{rest.length > 0 && (
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-					{rest.map((post) => (
-						<a href={`/blog/${post.id}/`}
-						   class="group block rounded-2xl overflow-hidden bg-white shadow-sm
-						          hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-out
-						          no-underline">
-							{post.data.heroImage && (
+					{rest.map((post) => {
+						const bodyImg = !post.data.heroImage ? extractFirstBodyImage(post.body) : null;
+						const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
+						return (
+							<a href={`/blog/${post.id}/`}
+							   class="group block rounded-2xl overflow-hidden bg-white shadow-sm
+							          hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ease-out
+							          no-underline">
 								<div class="overflow-hidden h-44">
-									<Image
-										width={720} height={360}
-										src={post.data.heroImage}
-										alt=""
-										class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
-									/>
+									{post.data.heroImage ? (
+										<Image
+											width={720} height={360}
+											src={post.data.heroImage}
+											alt=""
+											class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
+										/>
+									) : bodyImgMeta ? (
+										<Image
+											width={720} height={360}
+											src={bodyImgMeta}
+											alt=""
+											class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
+										/>
+									) : (
+										<BlogHeroFallback title={post.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
+									)}
 								</div>
-							)}
-							<div class="p-4">
-								<p class="text-xs text-slate-400 mb-1">
-									<FormattedDate date={post.data.pubDate} />
-								</p>
-								<h3 class="text-base font-bold text-slate-800 group-hover:text-slate-900 transition-colors m-0 line-clamp-2">
-									{post.data.title}
-								</h3>
-							</div>
-						</a>
-					))}
+								<div class="p-4">
+									<p class="text-xs text-slate-400 mb-1">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+									<h3 class="text-base font-bold text-slate-800 group-hover:text-slate-900 transition-colors m-0 line-clamp-2">
+										{post.data.title}
+									</h3>
+								</div>
+							</a>
+						);
+					})}
 				</div>
 			)}
 		</main>
