@@ -4,10 +4,18 @@ import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
 
 
-/** Vite plugin: intercept HMR for .mdx files to prevent full-reload */
+/** Vite plugin: intercept HMR for .mdx files and watch asset changes */
 function editorHmrPlugin(postsDir: string): Plugin {
+  const assetsDir = resolve(postsDir, 'assets');
   return {
     name: 'editor-dev-hmr',
+    configureServer(server) {
+      // Watch assets directory for add/delete to trigger Astro content rebuild
+      server.watcher.add(assetsDir);
+      const reload = () => server.ws.send({ type: 'full-reload' });
+      server.watcher.on('add', (file) => { if (file.startsWith(assetsDir)) reload(); });
+      server.watcher.on('unlink', (file) => { if (file.startsWith(assetsDir)) reload(); });
+    },
     handleHotUpdate({ file, server }) {
       if (file.startsWith(postsDir) && file.endsWith('.mdx')) {
         const slug = file.slice(postsDir.length + 1).replace(/\.mdx$/, '');

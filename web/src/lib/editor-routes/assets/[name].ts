@@ -94,7 +94,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
   }
 };
 
-/** DELETE /api/editor/assets/[name] — delete asset */
+/** DELETE /api/editor/assets/[name] — delete asset and trigger dev server reload */
 export const DELETE: APIRoute = async ({ params }) => {
   const { name } = params;
   if (!name || !validateName(name)) return json({ error: 'Invalid filename' }, 400);
