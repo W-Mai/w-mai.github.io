@@ -55,3 +55,24 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image.src, Astro.url)} />
+
+<!-- Global scroll animation observer -->
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('visible')
+						entry.target.querySelectorAll('.anim-zoom').forEach(el => {
+							el.classList.add('visible')
+						})
+						observer.unobserve(entry.target)
+					}
+				})
+			},
+			{ threshold: 0.1 }
+		)
+		document.querySelectorAll('.anim-fade').forEach(el => observer.observe(el))
+	})
+</script>

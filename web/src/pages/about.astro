@@ -174,58 +174,5 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 
 <Footer />
 
-<style>
-    /* Scroll-triggered fade-in + slide-up */
-    .anim-fade {
-        opacity: 0;
-        transform: translateY(24px);
-        transition: opacity 0.6s ease, transform 0.6s ease;
-        transition-delay: calc(var(--delay, 0) * 0.1s);
-    }
-    .anim-fade.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    /* Avatar zoom-in entrance */
-    .anim-zoom {
-        opacity: 0;
-        transform: scale(0.7);
-        transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .anim-zoom.visible {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    /* Respect reduced motion preference */
-    @media (prefers-reduced-motion: reduce) {
-        .anim-fade, .anim-zoom {
-            opacity: 1;
-            transform: none;
-            transition: none;
-        }
-    }
-</style>
-
-<script>
-    const observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible')
-                    // Also reveal child anim-zoom elements
-                    entry.target.querySelectorAll('.anim-zoom').forEach(el => {
-                        el.classList.add('visible')
-                    })
-                    observer.unobserve(entry.target)
-                }
-            })
-        },
-        { threshold: 0.15 }
-    )
-    document.querySelectorAll('.anim-fade').forEach(el => observer.observe(el))
-</script>
-
 </body>
 </html>

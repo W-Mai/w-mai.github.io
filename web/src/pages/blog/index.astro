@@ -36,8 +36,8 @@ const [featured, ...rest] = posts;
 	<body>
 		<Header />
 		<main class="max-w-4xl mx-auto px-4 py-10">
-			<h1 class="text-4xl md:text-5xl font-bold mb-2">🚀 怼点文章</h1>
-			<p class="text-slate-500 mb-10 text-lg">俺搁这儿写嘞东西</p>
+			<h1 class="text-4xl md:text-5xl font-bold mb-2 anim-fade" style="--delay:0">🚀 怼点文章</h1>
+			<p class="text-slate-500 mb-10 text-lg anim-fade" style="--delay:1">俺搁这儿写嘞东西</p>
 
 			{featured && (() => {
 			const bodyImg = !featured.data.heroImage ? extractFirstBodyImage(featured.body) : null;
@@ -83,7 +83,7 @@ const [featured, ...rest] = posts;
 		})()}
 
 			{rest.length > 0 && (
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-5 anim-fade" style="--delay:3">
 					{rest.map((post) => {
 						const bodyImg = !post.data.heroImage ? extractFirstBodyImage(post.body) : null;
 						const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
