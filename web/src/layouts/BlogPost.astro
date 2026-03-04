@@ -12,7 +12,6 @@ type Props = CollectionEntry<'blog'>['data'] & {
 };
 
 const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage } = Astro.props;
-const hasHero = heroImage || bodyHeroImage;
 ---
 
 <html lang="en">

@@ -42,12 +42,11 @@ const [featured, ...rest] = posts;
 			{featured && (() => {
 			const bodyImg = !featured.data.heroImage ? extractFirstBodyImage(featured.body) : null;
 			const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
-			const hasAnyImage = featured.data.heroImage || bodyImgMeta;
 			return (
 				<a href={`/blog/${featured.id}/`}
 				   class="blog-featured group block rounded-3xl overflow-hidden neu-card
 				          transition-all duration-300 ease-out
-				          no-underline mb-8">
+				          no-underline mb-10">
 					<div class="overflow-hidden h-64 md:h-80">
 						{featured.data.heroImage ? (
 							<Image
@@ -67,7 +66,7 @@ const [featured, ...rest] = posts;
 							<BlogHeroFallback title={featured.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
 						)}
 					</div>
-					<div class="p-6">
+					<div class="p-7">
 						<p class="text-xs text-slate-400 mb-2">
 							<FormattedDate date={featured.data.pubDate} />
 						</p>
@@ -83,7 +82,7 @@ const [featured, ...rest] = posts;
 		})()}
 
 			{rest.length > 0 && (
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-5 anim-fade" style="--delay:3">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-7 anim-fade" style="--delay:3">
 					{rest.map((post) => {
 						const bodyImg = !post.data.heroImage ? extractFirstBodyImage(post.body) : null;
 						const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
@@ -111,7 +110,7 @@ const [featured, ...rest] = posts;
 										<BlogHeroFallback title={post.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
 									)}
 								</div>
-								<div class="p-4">
+								<div class="p-5">
 									<p class="text-xs text-slate-400 mb-1">
 										<FormattedDate date={post.data.pubDate} />
 									</p>
