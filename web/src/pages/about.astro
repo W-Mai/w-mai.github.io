@@ -1,69 +1,177 @@
 ---
-import AboutHeroImage from '@posts/assets/my_hero_img.png';
-import Layout from '../layouts/BlogPost.astro';
+import { Image } from 'astro:assets'
+import BaseHead from '~/components/BaseHead.astro'
+import Header from '~/components/Header.astro'
+import Footer from '~/components/Footer.astro'
 import GitHubActivityCalendar from '~/components/GitHubActivityCalendar.astro'
-import { fetchGitHubProfile } from '../lib/github'
-import { USER_NAME } from "~/consts";
+import { fetchGitHubProfile } from '~/lib/github'
+import { USER_NAME, NICK_NAME, SITE_DESCRIPTION, SOCIALS } from '~/consts'
+import HeroImage from '@posts/assets/my_hero_img.png'
 
 const profile = await fetchGitHubProfile()
+const blogUrl = profile.blog
+    ? profile.blog.startsWith('http') ? profile.blog : `https://${profile.blog}`
+    : null
+
+// Easter egg: random count of 俺 before and after 恁
+const beforeCount = Math.floor(Math.random() * 60) + 20
+const afterCount = Math.floor(Math.random() * 60) + 20
 ---
 
-<Layout
-        title="俺。"
-        description="Lorem ipsum dolor sit amet"
-        pubDate={new Date()}
-        heroImage={AboutHeroImage}
->
-    <h3>{profile.name ?? 'Overflow Stack Developer.'}</h3>
+<html>
+<head>
+    <BaseHead title={`自个儿 | ${NICK_NAME}`} description={SITE_DESCRIPTION} image={HeroImage} />
+</head>
 
-    {profile.bio && (
-        <p class="text-slate-600 text-lg">{profile.bio}</p>
-    )}
+<body class="overflow-x-hidden">
+<Header />
 
-    <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+<main class="!w-full max-w-4xl mx-auto px-3 sm:px-4 py-6 sm:py-12">
+
+    <!-- Hero section -->
+    <section class="flex flex-col items-center text-center mb-8 sm:mb-12">
+        <Image
+            class="size-24 sm:size-32 md:size-40 rounded-full border-4 border-white shadow-lg ring-4 ring-slate-100"
+            src={profile.avatar_url}
+            alt={USER_NAME}
+            width={160}
+            height={160}
+        />
+        <h1 class="mt-4 sm:mt-6 text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">{profile.name ?? NICK_NAME}</h1>
+        <p class="mt-1 text-base sm:text-lg text-slate-400">@{USER_NAME}</p>
+        {profile.bio && (
+            <p class="mt-2 sm:mt-3 text-sm sm:text-base md:text-lg text-slate-600 max-w-md px-2">{profile.bio}</p>
+        )}
+
+        <!-- Social links -->
+        <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 sm:mt-5">
+            {SOCIALS.map((social) => (
+                <a href={social.url} target="_blank" rel="noopener noreferrer"
+                   class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-full bg-slate-100 text-slate-600
+                          text-xs sm:text-sm no-underline hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                    <img class="size-4 rounded-none" src={social.icon} alt={social.name} />
+                    <span class="hidden sm:inline">{social.name}</span>
+                </a>
+            ))}
+        </div>
+    </section>
+
+    <!-- Stats bar -->
+    <section class="flex justify-around max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12">
+        <div class="text-center">
+            <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.public_repos}</span>
+            <span class="text-[11px] sm:text-sm text-slate-500">Repos</span>
+        </div>
+        <div class="w-px bg-slate-200"></div>
+        <div class="text-center">
+            <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.followers}</span>
+            <span class="text-[11px] sm:text-sm text-slate-500">Followers</span>
+        </div>
+        <div class="w-px bg-slate-200"></div>
+        <div class="text-center">
+            <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.following}</span>
+            <span class="text-[11px] sm:text-sm text-slate-500">Following</span>
+        </div>
+    </section>
+
+    <!-- Info cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8 sm:mb-12">
         {profile.location && (
-            <span class="flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                </svg>
-                {profile.location}
-            </span>
+            <div class="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-slate-50 border border-slate-100 px-3.5 sm:px-5 py-3 sm:py-4">
+                <span class="text-lg sm:text-xl">📍</span>
+                <div class="min-w-0">
+                    <p class="text-xs text-slate-400 m-0">Location</p>
+                    <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 truncate">{profile.location}</p>
+                </div>
+            </div>
         )}
         {profile.company && (
-            <span class="flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd" />
-                </svg>
-                {profile.company}
-            </span>
+            <div class="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-slate-50 border border-slate-100 px-3.5 sm:px-5 py-3 sm:py-4">
+                <span class="text-lg sm:text-xl">🏢</span>
+                <div class="min-w-0">
+                    <p class="text-xs text-slate-400 m-0">Company</p>
+                    <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 truncate">{profile.company}</p>
+                </div>
+            </div>
         )}
-        {profile.blog && (
-            <a href={profile.blog.startsWith('http') ? profile.blog : `https://${profile.blog}`}
-               target="_blank"
-               rel="noopener noreferrer"
-               class="flex items-center gap-1 text-blue-600 hover:underline">
-                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
-                </svg>
-                {profile.blog}
+        {blogUrl && (
+            <a href={blogUrl} target="_blank" rel="noopener noreferrer"
+               class="flex items-center gap-2.5 sm:gap-3 rounded-xl bg-slate-50 border border-slate-100 px-3.5 sm:px-5 py-3 sm:py-4
+                      no-underline hover:border-blue-200 hover:bg-blue-50/50 transition-colors">
+                <span class="text-lg sm:text-xl">🔗</span>
+                <div class="min-w-0">
+                    <p class="text-xs text-slate-400 m-0">Blog</p>
+                    <p class="text-xs sm:text-sm font-medium text-blue-600 m-0 truncate">{profile.blog}</p>
+                </div>
             </a>
         )}
-    </div>
+    </section>
 
-    <br />
-    <br />
+    <!-- GitHub Activity -->
+    <section class="bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100 p-4 sm:p-6 md:p-8 mb-8 sm:mb-12">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
+            🟩 GitHub 活动
+            <span class="h-0.5 flex-1 bg-slate-200 rounded-full"></span>
+        </h2>
+        <div class="overflow-x-auto -mx-1">
+            <GitHubActivityCalendar username={USER_NAME} />
+        </div>
+    </section>
 
-    <GitHubActivityCalendar username={USER_NAME}></GitHubActivityCalendar>
+    <!-- Easter egg: 找恁 -->
+    <section class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl sm:rounded-2xl border border-amber-100 p-4 sm:p-6 md:p-8">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4 flex items-center gap-2">
+            🔍 找恁
+            <span class="h-0.5 flex-1 bg-amber-200 rounded-full"></span>
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mb-3 sm:mb-4">从俺里边儿，找着恁搁哪儿嘞？</p>
+        <div id="find-ren" class="text-xs sm:text-sm leading-relaxed text-amber-800/60 select-none break-all">
+            {Array.from({ length: beforeCount }).map(() => (
+                <span data-c="俺">俺 </span>
+            ))}
+            <span data-c="恁">恁 </span>
+            {Array.from({ length: afterCount }).map(() => (
+                <span data-c="俺">俺 </span>
+            ))}
+        </div>
+        <div id="find-ren-toast" class="hidden mt-4 text-center text-lg animate-bounce">
+            🥕🐱🧻 臻棒！ 🎉
+        </div>
+        <script>
+            const container = document.getElementById('find-ren')
+            const toast = document.getElementById('find-ren-toast')
+            if (container && toast) {
+                container.addEventListener('click', (e) => {
+                    const target = e.target as HTMLElement
+                    if (!target.dataset.c) return
+                    container.querySelectorAll('.found').forEach(el => {
+                        el.classList.remove('found')
+                    })
+                    if (target.dataset.c === '恁') {
+                        target.classList.add('found')
+                        toast.classList.remove('hidden')
+                    } else {
+                        toast.classList.add('hidden')
+                    }
+                })
+            }
+        </script>
+        <style>
+            #find-ren span {
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: inline;
+            }
+            #find-ren span.found {
+                color: #ef4444;
+                font-weight: bold;
+                font-size: 1.5em;
+            }
+        </style>
+    </section>
 
-    <br/>
+</main>
 
-    <p>从俺里边儿，找着恁搁哪儿嘞？</p>
-
-    {Array.from({length: Math.random() * 100}).map((_, index) => (
-            <span>俺 </span>
-    ))}
-    <span>恁 </span>
-    {Array.from({length: Math.random() * 100}).map((_, index) => (
-            <span>俺 </span>
-    ))}
-</Layout>
+<Footer />
+</body>
+</html>
