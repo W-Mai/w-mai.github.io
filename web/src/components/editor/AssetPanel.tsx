@@ -32,6 +32,7 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, refreshKey = 0, on
   const [copiedName, setCopiedName] = useState<string | null>(null);
   const [deleteWarning, setDeleteWarning] = useState<AssetInfo | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [previewAsset, setPreviewAsset] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAssets = useCallback(async () => {
@@ -111,6 +112,28 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, refreshKey = 0, on
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Image preview lightbox */}
+      {previewAsset && (
+        <div
+          onClick={() => setPreviewAsset(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 2000,
+            background: 'rgba(0,0,0,0.7)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            cursor: 'zoom-out',
+          }}
+        >
+          <img
+            src={`/api/editor/assets/${encodeURIComponent(previewAsset)}`}
+            alt={previewAsset}
+            style={{
+              maxWidth: '90vw', maxHeight: '90vh', objectFit: 'contain',
+              borderRadius: T.radiusMd, boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          />
+        </div>
+      )}
+
       {/* Asset naming dialog */}
       <AssetNameDialog
         file={pendingFile}
@@ -205,10 +228,16 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, refreshKey = 0, on
                 borderBottom: `1px solid ${T.colorBorderLight}`, fontSize: T.fontSizeSm,
               }}>
                 {isImage ? (
-                  <img src={`/api/editor/assets/${encodeURIComponent(asset.name)}`} alt={asset.name} style={{
-                    width: '32px', height: '32px', objectFit: 'cover',
-                    borderRadius: T.radiusSm, border: `1px solid ${T.colorBorder}`, flexShrink: 0,
-                  }} />
+                  <img
+                    src={`/api/editor/assets/${encodeURIComponent(asset.name)}`}
+                    alt={asset.name}
+                    onClick={() => setPreviewAsset(asset.name)}
+                    style={{
+                      width: '32px', height: '32px', objectFit: 'cover',
+                      borderRadius: T.radiusSm, border: `1px solid ${T.colorBorder}`,
+                      flexShrink: 0, cursor: 'zoom-in',
+                    }}
+                  />
                 ) : (
                   <div style={{
                     width: '32px', height: '32px', display: 'flex',
