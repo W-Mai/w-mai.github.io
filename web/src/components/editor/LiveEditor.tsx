@@ -9,6 +9,7 @@ import CreatePostModal from './CreatePostModal';
 import AssetNameDialog from './AssetNameDialog';
 import ShortcutPanel from './ShortcutPanel';
 import AIDiffPanel from './AIDiffPanel';
+import GitCommitModal from './GitCommitModal';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import { persistEditorState, restoreEditorState } from '../../lib/editor-utils';
 
@@ -61,6 +62,7 @@ const LiveEditor: FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[] }[]>([]);
   const [gitCommitting, setGitCommitting] = useState(false);
+  const [showGitModal, setShowGitModal] = useState(false);
 
   const [aiState, setAiState] = useState<AIState>({
     isActive: false, isStreaming: false,
@@ -139,15 +141,20 @@ const LiveEditor: FC = () => {
     return () => clearInterval(interval);
   }, [refreshGitPending]);
 
-  const handleGitCommit = useCallback(async () => {
+  const handleGitCommit = useCallback(() => {
     if (gitPending.length === 0 || gitCommitting) return;
+    setShowGitModal(true);
+  }, [gitPending, gitCommitting]);
+
+  const handleGitCommitConfirm = useCallback(async (messages: Record<string, string>) => {
+    setShowGitModal(false);
     setGitCommitting(true);
     setState((s) => ({ ...s, error: null }));
     try {
       const res = await fetch('/api/editor/git', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ messages }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Git commit failed');
@@ -162,7 +169,7 @@ const LiveEditor: FC = () => {
       setGitCommitting(false);
       refreshGitPending();
     }
-  }, [gitPending, gitCommitting, refreshGitPending]);
+  }, [refreshGitPending]);
 
   const handleFileUpload = useCallback((file: File) => {
     refreshAssetNames();
@@ -710,6 +717,15 @@ const LiveEditor: FC = () => {
 
       {/* Shortcut Panel */}
       <ShortcutPanel isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+
+      {/* Git Commit Modal */}
+      <GitCommitModal
+        isOpen={showGitModal}
+        pending={gitPending}
+        aiEnabled={aiEnabled}
+        onCommit={handleGitCommitConfirm}
+        onCancel={() => setShowGitModal(false)}
+      />
     </div>
   );
 };

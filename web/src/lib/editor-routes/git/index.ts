@@ -91,6 +91,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json().catch(() => ({}));
     const slugs: string[] | undefined = body.slugs;
+    const messages: Record<string, string> | undefined = body.messages;
 
     let pending = await collectPendingPosts();
     if (slugs?.length) {
@@ -104,7 +105,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     for (const post of pending) {
       await git('add', ...post.files);
-      const msg = commitMsg(post.title);
+      const msg = messages?.[post.slug] || commitMsg(post.title);
       await git('commit', '-m', msg);
       const hash = await git('rev-parse', '--short', 'HEAD');
       committed.push({ slug: post.slug, title: post.title, hash });
