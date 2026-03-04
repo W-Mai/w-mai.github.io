@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
-import { writeFile, unlink, access } from 'node:fs/promises';
+import { writeFile, unlink, access, readdir } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { normalizeAssetName, deduplicateAssetName } from '~/lib/editor-utils';
 
 export const prerender = false;
 
@@ -48,23 +49,31 @@ export const GET: APIRoute = async ({ params }) => {
   }
 };
 
-/** POST /api/editor/assets/[name] — upload new asset (binary body) */
+/** POST /api/editor/assets/[name] — upload new asset (binary body) with name normalization */
 export const POST: APIRoute = async ({ params, request }) => {
   const { name } = params;
-  if (!name || !validateName(name)) return json({ error: 'Invalid filename' }, 400);
+  if (!name) return json({ error: 'Invalid filename' }, 400);
 
-  const filePath = resolve(assetsDir, name);
+  // Normalize the filename
+  const normalized = normalizeAssetName(name);
+  if (!validateName(normalized)) return json({ error: `Invalid filename after normalization: ${normalized}` }, 400);
+
+  // Deduplicate against existing assets
+  let existing: Set<string>;
   try {
-    await access(filePath);
-    return json({ error: `Asset already exists: ${name}` }, 409);
+    const files = await readdir(assetsDir);
+    existing = new Set(files);
   } catch {
-    // File doesn't exist — proceed to create
+    existing = new Set();
   }
+
+  const finalName = deduplicateAssetName(normalized, existing);
+  const filePath = resolve(assetsDir, finalName);
 
   try {
     const bytes = new Uint8Array(await request.arrayBuffer());
     await writeFile(filePath, bytes);
-    return json({ success: true, name });
+    return json({ success: true, name: finalName, originalName: name, normalized: name !== finalName });
   } catch {
     return json({ error: 'Failed to upload asset' }, 500);
   }
