@@ -59,6 +59,10 @@ export default function editorDevIntegration(): AstroIntegration {
           pattern: '/api/editor/posts/[slug]/rename',
           entrypoint: './src/lib/editor-routes/posts/[slug]/rename.ts',
         });
+        injectRoute({
+          pattern: '/api/editor/git',
+          entrypoint: './src/lib/editor-routes/git/index.ts',
+        });
 
         updateConfig({
           vite: {

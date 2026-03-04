@@ -59,6 +59,8 @@ const LiveEditor: FC = () => {
   });
   const [scrollRatio, setScrollRatio] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[] }[]>([]);
+  const [gitCommitting, setGitCommitting] = useState(false);
 
   const [aiState, setAiState] = useState<AIState>({
     isActive: false, isStreaming: false,
@@ -123,6 +125,40 @@ const LiveEditor: FC = () => {
       .catch(() => {});
   }, []);
   useEffect(() => { refreshAssetNames(); }, [refreshAssetNames]);
+
+  // Fetch pending git posts
+  const refreshGitPending = useCallback(() => {
+    fetch('/api/editor/git')
+      .then((res) => res.json())
+      .then((data: any) => setGitPending(data.pending || []))
+      .catch(() => {});
+  }, []);
+  useEffect(() => { refreshGitPending(); }, [refreshGitPending]);
+
+  const handleGitCommit = useCallback(async () => {
+    if (gitPending.length === 0 || gitCommitting) return;
+    setGitCommitting(true);
+    setState((s) => ({ ...s, error: null }));
+    try {
+      const res = await fetch('/api/editor/git', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Git commit failed');
+      const count = data.committed?.length || 0;
+      const names = data.committed?.map((c: any) => c.title).join(', ') || '';
+      setState((s) => ({ ...s, error: null }));
+      setGitPending([]);
+      alert(`Committed ${count} post(s): ${names}`);
+    } catch (err: any) {
+      setState((s) => ({ ...s, error: `Git: ${err.message}` }));
+    } finally {
+      setGitCommitting(false);
+      refreshGitPending();
+    }
+  }, [gitPending, gitCommitting, refreshGitPending]);
 
   const handleFileUpload = useCallback((file: File) => {
     refreshAssetNames();
@@ -548,6 +584,25 @@ const LiveEditor: FC = () => {
               }}
             >
               {state.isLoading ? 'Saving...' : 'Save'}
+            </button>
+          )}
+          {gitPending.length > 0 && (
+            <button
+              onClick={handleGitCommit}
+              disabled={gitCommitting}
+              title={`Commit ${gitPending.length} post(s): ${gitPending.map((p) => p.title).join(', ')}`}
+              style={{
+                padding: `0.35rem ${T.spacingXl}`,
+                background: gitCommitting ? T.colorBorder : '#059669',
+                color: gitCommitting ? T.colorTextMuted : '#fff',
+                border: 'none', borderRadius: T.radiusMd,
+                fontSize: T.fontSizeMd, fontWeight: 500,
+                cursor: gitCommitting ? 'wait' : 'pointer',
+                transition: `all ${T.transitionFast}`,
+                display: 'flex', alignItems: 'center', gap: T.spacingSm,
+              }}
+            >
+              {gitCommitting ? '⏳ Committing...' : `📦 Commit ${gitPending.length} post${gitPending.length > 1 ? 's' : ''}`}
             </button>
           )}
         </div>
