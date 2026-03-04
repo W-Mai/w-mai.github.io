@@ -35,7 +35,7 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.12",
-    "astro": "^5.13.3",
+    "astro": "^5.18.0",
     "astro-mermaid": "^1.0.4",
     "date-fns": "^4.1.0",
     "html2canvas": "^1.4.1",

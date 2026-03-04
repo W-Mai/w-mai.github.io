@@ -139,8 +139,10 @@ const LiveEditor: FC = () => {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `Upload failed: ${finalName}`);
       }
+      const data = await res.json().catch(() => ({ name: finalName }));
+      const savedName = data.name || finalName;
       refreshAssetNames();
-      editorRef.current?.insertText(`![${finalName}](./assets/${finalName})`);
+      editorRef.current?.insertText(`![${savedName}](./assets/${savedName})`);
     } catch (err: any) {
       setState((s) => ({ ...s, error: err.message }));
     }
