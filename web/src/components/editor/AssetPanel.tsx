@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
+import { EDITOR_TOKENS as T } from './editor-tokens';
 
 interface AssetInfo {
   name: string;
   size: number;
   ext: string;
+  refCount: number;
+  referencedBy: string[];
 }
 
 interface AssetPanelProps {
@@ -25,6 +28,7 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [copiedName, setCopiedName] = useState<string | null>(null);
+  const [deleteWarning, setDeleteWarning] = useState<AssetInfo | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAssets = useCallback(async () => {
@@ -67,8 +71,16 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
     }
   }, [fetchAssets]);
 
-  const handleDelete = useCallback(async (name: string) => {
-    if (!confirm(`Delete "${name}"?`)) return;
+  const requestDelete = useCallback((asset: AssetInfo) => {
+    if (asset.refCount > 0) {
+      setDeleteWarning(asset);
+      return;
+    }
+    if (!confirm(`Delete "${asset.name}"?`)) return;
+    performDelete(asset.name);
+  }, []);
+
+  const performDelete = useCallback(async (name: string) => {
     try {
       const res = await fetch(`/api/editor/assets/${encodeURIComponent(name)}`, { method: 'DELETE' });
       if (!res.ok) {
@@ -99,13 +111,56 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Delete warning modal for referenced assets */}
+      {deleteWarning && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: 'rgba(0,0,0,0.3)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+        }} onClick={(e) => { if (e.target === e.currentTarget) setDeleteWarning(null); }}>
+          <div style={{
+            background: T.colorBg, borderRadius: T.radiusLg,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+            padding: T.spacingXl, width: '320px', fontFamily: T.fontSans,
+          }}>
+            <div style={{ fontSize: T.fontSizeMd, fontWeight: 600, color: T.colorError, marginBottom: T.spacingMd }}>
+              Cannot Delete
+            </div>
+            <div style={{ fontSize: T.fontSizeSm, color: T.colorText, marginBottom: T.spacingSm }}>
+              "{deleteWarning.name}" is referenced by {deleteWarning.refCount} post{deleteWarning.refCount > 1 ? 's' : ''}:
+            </div>
+            <ul style={{ margin: `${T.spacingXs} 0`, paddingLeft: T.spacingXl, fontSize: T.fontSizeXs, color: T.colorTextSecondary }}>
+              {deleteWarning.referencedBy.map((slug) => (
+                <li key={slug}>{slug}</li>
+              ))}
+            </ul>
+            <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginTop: T.spacingSm }}>
+              Remove all references before deleting this asset.
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: T.spacingLg }}>
+              <button
+                onClick={() => setDeleteWarning(null)}
+                style={{
+                  padding: `${T.spacingSm} ${T.spacingLg}`,
+                  background: T.colorAccent, color: T.colorBg,
+                  border: 'none', borderRadius: T.radiusSm,
+                  fontSize: T.fontSizeSm, cursor: 'pointer',
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Upload area */}
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         style={{
-          padding: '0.5rem', borderBottom: '1px solid #e5e7eb',
-          display: 'flex', flexDirection: 'column', gap: '0.375rem',
+          padding: T.spacingMd, borderBottom: `1px solid ${T.colorBorder}`,
+          display: 'flex', flexDirection: 'column', gap: T.spacingSm,
         }}
       >
         <input
@@ -121,10 +176,10 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
           disabled={uploading}
           style={{
             width: '100%', padding: '0.4rem',
-            background: '#f3f4f6', border: '1px dashed #d1d5db',
-            borderRadius: '0.375rem', cursor: 'pointer',
-            fontSize: '0.75rem', color: '#6b7280',
-            transition: 'all 0.15s',
+            background: T.colorBgTertiary, border: `1px dashed #d1d5db`,
+            borderRadius: T.radiusMd, cursor: 'pointer',
+            fontSize: T.fontSizeSm, color: T.colorTextSecondary,
+            transition: `all ${T.transitionFast}`,
           }}
         >
           {uploading ? 'Uploading...' : '📁 Upload / Drop files'}
@@ -134,27 +189,27 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
       {/* Error */}
       {error && (
         <div style={{
-          padding: '0.375rem 0.5rem', background: '#fef2f2',
-          color: '#dc2626', fontSize: '0.7rem',
+          padding: `${T.spacingSm} ${T.spacingMd}`, background: T.colorErrorBg,
+          color: T.colorError, fontSize: T.fontSizeXs,
           borderBottom: '1px solid #fecaca',
-          display: 'flex', alignItems: 'center', gap: '0.25rem',
+          display: 'flex', alignItems: 'center', gap: T.spacingXs,
         }}>
           <span style={{ flex: 1 }}>{error}</span>
           <button
             onClick={() => setError(null)}
-            style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '0.8rem' }}
+            style={{ background: 'none', border: 'none', color: T.colorError, cursor: 'pointer', fontSize: T.fontSizeMd }}
           >×</button>
         </div>
       )}
 
       {/* Asset list */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '0.25rem 0' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: `${T.spacingXs} 0` }}>
         {isLoading && assets.length === 0 ? (
-          <div style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.8rem', textAlign: 'center' }}>
+          <div style={{ padding: T.spacingXl, color: T.colorTextMuted, fontSize: T.fontSizeMd, textAlign: 'center' }}>
             Loading...
           </div>
         ) : assets.length === 0 ? (
-          <div style={{ padding: '1rem', color: '#9ca3af', fontSize: '0.8rem', textAlign: 'center' }}>
+          <div style={{ padding: T.spacingXl, color: T.colorTextMuted, fontSize: T.fontSizeMd, textAlign: 'center' }}>
             No assets yet
           </div>
         ) : (
@@ -164,10 +219,10 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
               <div
                 key={asset.name}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.375rem 0.5rem',
-                  borderBottom: '1px solid #f3f4f6',
-                  fontSize: '0.75rem',
+                  display: 'flex', alignItems: 'center', gap: T.spacingMd,
+                  padding: `${T.spacingSm} ${T.spacingMd}`,
+                  borderBottom: `1px solid ${T.colorBorderLight}`,
+                  fontSize: T.fontSizeSm,
                 }}
               >
                 {/* Thumbnail */}
@@ -177,31 +232,37 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
                     alt={asset.name}
                     style={{
                       width: '32px', height: '32px',
-                      objectFit: 'cover', borderRadius: '0.25rem',
-                      border: '1px solid #e5e7eb', flexShrink: 0,
+                      objectFit: 'cover', borderRadius: T.radiusSm,
+                      border: `1px solid ${T.colorBorder}`, flexShrink: 0,
                     }}
                   />
                 ) : (
                   <div style={{
                     width: '32px', height: '32px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: '#f3f4f6', borderRadius: '0.25rem',
-                    fontSize: '0.6rem', color: '#9ca3af', flexShrink: 0,
+                    background: T.colorBgTertiary, borderRadius: T.radiusSm,
+                    fontSize: T.fontSizeXs, color: T.colorTextMuted, flexShrink: 0,
                   }}>
                     {asset.ext.replace('.', '').toUpperCase()}
                   </div>
                 )}
 
-                {/* Name + size */}
+                {/* Name + size + ref count */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     overflow: 'hidden', textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap', color: '#374151',
+                    whiteSpace: 'nowrap', color: T.colorText,
                   }}>
                     {asset.name}
                   </div>
-                  <div style={{ color: '#9ca3af', fontSize: '0.65rem' }}>
-                    {formatSize(asset.size)}
+                  <div style={{ color: T.colorTextMuted, fontSize: T.fontSizeXs, display: 'flex', gap: T.spacingSm }}>
+                    <span>{formatSize(asset.size)}</span>
+                    {asset.refCount > 0 && (
+                      <span title={`Referenced by: ${asset.referencedBy.join(', ')}`}
+                        style={{ color: T.colorWarning }}>
+                        {asset.refCount} ref{asset.refCount > 1 ? 's' : ''}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -210,11 +271,11 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
                   onClick={() => copyRef(asset.name)}
                   title="Copy MDX reference path"
                   style={{
-                    background: 'none', border: '1px solid #e5e7eb',
-                    borderRadius: '0.25rem', cursor: 'pointer',
-                    fontSize: '0.65rem', color: copiedName === asset.name ? '#10b981' : '#6b7280',
-                    padding: '0.15rem 0.3rem', flexShrink: 0,
-                    transition: 'color 0.15s',
+                    background: 'none', border: `1px solid ${T.colorBorder}`,
+                    borderRadius: T.radiusSm, cursor: 'pointer',
+                    fontSize: T.fontSizeXs, color: copiedName === asset.name ? T.colorSuccess : T.colorTextSecondary,
+                    padding: `0.15rem 0.3rem`, flexShrink: 0,
+                    transition: `color ${T.transitionFast}`,
                   }}
                 >
                   {copiedName === asset.name ? '✓' : '📋'}
@@ -222,15 +283,17 @@ const AssetPanel: FC<AssetPanelProps> = ({ onInsert }) => {
 
                 {/* Delete button */}
                 <button
-                  onClick={() => handleDelete(asset.name)}
-                  title={`Delete ${asset.name}`}
+                  onClick={() => requestDelete(asset)}
+                  title={asset.refCount > 0 ? `Referenced by ${asset.refCount} post(s)` : `Delete ${asset.name}`}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: '#d1d5db', fontSize: '0.7rem', padding: '0.2rem',
-                    flexShrink: 0, transition: 'color 0.15s',
+                    color: asset.refCount > 0 ? T.colorTextMuted : '#d1d5db',
+                    fontSize: T.fontSizeXs, padding: '0.2rem',
+                    flexShrink: 0, transition: `color ${T.transitionFast}`,
+                    opacity: asset.refCount > 0 ? 0.5 : 1,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#d1d5db'; }}
+                  onMouseEnter={(e) => { if (asset.refCount === 0) e.currentTarget.style.color = T.colorError; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = asset.refCount > 0 ? T.colorTextMuted : '#d1d5db'; }}
                 >
                   ✕
                 </button>
