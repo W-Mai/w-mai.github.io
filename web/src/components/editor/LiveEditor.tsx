@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type FC } from 'react';
+import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import PostList from './PostList';
 import MdxEditor from './MdxEditor';
 import PreviewPanel from './PreviewPanel';
@@ -119,6 +119,37 @@ const LiveEditor: FC = () => {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
     }
   }, [state.selectedSlug, state.isDirty, state.content]);
+
+  // Auto-save: debounce 2s after content changes
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!state.isDirty || !state.selectedSlug) return;
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      // Trigger save by calling the API directly with current state
+      const slug = state.selectedSlug;
+      const content = state.content;
+      if (!slug) return;
+      fetch(`/api/editor/posts/${slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/plain' },
+        body: content,
+      }).then((res) => {
+        if (res.ok) {
+          setState((s) => {
+            // Only mark as saved if content hasn't changed since we started saving
+            if (s.content === content) {
+              return { ...s, savedContent: content, isDirty: false, previewKey: s.previewKey + 1 };
+            }
+            return s;
+          });
+        }
+      }).catch(() => {});
+    }, 2000);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [state.content, state.isDirty, state.selectedSlug]);
 
   const dismissError = useCallback(() => {
     setState((s) => ({ ...s, error: null }));
