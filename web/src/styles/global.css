@@ -219,6 +219,12 @@ hr {
   box-shadow: inset 2px 2px 5px #c8ccd1, inset -2px -2px 5px #ffffff;
 }
 
+.neu-inset {
+  background: #e8ecf1;
+  box-shadow: inset 4px 4px 8px #c8ccd1, inset -4px -4px 8px #ffffff;
+  border: none;
+}
+
 .neu-avatar-ring {
   background: #e8ecf1;
   box-shadow: 3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff;

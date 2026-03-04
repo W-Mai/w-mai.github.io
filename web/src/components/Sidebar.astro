@@ -4,13 +4,20 @@ const slots = Astro.slots
 <aside
         class=" box-border
                 w-full
-                md:w-64
+                md:w-72
                 flex-shrink-0
                 neu-bg
                 p-4
+                md:pl-8
+                pt-8
                 space-y-2
                 order-first
                 md:order-none
+                md:sticky
+                md:top-0
+                md:self-start
+                md:h-screen
+                md:overflow-y-auto
   ">
     <slot name="sidebar"/>
 </aside>

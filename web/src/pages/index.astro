@@ -85,13 +85,13 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
         </div>
     </div>
 
-    <section class="board-container neu-card rounded-2xl p-4 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:3">
+    <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:3">
         <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
             📌 置顶项目
             <span class="h-0.5 flex-1 bg-slate-200 rounded-full"></span>
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             {featured.map((project) => (
                 <FeaturedProjectCard
                     name={project.name}
@@ -114,7 +114,7 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
             <span class="h-0.5 flex-1 bg-slate-200 rounded-full"></span>
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {repos.map((repo) => (
                 <ProjectCard
                     name={repo.name}

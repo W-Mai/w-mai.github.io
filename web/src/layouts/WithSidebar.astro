@@ -22,12 +22,12 @@ if (Astro.slots.has('sidebar')) {
 <body class="neu-bg">
 <Header/>
 
-<div class="flex flex-col md:flex-row min-h-screen">
+<div class="flex flex-col md:flex-row min-h-screen max-w-[1400px] mx-auto">
     <Sidebar>
         <Fragment slot="sidebar" set:html={html}/>
     </Sidebar>
 
-    <main class="box-border flex-1 flex-col m-2 self-center md:p-16 p-4">
+    <main class="box-border flex-1 flex-col m-2 md:p-16 p-4 w-full">
         <slot/>
     </main>
 </div>
