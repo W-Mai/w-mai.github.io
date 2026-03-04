@@ -1,11 +1,11 @@
-/** Unified design tokens for the editor UI */
+/** Unified design tokens for the editor UI (neumorphism style) */
 export const EDITOR_TOKENS = {
   // Colors
-  colorBg: '#ffffff',
-  colorBgSecondary: '#fafafa',
-  colorBgTertiary: '#f3f4f6',
-  colorBorder: '#e5e7eb',
-  colorBorderLight: '#f3f4f6',
+  colorBg: '#e8ecf1',
+  colorBgSecondary: '#e0e4e9',
+  colorBgTertiary: '#d8dce1',
+  colorBorder: '#c8ccd1',
+  colorBorderLight: '#dde1e6',
   colorText: '#111827',
   colorTextSecondary: '#6b7280',
   colorTextMuted: '#9ca3af',
@@ -15,6 +15,12 @@ export const EDITOR_TOKENS = {
   colorSuccess: '#10b981',
   colorWarning: '#f59e0b',
   colorWarningBg: '#fffbeb',
+
+  // Neumorphism shadows
+  shadowRaised: '4px 4px 8px #c8ccd1, -4px -4px 8px #ffffff',
+  shadowInset: 'inset 2px 2px 5px #c8ccd1, inset -2px -2px 5px #ffffff',
+  shadowBtn: '3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff',
+  shadowBtnHover: '1px 1px 3px #c8ccd1, -1px -1px 3px #ffffff',
 
   // Spacing
   spacingXs: '0.25rem',
@@ -32,9 +38,9 @@ export const EDITOR_TOKENS = {
   fontSizeBase: '0.875rem',
 
   // Border radius
-  radiusSm: '0.25rem',
-  radiusMd: '0.375rem',
-  radiusLg: '0.5rem',
+  radiusSm: '0.375rem',
+  radiusMd: '0.5rem',
+  radiusLg: '0.75rem',
 
   // Transitions
   transitionFast: '150ms ease',

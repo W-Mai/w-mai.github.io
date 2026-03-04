@@ -495,9 +495,11 @@ const LiveEditor: FC = () => {
       {!sidebarCollapsed && (
         <div style={{
           width: `${sidebarWidth}px`, minWidth: `${sidebarWidth}px`,
-          borderRight: `1px solid ${T.colorBorder}`,
+          borderRight: 'none',
           display: 'flex', flexDirection: 'column',
-          background: T.colorBgSecondary,
+          background: T.colorBg,
+          boxShadow: T.shadowRaised,
+          marginRight: '4px',
         }}>
           {/* Sidebar tabs */}
           <div style={{ display: 'flex', borderBottom: `1px solid ${T.colorBorder}` }}>
@@ -566,8 +568,9 @@ const LiveEditor: FC = () => {
         <div style={{
           display: 'flex', alignItems: 'center', gap: T.spacingLg,
           padding: `${T.spacingMd} ${T.spacingXl}`,
-          borderBottom: `1px solid ${T.colorBorder}`,
-          background: T.colorBgSecondary, fontSize: T.fontSizeBase,
+          borderBottom: 'none',
+          background: T.colorBg, fontSize: T.fontSizeBase,
+          boxShadow: `0 2px 4px rgba(0,0,0,0.06)`,
         }}>
           {sidebarCollapsed && (
             <button
@@ -597,12 +600,13 @@ const LiveEditor: FC = () => {
               disabled={!state.isDirty || state.isLoading}
               style={{
                 padding: `0.35rem ${T.spacingXl}`,
-                background: state.isDirty ? T.colorAccent : T.colorBorder,
-                color: state.isDirty ? T.colorBg : T.colorTextMuted,
+                background: state.isDirty ? T.colorAccent : T.colorBg,
+                color: state.isDirty ? '#ffffff' : T.colorTextMuted,
                 border: 'none', borderRadius: T.radiusMd,
                 fontSize: T.fontSizeMd, fontWeight: 500,
                 cursor: state.isDirty ? 'pointer' : 'default',
                 transition: `all ${T.transitionFast}`,
+                boxShadow: state.isDirty ? T.shadowBtn : 'none',
               }}
             >
               {state.isLoading ? 'Saving...' : 'Save'}
@@ -616,8 +620,8 @@ const LiveEditor: FC = () => {
               : 'No pending posts to commit'}
             style={{
               padding: `0.35rem ${T.spacingXl}`,
-              background: gitPending.length === 0 ? T.colorBorder
-                : gitCommitting ? T.colorBorder : '#059669',
+              background: gitPending.length === 0 ? T.colorBg
+                : gitCommitting ? T.colorBg : '#059669',
               color: gitPending.length === 0 ? T.colorTextMuted
                 : gitCommitting ? T.colorTextMuted : '#fff',
               border: 'none', borderRadius: T.radiusMd,
@@ -626,6 +630,7 @@ const LiveEditor: FC = () => {
               transition: `all ${T.transitionFast}`,
               display: 'flex', alignItems: 'center', gap: T.spacingSm,
               opacity: gitPending.length === 0 ? 0.5 : 1,
+              boxShadow: gitPending.length > 0 && !gitCommitting ? T.shadowBtn : 'none',
             }}
           >
             {gitCommitting ? '⏳ Committing...' : `📦 Commit${gitPending.length > 0 ? ` ${gitPending.length} post${gitPending.length > 1 ? 's' : ''}` : ''}`}
