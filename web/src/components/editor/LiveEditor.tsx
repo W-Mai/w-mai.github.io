@@ -6,6 +6,7 @@ import PreviewPanel from './PreviewPanel';
 import Toolbar from './Toolbar';
 import ContextMenu from './ContextMenu';
 import CreatePostModal from './CreatePostModal';
+import AssetNameDialog from './AssetNameDialog';
 import ShortcutPanel from './ShortcutPanel';
 import AIDiffPanel from './AIDiffPanel';
 import { EDITOR_TOKENS as T } from './editor-tokens';
@@ -51,6 +52,8 @@ const LiveEditor: FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
+  const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
+  const [assetNames, setAssetNames] = useState<Set<string>>(new Set());
   const [sidebarTab, setSidebarTab] = useState<'posts' | 'assets'>(() => {
     return (restoreEditorState('sidebarTab') as 'posts' | 'assets') || 'posts';
   });
@@ -111,6 +114,37 @@ const LiveEditor: FC = () => {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  // Fetch asset names for upload naming dialog
+  const refreshAssetNames = useCallback(() => {
+    fetch('/api/editor/assets')
+      .then((res) => res.json())
+      .then((data: { name: string }[]) => setAssetNames(new Set(data.map((a) => a.name))))
+      .catch(() => {});
+  }, []);
+  useEffect(() => { refreshAssetNames(); }, [refreshAssetNames]);
+
+  const handleFileUpload = useCallback((file: File) => {
+    refreshAssetNames();
+    setPendingUploadFile(file);
+  }, [refreshAssetNames]);
+
+  const handleUploadConfirm = useCallback(async (file: File, finalName: string) => {
+    setPendingUploadFile(null);
+    try {
+      const res = await fetch(`/api/editor/assets/${encodeURIComponent(finalName)}`, {
+        method: 'POST', body: file,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Upload failed: ${finalName}`);
+      }
+      refreshAssetNames();
+      editorRef.current?.insertText(`![${finalName}](./assets/${finalName})`);
+    } catch (err: any) {
+      setState((s) => ({ ...s, error: err.message }));
+    }
+  }, [refreshAssetNames]);
 
   const selectPost = useCallback(async (slug: string) => {
     setState((s) => ({ ...s, isLoading: true, error: null }));
@@ -550,6 +584,7 @@ const LiveEditor: FC = () => {
                 onActiveFormatsChange={setActiveFormats}
                 onContextMenu={handleContextMenu}
                 onShowShortcuts={() => setShowShortcuts(true)}
+                onFileUpload={handleFileUpload}
               />
             ) : (
               <div style={{
@@ -595,6 +630,15 @@ const LiveEditor: FC = () => {
         aiEnabled={aiEnabled}
         onConfirm={createPost}
         onCancel={() => setShowCreateModal(false)}
+      />
+
+      {/* Asset Upload Naming Dialog (for editor drag/paste) */}
+      <AssetNameDialog
+        file={pendingUploadFile}
+        aiEnabled={aiEnabled}
+        existingNames={assetNames}
+        onConfirm={handleUploadConfirm}
+        onCancel={() => setPendingUploadFile(null)}
       />
 
       {/* Shortcut Panel */}

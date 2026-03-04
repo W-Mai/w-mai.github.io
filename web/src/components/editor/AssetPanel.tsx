@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
-import { pinyin } from 'pinyin-pro';
-import { normalizeAssetName, validateAssetName } from '../../lib/editor-utils';
+import AssetNameDialog from './AssetNameDialog';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 
 interface AssetInfo {
@@ -16,37 +15,12 @@ interface AssetPanelProps {
   onInsert?: (mdxRef: string) => void;
 }
 
-interface PendingUpload {
-  file: File;
-  originalName: string;
-  finalName: string;
-  manuallyEdited: boolean;
-}
-
 const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.ico'];
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-/** Convert non-ASCII filename to pinyin-based name, preserving extension */
-function filenameToPinyin(name: string): string {
-  const lastDot = name.lastIndexOf('.');
-  const base = lastDot > 0 ? name.slice(0, lastDot) : name;
-  const ext = lastDot > 0 ? name.slice(lastDot) : '';
-  const py = pinyin(base, { toneType: 'none', type: 'array', nonZh: 'consecutive' });
-  const slug = py.join('-').toLowerCase()
-    .replace(/[^a-z0-9_-]/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
-  return `${slug || 'file'}${ext.toLowerCase()}`;
-}
-
-/** Generate a compliant name: try normalizeAssetName first, fallback to pinyin */
-function autoName(originalName: string): string {
-  const normalized = normalizeAssetName(originalName);
-  if (validateAssetName(normalized)) return normalized;
-  return filenameToPinyin(originalName);
 }
 
 const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, onInsert }) => {
@@ -56,13 +30,8 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, onInsert }) => {
   const [uploading, setUploading] = useState(false);
   const [copiedName, setCopiedName] = useState<string | null>(null);
   const [deleteWarning, setDeleteWarning] = useState<AssetInfo | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Upload naming dialog state
-  const [pending, setPending] = useState<PendingUpload | null>(null);
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
 
   const fetchAssets = useCallback(async () => {
     setIsLoading(true);
@@ -82,99 +51,23 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, onInsert }) => {
 
   const existingNames = new Set(assets.map((a) => a.name));
 
-  const validateName = useCallback((name: string): string | null => {
-    if (!name) return 'Name is required';
-    if (!validateAssetName(name)) return 'Must be lowercase letters, digits, hyphens, underscores with extension';
-    if (existingNames.has(name)) return 'This name already exists';
-    return null;
-  }, [existingNames]);
-
-  /** Open naming dialog instead of uploading directly */
   const handleFileSelect = useCallback((files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const file = files[0];
-    const generated = autoName(file.name);
-    setPending({ file, originalName: file.name, finalName: generated, manuallyEdited: false });
-    setNameError(validateName(generated));
-    setAiSuggestions([]);
-    setAiLoading(false);
+    setPendingFile(files[0]);
     if (fileInputRef.current) fileInputRef.current.value = '';
-  }, [validateName]);
+  }, []);
 
-  const handleNameChange = (value: string) => {
-    if (!pending) return;
-    setPending({ ...pending, finalName: value, manuallyEdited: true });
-    setNameError(validateName(value));
-  };
-
-  const handleAIGenerate = async () => {
-    if (!pending || aiLoading) return;
-    setAiLoading(true);
-    setAiSuggestions([]);
-    try {
-      const res = await fetch('/api/editor/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'suggest-asset-name', content: pending.originalName }),
-      });
-      if (!res.ok) throw new Error('AI request failed');
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error('No response body');
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let fullText = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const parsed = JSON.parse(line.slice(6));
-              if (parsed.chunk) fullText += parsed.chunk;
-              if (parsed.result) fullText = parsed.result;
-            } catch {}
-          }
-        }
-      }
-      const match = fullText.match(/\[[\s\S]*?\]/);
-      if (match) {
-        const names: string[] = JSON.parse(match[0]);
-        const valid = names.filter((n) => typeof n === 'string' && validateAssetName(n));
-        setAiSuggestions(valid.slice(0, 3));
-        if (valid.length > 0) {
-          setPending((p) => p ? { ...p, finalName: valid[0], manuallyEdited: true } : p);
-          setNameError(validateName(valid[0]));
-        }
-      }
-    } catch {
-      setNameError('AI name generation failed');
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const selectSuggestion = (name: string) => {
-    if (!pending) return;
-    setPending({ ...pending, finalName: name, manuallyEdited: true });
-    setNameError(validateName(name));
-  };
-
-  const confirmUpload = async () => {
-    if (!pending || nameError) return;
-    setPending(null);
+  const confirmUpload = useCallback(async (file: File, finalName: string) => {
+    setPendingFile(null);
     setUploading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/editor/assets/${encodeURIComponent(pending.finalName)}`, {
-        method: 'POST',
-        body: pending.file,
+      const res = await fetch(`/api/editor/assets/${encodeURIComponent(finalName)}`, {
+        method: 'POST', body: file,
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Failed to upload ${pending.finalName}`);
+        throw new Error(data.error || `Failed to upload ${finalName}`);
       }
       await fetchAssets();
     } catch (err: any) {
@@ -182,13 +75,7 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, onInsert }) => {
     } finally {
       setUploading(false);
     }
-  };
-
-  const cancelUpload = () => {
-    setPending(null);
-    setAiSuggestions([]);
-    setNameError(null);
-  };
+  }, [fetchAssets]);
 
   const requestDelete = useCallback((asset: AssetInfo) => {
     if (asset.refCount > 0) { setDeleteWarning(asset); return; }
@@ -221,105 +108,16 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, onInsert }) => {
     handleFileSelect(e.dataTransfer.files);
   }, [handleFileSelect]);
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: `${T.spacingSm} ${T.spacingMd}`,
-    border: `1px solid ${nameError ? T.colorError : T.colorBorder}`,
-    borderRadius: T.radiusSm, fontSize: T.fontSizeSm,
-    fontFamily: T.fontMono, outline: 'none', boxSizing: 'border-box',
-    transition: `border-color ${T.transitionFast}`,
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Upload naming dialog */}
-      {pending && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 2000,
-          background: 'rgba(0,0,0,0.3)', display: 'flex',
-          alignItems: 'center', justifyContent: 'center',
-        }} onClick={(e) => { if (e.target === e.currentTarget) cancelUpload(); }}>
-          <div style={{
-            background: T.colorBg, borderRadius: T.radiusLg,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-            padding: T.spacingXl, width: '400px', fontFamily: T.fontSans,
-          }}>
-            <div style={{ fontSize: T.fontSizeBase, fontWeight: 600, color: T.colorText, marginBottom: T.spacingLg }}>
-              Upload Asset
-            </div>
-            <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingLg }}>
-              Original: {pending.originalName}
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingSm, marginBottom: T.spacingXs }}>
-              <label style={{ fontSize: T.fontSizeXs, color: T.colorTextSecondary, fontWeight: 500 }}>
-                Filename
-              </label>
-              {aiEnabled && (
-                <button
-                  onClick={handleAIGenerate}
-                  disabled={aiLoading}
-                  title="Use AI to generate filename"
-                  style={{
-                    background: 'none', border: `1px solid ${T.colorBorder}`,
-                    borderRadius: T.radiusSm, padding: '0 0.4rem',
-                    fontSize: T.fontSizeXs, color: aiLoading ? T.colorTextMuted : T.colorAccent,
-                    cursor: aiLoading ? 'wait' : 'pointer', lineHeight: '1.6',
-                    transition: `all ${T.transitionFast}`,
-                  }}
-                >
-                  {aiLoading ? '⏳ Generating...' : '✨ AI'}
-                </button>
-              )}
-            </div>
-            <input
-              type="text"
-              value={pending.finalName}
-              onChange={(e) => handleNameChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !nameError) confirmUpload();
-                if (e.key === 'Escape') cancelUpload();
-              }}
-              autoFocus
-              style={inputStyle}
-            />
-
-            {aiSuggestions.length > 1 && (
-              <div style={{ display: 'flex', gap: T.spacingSm, flexWrap: 'wrap', marginTop: T.spacingSm }}>
-                {aiSuggestions.map((s) => (
-                  <button key={s} onClick={() => selectSuggestion(s)} style={{
-                    background: pending.finalName === s ? T.colorAccent : T.colorBgTertiary,
-                    color: pending.finalName === s ? T.colorBg : T.colorTextSecondary,
-                    border: 'none', borderRadius: T.radiusSm,
-                    padding: `0.15rem ${T.spacingMd}`,
-                    fontSize: T.fontSizeXs, fontFamily: T.fontMono,
-                    cursor: 'pointer', transition: `all ${T.transitionFast}`,
-                  }}>{s}</button>
-                ))}
-              </div>
-            )}
-
-            {nameError && (
-              <div style={{ color: T.colorError, fontSize: T.fontSizeXs, marginTop: T.spacingXs }}>{nameError}</div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: T.spacingMd, marginTop: T.spacingLg }}>
-              <button onClick={cancelUpload} style={{
-                padding: `${T.spacingSm} ${T.spacingLg}`, background: 'none',
-                border: `1px solid ${T.colorBorder}`, borderRadius: T.radiusSm,
-                fontSize: T.fontSizeSm, color: T.colorTextSecondary, cursor: 'pointer',
-              }}>Cancel</button>
-              <button onClick={confirmUpload} disabled={!!nameError} style={{
-                padding: `${T.spacingSm} ${T.spacingLg}`,
-                background: nameError ? T.colorBorder : T.colorAccent,
-                color: nameError ? T.colorTextMuted : T.colorBg,
-                border: 'none', borderRadius: T.radiusSm,
-                fontSize: T.fontSizeSm, fontWeight: 500,
-                cursor: nameError ? 'default' : 'pointer',
-              }}>Upload</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Asset naming dialog */}
+      <AssetNameDialog
+        file={pendingFile}
+        aiEnabled={aiEnabled}
+        existingNames={existingNames}
+        onConfirm={confirmUpload}
+        onCancel={() => setPendingFile(null)}
+      />
 
       {/* Delete warning modal */}
       {deleteWarning && (

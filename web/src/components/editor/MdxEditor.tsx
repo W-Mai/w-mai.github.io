@@ -11,6 +11,7 @@ import { detectActiveFormats } from '../../lib/editor-formatting';
 
 export interface MdxEditorHandle {
   getView: () => EditorView | null;
+  insertText: (text: string) => void;
 }
 
 interface MdxEditorProps {
@@ -21,73 +22,10 @@ interface MdxEditorProps {
   onActiveFormatsChange?: (formats: Set<string>) => void;
   onContextMenu?: (e: { x: number; y: number; hasSelection: boolean }) => void;
   onShowShortcuts?: () => void;
+  onFileUpload?: (file: File) => void;
 }
 
 const ALLOWED_EXT = /\.(png|jpe?g|gif|svg|webp|avif|ico|pdf)$/i;
-
-/** Upload a file to the assets API and return the MDX reference string */
-async function uploadAsset(file: File): Promise<string> {
-  const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  if (!ALLOWED_EXT.test(name)) throw new Error(`Unsupported file type: ${name}`);
-
-  const res = await fetch(`/api/editor/assets/${encodeURIComponent(name)}`, {
-    method: 'POST',
-    body: file,
-  });
-  if (res.status === 409) {
-    return `./assets/${name}`;
-  }
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || `Upload failed: ${name}`);
-  }
-  return `./assets/${name}`;
-}
-
-/** Handle dropped/pasted files: upload and insert references */
-async function handleFiles(files: File[], view: EditorView) {
-  for (const file of files) {
-    const placeholder = `![Uploading ${file.name}...]()`;
-    const pos = view.state.selection.main.head;
-    view.dispatch({ changes: { from: pos, insert: placeholder } });
-
-    try {
-      const ref = await uploadAsset(file);
-      const imgRef = `![${file.name}](${ref})`;
-      const doc = view.state.doc.toString();
-      const idx = doc.indexOf(placeholder);
-      if (idx >= 0) {
-        view.dispatch({ changes: { from: idx, to: idx + placeholder.length, insert: imgRef } });
-      }
-    } catch {
-      const doc = view.state.doc.toString();
-      const idx = doc.indexOf(placeholder);
-      if (idx >= 0) {
-        view.dispatch({ changes: { from: idx, to: idx + placeholder.length, insert: '' } });
-      }
-    }
-  }
-}
-
-/** CodeMirror extension to handle drag-and-drop and paste file uploads */
-const dropPasteHandler = EditorView.domEventHandlers({
-  drop(event, view) {
-    const files = Array.from(event.dataTransfer?.files || []);
-    if (files.length === 0) return false;
-    event.preventDefault();
-    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
-    if (pos != null) view.dispatch({ selection: { anchor: pos } });
-    handleFiles(files, view);
-    return true;
-  },
-  paste(event, view) {
-    const files = Array.from(event.clipboardData?.files || []);
-    if (files.length === 0) return false;
-    event.preventDefault();
-    handleFiles(files, view);
-    return true;
-  },
-});
 
 const editorTheme = EditorView.theme({
   '&': { height: '100%', fontSize: '14px' },
@@ -106,7 +44,7 @@ const editorTheme = EditorView.theme({
 });
 
 const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
-  ({ content, onChange, onSave, onScroll, onActiveFormatsChange, onContextMenu, onShowShortcuts }, ref) => {
+  ({ content, onChange, onSave, onScroll, onActiveFormatsChange, onContextMenu, onShowShortcuts, onFileUpload }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const onChangeRef = useRef(onChange);
@@ -115,6 +53,7 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
     const onActiveFormatsChangeRef = useRef(onActiveFormatsChange);
     const onContextMenuRef = useRef(onContextMenu);
     const onShowShortcutsRef = useRef(onShowShortcuts);
+    const onFileUploadRef = useRef(onFileUpload);
 
     onChangeRef.current = onChange;
     onSaveRef.current = onSave;
@@ -122,9 +61,16 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
     onActiveFormatsChangeRef.current = onActiveFormatsChange;
     onContextMenuRef.current = onContextMenu;
     onShowShortcutsRef.current = onShowShortcuts;
+    onFileUploadRef.current = onFileUpload;
 
     useImperativeHandle(ref, () => ({
       getView: () => viewRef.current,
+      insertText: (text: string) => {
+        const view = viewRef.current;
+        if (!view) return;
+        const pos = view.state.selection.main.head;
+        view.dispatch({ changes: { from: pos, insert: text } });
+      },
     }));
 
     useEffect(() => {
@@ -154,6 +100,27 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
             y: event.clientY,
             hasSelection: from !== to,
           });
+          return true;
+        },
+      });
+
+      const dropPasteHandler = EditorView.domEventHandlers({
+        drop(event) {
+          const files = Array.from(event.dataTransfer?.files || []);
+          if (files.length === 0 || !onFileUploadRef.current) return false;
+          event.preventDefault();
+          for (const file of files) {
+            if (ALLOWED_EXT.test(file.name)) onFileUploadRef.current(file);
+          }
+          return true;
+        },
+        paste(event) {
+          const files = Array.from(event.clipboardData?.files || []);
+          if (files.length === 0 || !onFileUploadRef.current) return false;
+          event.preventDefault();
+          for (const file of files) {
+            if (ALLOWED_EXT.test(file.name)) onFileUploadRef.current(file);
+          }
           return true;
         },
       });
