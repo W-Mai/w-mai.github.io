@@ -12,6 +12,7 @@ interface AssetInfo {
 
 interface AssetPanelProps {
   aiEnabled?: boolean;
+  refreshKey?: number;
   onInsert?: (mdxRef: string) => void;
 }
 
@@ -23,7 +24,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, onInsert }) => {
+const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, refreshKey = 0, onInsert }) => {
   const [assets, setAssets] = useState<AssetInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, onInsert }) => {
     }
   }, []);
 
-  useEffect(() => { fetchAssets(); }, [fetchAssets]);
+  useEffect(() => { fetchAssets(); }, [fetchAssets, refreshKey]);
 
   const existingNames = new Set(assets.map((a) => a.name));
 

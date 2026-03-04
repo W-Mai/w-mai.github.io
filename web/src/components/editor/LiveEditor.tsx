@@ -60,6 +60,7 @@ const LiveEditor: FC = () => {
   });
   const [scrollRatio, setScrollRatio] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [assetRefreshKey, setAssetRefreshKey] = useState(0);
   const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[] }[]>([]);
   const [gitCommitting, setGitCommitting] = useState(false);
   const [showGitModal, setShowGitModal] = useState(false);
@@ -238,6 +239,7 @@ const LiveEditor: FC = () => {
         ...s, savedContent: s.content, isDirty: false, isLoading: false, previewKey: s.previewKey + 1,
       }));
       refreshGitPending();
+      setAssetRefreshKey((k) => k + 1);
     } catch (err: any) {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
     }
@@ -547,7 +549,7 @@ const LiveEditor: FC = () => {
           {/* Assets tab */}
           {sidebarTab === 'assets' && (
             <div style={{ flex: 1, overflow: 'hidden' }}>
-              <AssetPanel aiEnabled={aiEnabled} onInsert={handleInsertAsset} />
+              <AssetPanel aiEnabled={aiEnabled} refreshKey={assetRefreshKey} onInsert={handleInsertAsset} />
             </div>
           )}
         </div>
