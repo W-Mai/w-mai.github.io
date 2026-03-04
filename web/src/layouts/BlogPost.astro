@@ -16,9 +16,52 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 		<BaseHead title={title} description={description} />
 		<title>{title}</title>
 		<script is:inline>
-			// Hide chrome (header/footer/nav) when loaded as embed preview
+			// Embed mode: hide chrome and restore scroll position
 			if (new URLSearchParams(window.location.search).has('embed')) {
 				document.documentElement.dataset.embed = '';
+
+				// Block Vite HMR full-reload inside embed iframe;
+				// the parent editor controls refresh explicitly.
+				var OrigWS = window.WebSocket;
+				window.WebSocket = function(url, protocols) {
+					var ws = new OrigWS(url, protocols);
+					ws.addEventListener('message', function(e) {
+						try {
+							var d = JSON.parse(e.data);
+							if (d.type === 'full-reload') {
+								e.stopImmediatePropagation();
+								return;
+							}
+						} catch(ex) {}
+					}, true);
+					return ws;
+				};
+				window.WebSocket.prototype = OrigWS.prototype;
+
+				// Restore scroll position from hash (#sr=0.1234)
+				var m = window.location.hash.match(/sr=([\d.]+)/);
+				if (m) {
+					var ratio = parseFloat(m[1]);
+					var applyScroll = function() {
+						var max = document.documentElement.scrollHeight - window.innerHeight;
+						if (max > 0) window.scrollTo(0, ratio * max);
+					};
+					window.addEventListener('DOMContentLoaded', applyScroll);
+					window.addEventListener('load', applyScroll);
+					document.fonts && document.fonts.ready && document.fonts.ready.then(applyScroll);
+				}
+
+				// Notify parent that embed content is ready (after scroll restore)
+				window.addEventListener('load', function() {
+					// Use rAF to ensure scroll has been applied
+					requestAnimationFrame(function() {
+						requestAnimationFrame(function() {
+							if (window.parent !== window) {
+								window.parent.postMessage('embed:ready', '*');
+							}
+						});
+					});
+				});
 			}
 		</script>
 		<style is:global>
