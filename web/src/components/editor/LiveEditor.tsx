@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
+import AssetPanel from './AssetPanel';
 import PostList from './PostList';
 import MdxEditor from './MdxEditor';
 import PreviewPanel from './PreviewPanel';
@@ -208,6 +209,14 @@ const LiveEditor: FC = () => {
   }, []);
 
   const [scrollRatio, setScrollRatio] = useState(0);
+  const [sidebarTab, setSidebarTab] = useState<'posts' | 'assets'>('posts');
+
+  // Insert asset reference at cursor position in editor content
+  const handleInsertAsset = useCallback((ref: string) => {
+    const imgTag = `![](${ref})`;
+    navigator.clipboard.writeText(imgTag);
+    setState((s) => ({ ...s, error: null }));
+  }, []);
 
   return (
     <div style={{
@@ -222,34 +231,64 @@ const LiveEditor: FC = () => {
         display: 'flex', flexDirection: 'column',
         background: '#fafafa',
       }}>
+        {/* Sidebar tabs */}
         <div style={{
-          padding: '1rem', borderBottom: '1px solid #e5e7eb',
-          fontSize: '0.75rem', fontWeight: 600,
-          textTransform: 'uppercase', letterSpacing: '0.05em',
-          color: '#9ca3af',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          display: 'flex', borderBottom: '1px solid #e5e7eb',
         }}>
-          <span>Posts</span>
-          <button
-            onClick={createPost}
-            title="New post"
-            style={{
-              background: 'none', border: '1px solid #e5e7eb', borderRadius: '0.25rem',
-              cursor: 'pointer', fontSize: '0.8rem', color: '#6b7280',
-              padding: '0.1rem 0.4rem', lineHeight: 1,
-            }}
-          >
-            +
-          </button>
+          {(['posts', 'assets'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setSidebarTab(tab)}
+              style={{
+                flex: 1, padding: '0.6rem 0.5rem',
+                background: 'none', border: 'none', borderBottom: sidebarTab === tab ? '2px solid #111827' : '2px solid transparent',
+                fontSize: '0.7rem', fontWeight: 600,
+                textTransform: 'uppercase', letterSpacing: '0.05em',
+                color: sidebarTab === tab ? '#111827' : '#9ca3af',
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              {tab === 'posts' ? '📝 Posts' : '🖼 Assets'}
+            </button>
+          ))}
         </div>
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          <PostList
-            posts={state.posts}
-            selectedSlug={state.selectedSlug}
-            onSelect={selectPost}
-            onDelete={deletePost}
-          />
-        </div>
+
+        {/* Posts tab */}
+        {sidebarTab === 'posts' && (
+          <>
+            <div style={{
+              padding: '0.5rem 1rem', borderBottom: '1px solid #e5e7eb',
+              display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            }}>
+              <button
+                onClick={createPost}
+                title="New post"
+                style={{
+                  background: 'none', border: '1px solid #e5e7eb', borderRadius: '0.25rem',
+                  cursor: 'pointer', fontSize: '0.8rem', color: '#6b7280',
+                  padding: '0.1rem 0.4rem', lineHeight: 1,
+                }}
+              >
+                +
+              </button>
+            </div>
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              <PostList
+                posts={state.posts}
+                selectedSlug={state.selectedSlug}
+                onSelect={selectPost}
+                onDelete={deletePost}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Assets tab */}
+        {sidebarTab === 'assets' && (
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <AssetPanel onInsert={handleInsertAsset} />
+          </div>
+        )}
       </div>
 
       {/* Main area */}
