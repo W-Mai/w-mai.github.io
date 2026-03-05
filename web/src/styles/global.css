@@ -14,11 +14,11 @@
 
     /* Neumorphism color system */
     --neu-bg: #e1e5eb;
-    --neu-shadow-dark: #c8ccd1;
+    --neu-shadow-dark: #bec2c7;
     --neu-shadow-light: #ffffff;
-    --neu-shadow-darker: #c0c4c9;
-    --neu-shadow-darkest: #b8bcc1;
-    --neu-cluster-bg: #d9dde2;
+    --neu-shadow-darker: #b4b8bd;
+    --neu-shadow-darkest: #aaaeb3;
+    --neu-cluster-bg: #d5d9de;
 
 	--accent: #2337ff;
 	--accent-dark: #000d8a;
@@ -201,7 +201,7 @@ hr {
 
 .neu-card {
   background: var(--neu-bg);
-  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+  box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light);
   border: none;
 }
 
@@ -213,36 +213,36 @@ hr {
 
 .neu-btn {
   background: var(--neu-bg);
-  box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
+  box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
   border: none;
   transition: box-shadow 0.2s ease;
 }
 .neu-btn:hover {
-  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
+  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
 }
 .neu-btn:active {
-  box-shadow: inset 2px 2px 5px var(--neu-shadow-dark), inset -2px -2px 5px var(--neu-shadow-light);
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark), inset -3px -3px 6px var(--neu-shadow-light);
 }
 
 .neu-inset {
   background: var(--neu-bg);
-  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
+  box-shadow: inset 5px 5px 10px var(--neu-shadow-dark), inset -5px -5px 10px var(--neu-shadow-light);
   border: none;
 }
 
 .neu-avatar-ring {
   background: var(--neu-bg);
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+  box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
   padding: 4px;
 }
 
 /* Responsive: smaller shadows on small screens */
 @media (max-width: 400px) {
   .neu-card {
-    box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
+    box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
   }
   .neu-btn {
-    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+    box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
   }
 }
 
@@ -282,7 +282,7 @@ hr {
 pre.mermaid {
   background: var(--neu-bg) !important;
   border-radius: 1rem !important;
-  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
+  box-shadow: inset 5px 5px 10px var(--neu-shadow-dark), inset -5px -5px 10px var(--neu-shadow-light);
   padding: 1.5rem !important;
   margin: 2rem 0 !important;
   border: none !important;
@@ -290,7 +290,7 @@ pre.mermaid {
 
 pre.mermaid[data-processed] {
   background: var(--neu-bg) !important;
-  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
+  box-shadow: inset 5px 5px 10px var(--neu-shadow-dark), inset -5px -5px 10px var(--neu-shadow-light);
   border-radius: 1rem !important;
 }
 

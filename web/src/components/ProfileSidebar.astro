@@ -1,0 +1,58 @@
+---
+import { Image } from 'astro:assets'
+import { SOCIALS, USER_NAME, NICK_NAME } from '../consts'
+import type { GitHubProfile } from '../lib/github'
+
+interface Props {
+  profile: GitHubProfile
+  showBio?: boolean
+}
+
+const { profile, showBio = false } = Astro.props
+---
+
+<aside class="neu-card rounded-[2rem] p-8
+  flex flex-col gap-y-4 md:text-sm text-2xl text-slate-800">
+
+  <div class="flex flex-col items-center">
+    <div class="neu-avatar-ring rounded-full p-1.5">
+      <Image
+        class="size-46 md:size-36 rounded-full aspect-square object-cover"
+        src={profile.avatar_url}
+        alt={USER_NAME}
+        width={184}
+        height={184}
+      />
+    </div>
+    <h4 class="mt-4 font-bold">{NICK_NAME}</h4>
+    <h5 class="m-2 text-slate-500">@{USER_NAME}</h5>
+    {showBio && (
+      <h6 class="m-1.5 text-center text-slate-600">{profile.bio ?? 'Overflow Stack Developer.'}</h6>
+    )}
+  </div>
+
+  <div class="neu-inset rounded-2xl px-6 py-4 flex justify-around text-center">
+    <div>
+      <span class="font-bold block">{profile.followers}</span>
+      <span class="text-xs text-slate-500">followers</span>
+    </div>
+    <div class="w-px bg-slate-300/40"></div>
+    <div>
+      <span class="font-bold block">{profile.following}</span>
+      <span class="text-xs text-slate-500">following</span>
+    </div>
+  </div>
+
+  <div class="flex flex-col text-center py-2 gap-y-2 px-4 md:px-2">
+    {
+      SOCIALS.map((social) => (
+        <a class="neu-btn flex no-underline h-8 items-center rounded-xl px-3 gap-2
+                  text-slate-500 hover:text-slate-700 transition-all" href={social.url} target="_blank">
+          <span class="sr-only">{social.description}</span>
+          <img class="size-4 rounded-none" src={social.icon} alt={social.description}/>
+          <h6 class="text-slate-500 m-0 text-xs">@{social.name}</h6>
+        </a>
+      ))
+    }
+  </div>
+</aside>
