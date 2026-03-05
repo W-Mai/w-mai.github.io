@@ -58,7 +58,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 <style>
 	header {
 		margin: 0;
-		padding: 0.75em 1.5em;
+		padding: 1em 2em;
 		background: rgba(224, 229, 236, 0.85);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
@@ -95,31 +95,29 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		gap: 1em;
 	}
 
-	/* Tab bar — neumorphism inset container */
+	/* Tab bar — flat container, tabs are individual buttons */
 	.tab-bar {
 		display: flex;
 		align-items: center;
-		gap: 0.35em;
-		background: var(--neu-bg);
-		box-shadow: inset 3px 3px 6px rgb(163 177 198 / 0.5), inset -3px -3px 6px rgb(255 255 255 / 0.6);
-		border-radius: 1rem;
-		padding: 0.3em;
+		gap: 0.6em;
 	}
 	/* Tab links — raised pill buttons */
 	.tab-bar :global(a) {
-		padding: 0.5em 1em;
+		padding: 0.5em 1.2em;
 		color: rgb(var(--gray));
 		text-decoration: none;
-		border-radius: 0.75rem;
+		border-radius: 0.85rem;
 		font-size: 0.85em;
 		font-weight: 500;
 		transition: all 0.2s ease;
 		white-space: nowrap;
 		border: none;
+		background: var(--neu-bg);
+		box-shadow: 3px 3px 6px rgb(163 177 198 / 0.5), -3px -3px 6px rgb(255 255 255 / 0.4);
 	}
 	.tab-bar :global(a:hover) {
 		color: rgb(var(--gray-dark));
-		background: rgba(255, 255, 255, 0.3);
+		box-shadow: 1px 1px 3px rgb(163 177 198 / 0.4), -1px -1px 3px rgb(255 255 255 / 0.3);
 	}
 	/* Active tab — pressed inset effect */
 	.tab-bar :global(a.active) {
@@ -127,7 +125,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		font-weight: 700;
 		text-decoration: none;
 		background: var(--neu-bg);
-		box-shadow: inset 2px 2px 4px rgb(163 177 198 / 0.6), inset -2px -2px 4px rgb(255 255 255 / 0.7);
+		box-shadow: inset 2px 2px 5px rgb(163 177 198 / 0.6), inset -2px -2px 5px rgb(255 255 255 / 0.7);
 	}
 
 	/* Social links */
@@ -162,10 +160,10 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		align-items: center;
 	}
 	.more-btn {
-		background: none;
+		background: var(--neu-bg);
 		border: none;
 		cursor: pointer;
-		padding: 0.5em 0.8em;
+		padding: 0.5em 1em;
 		font-size: 0.85em;
 		font-family: inherit;
 		font-weight: 500;
@@ -173,14 +171,15 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25em;
-		border-radius: 0.75rem;
+		border-radius: 0.85rem;
 		line-height: inherit;
 		transition: all 0.2s ease;
 		white-space: nowrap;
+		box-shadow: 3px 3px 6px rgb(163 177 198 / 0.5), -3px -3px 6px rgb(255 255 255 / 0.4);
 	}
 	.more-btn:hover {
 		color: rgb(var(--gray-dark));
-		background: rgba(255, 255, 255, 0.3);
+		box-shadow: 1px 1px 3px rgb(163 177 198 / 0.4), -1px -1px 3px rgb(255 255 255 / 0.3);
 	}
 	.more-arrow {
 		font-size: 0.7em;
@@ -191,7 +190,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	}
 	.more-btn[aria-expanded="true"] {
 		background: var(--neu-bg);
-		box-shadow: inset 2px 2px 4px rgb(163 177 198 / 0.6), inset -2px -2px 4px rgb(255 255 255 / 0.7);
+		box-shadow: inset 2px 2px 5px rgb(163 177 198 / 0.6), inset -2px -2px 5px rgb(255 255 255 / 0.7);
 	}
 	.more-dropdown {
 		display: none;
