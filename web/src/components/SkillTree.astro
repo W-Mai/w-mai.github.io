@@ -78,7 +78,7 @@ for (const domain of skillTreeData.domains) {
 }
 ---
 
-<section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:4" aria-labelledby="skill-tree-heading">
+<section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:4; contain: layout style; content-visibility: auto; contain-intrinsic-size: auto 600px;" aria-labelledby="skill-tree-heading">
   <h2 id="skill-tree-heading" class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
     🌳 技能树
     <span class="h-0.5 flex-1 bg-slate-200/60 rounded-full"></span>
@@ -140,7 +140,7 @@ for (const domain of skillTreeData.domains) {
             <svg class="skill-tree-svg absolute inset-0 pointer-events-none" style="z-index: 0">
               {tree.edges.map(edge => (
                 <path
-                  class="skill-edge transition-all duration-200"
+                  class="skill-edge"
                   data-edge-source={edge.source}
                   data-edge-target={edge.target}
                   stroke="#b0b8c4"
@@ -227,6 +227,10 @@ function initSkillTree() {
   function updateAllEdges() {
     const treeAreas = container!.querySelectorAll<HTMLElement>('.skill-tree-area')
     treeAreas.forEach(area => {
+      // Skip hidden domain groups
+      const group = area.closest('.skill-domain-group') as HTMLElement | null
+      if (group && group.style.display === 'none') return
+
       const nodesLayer = area.querySelector('.skill-tree-nodes') as HTMLElement
       const svg = area.querySelector('.skill-tree-svg') as unknown as SVGSVGElement
       if (!nodesLayer || !svg) return
@@ -241,26 +245,31 @@ function initSkillTree() {
 
       const areaRect = nodesLayer.getBoundingClientRect()
 
+      // Batch-read all visible node rects
+      const nodeRects = new Map<string, DOMRect>()
+      nodesLayer.querySelectorAll<HTMLElement>('.skill-node').forEach(el => {
+        if (el.style.display === 'none') return
+        const id = el.dataset.nodeId
+        if (id) nodeRects.set(id, el.getBoundingClientRect())
+      })
+
+      // Batch-write all edge paths
       svg.querySelectorAll<SVGPathElement>('.skill-edge').forEach(path => {
         const srcId = path.dataset.edgeSource
         const tgtId = path.dataset.edgeTarget
         if (!srcId || !tgtId) return
 
-        const srcEl = nodesLayer.querySelector(`[data-node-id="${srcId}"]`) as HTMLElement | null
-        const tgtEl = nodesLayer.querySelector(`[data-node-id="${tgtId}"]`) as HTMLElement | null
-        if (!srcEl || !tgtEl) { path.setAttribute('d', ''); return }
+        const sr = nodeRects.get(srcId)
+        const tr = nodeRects.get(tgtId)
+        if (!sr || !tr || sr.width === 0 || tr.width === 0) {
+          path.setAttribute('d', '')
+          return
+        }
 
-        const sr = srcEl.getBoundingClientRect()
-        const tr = tgtEl.getBoundingClientRect()
-        if (sr.width === 0 || tr.width === 0) { path.setAttribute('d', ''); return }
-
-        // Source: right edge center; Target: left edge center
         const sx = sr.right - areaRect.left
         const sy = sr.top + sr.height / 2 - areaRect.top
         const tx = tr.left - areaRect.left
         const ty = tr.top + tr.height / 2 - areaRect.top
-
-        // Horizontal bezier curve
         const cpx = (sx + tx) / 2
         path.setAttribute('d', `M ${sx} ${sy} C ${cpx} ${sy}, ${cpx} ${ty}, ${tx} ${ty}`)
       })
@@ -431,11 +440,16 @@ function initSkillTree() {
     node.addEventListener('blur', () => node.dispatchEvent(new MouseEvent('mouseleave')))
   })
 
-  // Initial draw + observers
+  // Initial draw + observers with debounced resize
   requestAnimationFrame(updateAllEdges)
-  const ro = new ResizeObserver(() => requestAnimationFrame(updateAllEdges))
+  let resizeTimer: ReturnType<typeof setTimeout> | null = null
+  function debouncedEdgeUpdate() {
+    if (resizeTimer) clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(() => requestAnimationFrame(updateAllEdges), 80)
+  }
+  const ro = new ResizeObserver(debouncedEdgeUpdate)
   ro.observe(container)
-  window.addEventListener('resize', () => requestAnimationFrame(updateAllEdges))
+  window.addEventListener('resize', debouncedEdgeUpdate)
 }
 
 document.addEventListener('astro:page-load', initSkillTree)
@@ -454,40 +468,27 @@ document.addEventListener('astro:page-load', initSkillTree)
     outline-offset: 2px;
   }
 
-  /* Learning status: rotating gradient border */
+  /* Learning status: pulsing outline (compositor-only, no repaint) */
   .skill-node-learning {
     position: relative;
     background: var(--neu-bg) !important;
-    z-index: 0;
+    outline: 2px solid #6366f1;
+    outline-offset: 0px;
   }
   .skill-node-learning::before {
     content: '';
     position: absolute;
-    inset: -2px;
-    border-radius: 14px;
-    background: conic-gradient(
-      from var(--learning-angle, 0deg),
-      #6366f1, #a78bfa, #818cf8, #6366f1
-    );
-    z-index: -1;
-    animation: skill-border-spin 3s linear infinite;
-    opacity: 0.7;
+    inset: -4px;
+    border-radius: 16px;
+    border: 2px solid #a78bfa;
+    opacity: 0;
+    animation: skill-pulse 2s ease-in-out infinite;
+    pointer-events: none;
+    will-change: opacity, transform;
   }
-  .skill-node-learning::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 12px;
-    background: var(--neu-bg);
-    z-index: -1;
-  }
-  @keyframes skill-border-spin {
-    to { --learning-angle: 360deg; }
-  }
-  @property --learning-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
+  @keyframes skill-pulse {
+    0%, 100% { opacity: 0; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.02); }
   }
 
   @media (prefers-reduced-motion: reduce) {
