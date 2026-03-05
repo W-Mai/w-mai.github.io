@@ -85,7 +85,7 @@ for (const domain of skillTreeData.domains) {
   </h2>
 
   <!-- Domain filter -->
-  <div class="flex flex-wrap gap-2 sm:gap-3 mb-5 sm:mb-6" role="tablist" aria-label="技能分类筛选">
+  <div class="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4" role="tablist" aria-label="技能分类筛选">
     <button
       class="skill-filter-btn neu-inset px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
       data-domain="all" role="tab" aria-selected="true"
@@ -96,6 +96,18 @@ for (const domain of skillTreeData.domains) {
         data-domain={domain.id} role="tab" aria-selected="false"
       >{domain.icon} {domain.name}</button>
     ))}
+  </div>
+
+  <!-- Status filter -->
+  <div class="flex flex-wrap gap-2 sm:gap-3 mb-5 sm:mb-6" role="tablist" aria-label="技能状态筛选">
+    <button class="status-filter-btn neu-inset px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
+      data-status="all" role="tab" aria-selected="true">📋 全部状态</button>
+    <button class="status-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
+      data-status="learned" role="tab" aria-selected="false">✅ 已学会</button>
+    <button class="status-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
+      data-status="learning" role="tab" aria-selected="false">📖 学习中</button>
+    <button class="status-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
+      data-status="blocked" role="tab" aria-selected="false">🚫 已禁止</button>
   </div>
 
   <!-- Skill tree per domain -->
@@ -240,13 +252,40 @@ function initSkillTree() {
     })
   }
 
+  // Active filters state
+  let activeDomain = 'all'
+  let activeStatus = 'all'
+
+  function applyFilters() {
+    domainGroups.forEach(group => {
+      if (activeDomain === 'all' || group.dataset.domainId === activeDomain) {
+        group.style.display = ''
+      } else {
+        group.style.display = 'none'
+      }
+    })
+
+    // Status filtering on individual nodes
+    const allNodes = container!.querySelectorAll<HTMLElement>('.skill-node')
+    allNodes.forEach(node => {
+      const nodeStatus = node.dataset.status || 'learned'
+      if (activeStatus === 'all' || nodeStatus === activeStatus) {
+        node.style.display = ''
+      } else {
+        node.style.display = 'none'
+      }
+    })
+
+    requestAnimationFrame(updateAllEdges)
+  }
+
   // Domain filtering
   const filterBtns = section?.querySelectorAll<HTMLButtonElement>('.skill-filter-btn')
   const domainGroups = container.querySelectorAll<HTMLElement>('.skill-domain-group')
 
   filterBtns?.forEach(btn => {
     btn.addEventListener('click', () => {
-      const domain = btn.dataset.domain
+      activeDomain = btn.dataset.domain || 'all'
       filterBtns.forEach(b => {
         b.classList.remove('neu-inset')
         b.classList.add('neu-btn')
@@ -255,15 +294,24 @@ function initSkillTree() {
       btn.classList.add('neu-inset')
       btn.classList.remove('neu-btn')
       btn.setAttribute('aria-selected', 'true')
+      applyFilters()
+    })
+  })
 
-      domainGroups.forEach(group => {
-        if (domain === 'all' || group.dataset.domainId === domain) {
-          group.style.display = ''
-        } else {
-          group.style.display = 'none'
-        }
+  // Status filtering
+  const statusBtns = section?.querySelectorAll<HTMLButtonElement>('.status-filter-btn')
+  statusBtns?.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeStatus = btn.dataset.status || 'all'
+      statusBtns.forEach(b => {
+        b.classList.remove('neu-inset')
+        b.classList.add('neu-btn')
+        b.setAttribute('aria-selected', 'false')
       })
-      requestAnimationFrame(updateAllEdges)
+      btn.classList.add('neu-inset')
+      btn.classList.remove('neu-btn')
+      btn.setAttribute('aria-selected', 'true')
+      applyFilters()
     })
   })
 
