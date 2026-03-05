@@ -1,6 +1,5 @@
 ---
 import { skillTreeData } from '~/data/skill-tree'
-import type { SkillNode, SkillEdge } from '~/data/skill-tree'
 
 const nodeMap = new Map(skillTreeData.nodes.map(n => [n.id, n]))
 const categoryMap = new Map(skillTreeData.categories.map(c => [c.id, c]))
@@ -110,8 +109,22 @@ for (const domain of skillTreeData.domains) {
             <span>{domain.name}</span>
           </h3>
           <div class="skill-tree-area relative overflow-x-auto" data-domain-tree={domain.id}>
-            <!-- Node layer (above edges) -->
-            <div class="skill-tree-nodes relative flex items-start gap-4 sm:gap-8 min-w-max py-3 px-1" style="z-index: 2">
+            <!-- SVG edge layer (rendered first, sits below nodes) -->
+            <svg class="skill-tree-svg absolute inset-0 pointer-events-none" style="z-index: 0">
+              {tree.edges.map(edge => (
+                <path
+                  class="skill-edge transition-all duration-200"
+                  data-edge-source={edge.source}
+                  data-edge-target={edge.target}
+                  stroke="#b0b8c4"
+                  stroke-width="1.5"
+                  fill="none"
+                  opacity="0.5"
+                />
+              ))}
+            </svg>
+            <!-- Node layer (rendered after SVG, naturally above) -->
+            <div class="skill-tree-nodes relative flex items-start gap-4 sm:gap-8 min-w-max py-3 px-1" style="z-index: 1">
               {tree.levelGroups.map((levelNodes, _levelIdx) => (
                 <div class="flex flex-col items-center gap-3 sm:gap-4">
                   {levelNodes.map(node => {
@@ -127,6 +140,7 @@ for (const domain of skillTreeData.domains) {
                         data-node-id={node.id}
                         data-domain-id={domain.id}
                         data-category-id={node.categoryId}
+                        data-detail={node.detail ?? ''}
                         tabindex="0"
                         role="treeitem"
                         aria-describedby={prereqDesc ? `prereq-${node.id}` : undefined}
@@ -141,44 +155,24 @@ for (const domain of skillTreeData.domains) {
                         {prereqDesc && (
                           <span id={`prereq-${node.id}`} class="sr-only">{prereqDesc}</span>
                         )}
-                        {node.detail && (
-                          <div class="skill-tooltip pointer-events-none absolute z-30 bottom-full left-1/2 -translate-x-1/2 mb-2
-                                      px-3 py-1.5 rounded-lg text-xs text-slate-600 whitespace-nowrap
-                                      opacity-0 scale-95 transition-all duration-200"
-                               style="box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light); background: var(--neu-bg)"
-                          >
-                            {node.detail}
-                            <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0
-                                        border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent
-                                        border-t-[5px]"
-                                 style="border-top-color: var(--neu-bg)"></div>
-                          </div>
-                        )}
                       </div>
                     )
                   })}
                 </div>
               ))}
             </div>
-            <!-- SVG edge layer (below nodes) -->
-            <svg class="skill-tree-svg absolute inset-0 pointer-events-none" style="z-index: 1">
-              {tree.edges.map(edge => (
-                <path
-                  class="skill-edge transition-all duration-200"
-                  data-edge-source={edge.source}
-                  data-edge-target={edge.target}
-                  stroke="#b0b8c4"
-                  stroke-width="1.5"
-                  fill="none"
-                  opacity="0.5"
-                />
-              ))}
-            </svg>
           </div>
         </div>
       )
     })}
   </div>
+
+  <!-- Global tooltip (outside overflow containers) -->
+  <div id="skill-tooltip" class="fixed pointer-events-none z-50 px-3 py-1.5 rounded-lg text-xs text-slate-600 whitespace-nowrap
+                                  transition-all duration-150 hidden"
+       style="box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light); background: var(--neu-bg)"
+       role="tooltip"
+  ></div>
 </section>
 
 <script>
@@ -260,10 +254,12 @@ function initSkillTree() {
   })
 
   // Hover: highlight connected edges + show tooltip
+  const tooltip = document.getElementById('skill-tooltip')
   const nodes = container.querySelectorAll<HTMLElement>('.skill-node')
   nodes.forEach(node => {
     node.addEventListener('mouseenter', () => {
       const nodeId = node.dataset.nodeId
+      const detail = node.dataset.detail
       // Highlight connected edges
       const area = node.closest('.skill-tree-area')
       if (area) {
@@ -275,11 +271,14 @@ function initSkillTree() {
           }
         })
       }
-      // Show tooltip
-      const tooltip = node.querySelector('.skill-tooltip') as HTMLElement | null
-      if (tooltip) {
-        tooltip.style.opacity = '1'
-        tooltip.style.transform = 'translateX(-50%) scale(1)'
+      // Show global tooltip
+      if (tooltip && detail) {
+        tooltip.textContent = detail
+        tooltip.classList.remove('hidden')
+        const rect = node.getBoundingClientRect()
+        tooltip.style.left = rect.left + rect.width / 2 + 'px'
+        tooltip.style.top = rect.top - 8 + 'px'
+        tooltip.style.transform = 'translate(-50%, -100%)'
       }
     })
 
@@ -294,10 +293,8 @@ function initSkillTree() {
         })
       }
       // Hide tooltip
-      const tooltip = node.querySelector('.skill-tooltip') as HTMLElement | null
       if (tooltip) {
-        tooltip.style.opacity = '0'
-        tooltip.style.transform = 'translateX(-50%) scale(0.95)'
+        tooltip.classList.add('hidden')
       }
     })
 
