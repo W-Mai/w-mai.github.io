@@ -131,23 +131,44 @@ for (const domain of skillTreeData.domains) {
                     const prereqs = prereqNames.get(node.id)
                     const prereqDesc = prereqs ? `前置技能: ${prereqs.join(', ')}` : undefined
                     const cat = categoryMap.get(node.categoryId)
+                    const status = node.status ?? 'learned'
+                    const isBlocked = status === 'blocked'
+                    const isLearning = status === 'learning'
+
+                    // Status-based style classes
+                    const statusClass = isBlocked
+                      ? 'skill-node-blocked opacity-50 line-through'
+                      : isLearning
+                        ? 'skill-node-learning'
+                        : ''
+
+                    // Status-based shadow style
+                    const nodeStyle = isBlocked
+                      ? 'box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong); background: var(--neu-bg)'
+                      : 'box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); background: var(--neu-bg)'
+
+                    // Status badge
+                    const statusBadge = isBlocked ? '🚫' : isLearning ? '📖' : ''
+
                     return (
                       <div
-                        class="skill-node relative px-3 py-2 rounded-xl cursor-default select-none
+                        class={`skill-node relative px-3 py-2 rounded-xl cursor-default select-none
                                text-xs sm:text-sm text-slate-700 transition-all duration-200
-                               hover:-translate-y-0.5"
-                        style="box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); background: var(--neu-bg)"
+                               ${isBlocked ? '' : 'hover:-translate-y-0.5'} ${statusClass}`}
+                        style={nodeStyle}
                         data-node-id={node.id}
                         data-domain-id={domain.id}
                         data-category-id={node.categoryId}
                         data-detail={node.detail ?? ''}
+                        data-status={status}
                         tabindex="0"
                         role="treeitem"
                         aria-describedby={prereqDesc ? `prereq-${node.id}` : undefined}
                       >
-                        <span class="flex items-center gap-1.5 whitespace-nowrap">
+                        <span class={`flex items-center gap-1.5 whitespace-nowrap ${isBlocked ? 'line-through decoration-slate-400' : ''}`}>
                           {node.icon && <span class="text-sm sm:text-base">{node.icon}</span>}
                           <span>{node.name}</span>
+                          {statusBadge && <span class="text-[10px] ml-0.5">{statusBadge}</span>}
                         </span>
                         {cat && (
                           <span class="block text-[10px] text-slate-400 mt-0.5">{cat.name}</span>
@@ -318,9 +339,22 @@ document.addEventListener('astro:page-load', initSkillTree)
   .skill-node:hover {
     box-shadow: 2px 2px 5px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light) !important;
   }
+  .skill-node-blocked:hover {
+    box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong) !important;
+    transform: none !important;
+  }
   .skill-node:focus-visible {
     outline: 2px solid #6366f1;
     outline-offset: 2px;
+  }
+
+  /* Learning status: subtle pulse glow */
+  .skill-node-learning {
+    animation: skill-pulse 2s ease-in-out infinite;
+  }
+  @keyframes skill-pulse {
+    0%, 100% { box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); }
+    50% { box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light), 0 0 12px rgb(99 102 241 / 0.3); }
   }
 
   @media (prefers-reduced-motion: reduce) {

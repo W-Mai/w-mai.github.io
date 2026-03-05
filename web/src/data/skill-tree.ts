@@ -18,6 +18,7 @@ export interface SkillNode {
   icon?: string;
   categoryId: string;
   detail?: string;
+  status?: 'learned' | 'learning' | 'blocked';
 }
 
 export interface SkillEdge {
@@ -64,14 +65,14 @@ const NODES = [
   { id: 'typescript', name: 'TypeScript', icon: '🔷', categoryId: 'frontend' as CategoryId, detail: '日常开发首选' },
   { id: 'react', name: 'React', icon: '⚛️', categoryId: 'frontend' as CategoryId },
   { id: 'vue', name: 'Vue', icon: '💚', categoryId: 'frontend' as CategoryId },
-  { id: 'astro', name: 'Astro', icon: '🚀', categoryId: 'frontend' as CategoryId, detail: '本站就是用 Astro 搭的' },
+  { id: 'astro', name: 'Astro', icon: '🚀', categoryId: 'frontend' as CategoryId, detail: '本站就是用 Astro 搭的', status: 'learning' },
   { id: 'tailwind', name: 'Tailwind', icon: '🎐', categoryId: 'frontend' as CategoryId },
 
   // Backend
   { id: 'python', name: 'Python', icon: '🐍', categoryId: 'backend' as CategoryId, detail: '万能胶水语言' },
   { id: 'nodejs', name: 'Node.js', icon: '💚', categoryId: 'backend' as CategoryId },
-  { id: 'rust', name: 'Rust', icon: '🦀', categoryId: 'backend' as CategoryId, detail: '安全与性能兼得' },
-  { id: 'go', name: 'Go', icon: '🐹', categoryId: 'backend' as CategoryId },
+  { id: 'rust', name: 'Rust', icon: '🦀', categoryId: 'backend' as CategoryId, detail: '安全与性能兼得', status: 'learning' },
+  { id: 'go', name: 'Go', icon: '🐹', categoryId: 'backend' as CategoryId, status: 'learning' },
   { id: 'java', name: 'Java', icon: '☕', categoryId: 'backend' as CategoryId },
 
   // Systems
@@ -82,7 +83,7 @@ const NODES = [
 
   // DevOps
   { id: 'docker', name: 'Docker', icon: '🐳', categoryId: 'devops' as CategoryId },
-  { id: 'k8s', name: 'Kubernetes', icon: '☸️', categoryId: 'devops' as CategoryId },
+  { id: 'k8s', name: 'Kubernetes', icon: '☸️', categoryId: 'devops' as CategoryId, status: 'learning' },
   { id: 'git', name: 'Git', icon: '📦', categoryId: 'devops' as CategoryId },
   { id: 'cicd', name: 'CI/CD', icon: '🔄', categoryId: 'devops' as CategoryId },
 
@@ -94,7 +95,7 @@ const NODES = [
   // Cooking
   { id: 'home-cooking', name: '家常菜', icon: '🍳', categoryId: 'cooking' as CategoryId },
   { id: 'baking', name: '烘焙', icon: '🧁', categoryId: 'cooking' as CategoryId },
-  { id: 'coffee', name: '咖啡', icon: '☕', categoryId: 'cooking' as CategoryId, detail: '手冲入门' },
+  { id: 'coffee', name: '咖啡', icon: '☕', categoryId: 'cooking' as CategoryId, detail: '咖啡过敏 ☠️', status: 'blocked' },
 
   // Daily
   { id: 'driving', name: '驾驶', icon: '🚗', categoryId: 'daily' as CategoryId },
