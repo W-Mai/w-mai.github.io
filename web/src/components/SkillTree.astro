@@ -1,0 +1,291 @@
+---
+import { skillTreeData } from '~/data/skill-tree'
+
+// Build lookup maps at build time
+const domainMap = new Map(skillTreeData.domains.map(d => [d.id, d]))
+const categoryMap = new Map(skillTreeData.categories.map(c => [c.id, c]))
+const nodeMap = new Map(skillTreeData.nodes.map(n => [n.id, n]))
+
+// Group categories by domain
+const categoriesByDomain = new Map<string, typeof skillTreeData.categories[number][]>()
+for (const cat of skillTreeData.categories) {
+  const list = categoriesByDomain.get(cat.domainId) ?? []
+  list.push(cat)
+  categoriesByDomain.set(cat.domainId, list)
+}
+
+// Group nodes by category
+const nodesByCategory = new Map<string, typeof skillTreeData.nodes[number][]>()
+for (const node of skillTreeData.nodes) {
+  const list = nodesByCategory.get(node.categoryId) ?? []
+  list.push(node)
+  nodesByCategory.set(node.categoryId, list)
+}
+
+// Build prerequisite descriptions for accessibility
+const prereqMap = new Map<string, string[]>()
+for (const edge of skillTreeData.edges) {
+  const list = prereqMap.get(edge.target) ?? []
+  const sourceNode = nodeMap.get(edge.source)
+  if (sourceNode) list.push(sourceNode.name)
+  prereqMap.set(edge.target, list)
+}
+---
+
+<section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:4" aria-labelledby="skill-tree-heading">
+  <h2 id="skill-tree-heading" class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
+    🌳 技能树
+    <span class="h-0.5 flex-1 bg-slate-200/60 rounded-full"></span>
+  </h2>
+
+  <!-- Domain filter -->
+  <div class="flex flex-wrap gap-2 sm:gap-3 mb-5 sm:mb-6" role="tablist" aria-label="技能分类筛选">
+    <button
+      class="skill-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all neu-inset"
+      data-domain="all"
+      role="tab"
+      aria-selected="true"
+    >
+      🔮 全部
+    </button>
+    {skillTreeData.domains.map(domain => (
+      <button
+        class="skill-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
+        data-domain={domain.id}
+        role="tab"
+        aria-selected="false"
+      >
+        {domain.icon} {domain.name}
+      </button>
+    ))}
+  </div>
+
+  <!-- Skill tree visualization -->
+  <div id="skill-tree-container" class="relative overflow-x-auto">
+    {skillTreeData.domains.map(domain => (
+      <div class="skill-domain-group mb-6 last:mb-0" data-domain-id={domain.id}>
+        <h3 class="text-sm sm:text-base font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
+          <span>{domain.icon}</span>
+          <span>{domain.name}</span>
+        </h3>
+        <div class="space-y-4">
+          {(categoriesByDomain.get(domain.id) ?? []).map(category => (
+            <div class="skill-category-group" data-category-id={category.id} data-domain-id={domain.id}>
+              <p class="text-xs text-slate-400 mb-2 ml-1">{category.name}</p>
+              <div class="flex flex-wrap gap-2.5 sm:gap-3">
+                {(nodesByCategory.get(category.id) ?? []).map(node => {
+                  const prereqs = prereqMap.get(node.id)
+                  const prereqDesc = prereqs ? `前置技能: ${prereqs.join(', ')}` : undefined
+                  return (
+                    <div
+                      class="skill-node group relative px-3 py-2 rounded-xl cursor-default select-none
+                             text-xs sm:text-sm text-slate-700 transition-all duration-200
+                             hover:-translate-y-0.5"
+                      style="box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); background: var(--neu-bg)"
+                      data-node-id={node.id}
+                      data-domain-id={domain.id}
+                      tabindex="0"
+                      role="treeitem"
+                      aria-describedby={prereqDesc ? `prereq-${node.id}` : undefined}
+                      title={node.detail ?? node.name}
+                    >
+                      <span class="flex items-center gap-1.5">
+                        {node.icon && <span class="text-sm sm:text-base">{node.icon}</span>}
+                        <span>{node.name}</span>
+                      </span>
+                      {prereqDesc && (
+                        <span id={`prereq-${node.id}`} class="sr-only">{prereqDesc}</span>
+                      )}
+                      {node.detail && (
+                        <div class="skill-tooltip pointer-events-none absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-2
+                                    px-3 py-1.5 rounded-lg text-xs text-slate-600 whitespace-nowrap
+                                    opacity-0 scale-95 transition-all duration-200"
+                             style="box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light); background: var(--neu-bg)"
+                        >
+                          {node.detail}
+                          <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0
+                                      border-l-[5px] border-l-transparent
+                                      border-r-[5px] border-r-transparent
+                                      border-t-[5px]"
+                               style="border-top-color: var(--neu-bg)"></div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+
+    <!-- SVG overlay for edges -->
+    <svg id="skill-tree-edges" class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 1">
+      {skillTreeData.edges.map(edge => (
+        <path
+          class="skill-edge transition-all duration-200"
+          data-edge-source={edge.source}
+          data-edge-target={edge.target}
+          stroke="#94a3af"
+          stroke-width="1.5"
+          fill="none"
+          stroke-dasharray="4 3"
+          opacity="0.4"
+        />
+      ))}
+    </svg>
+  </div>
+</section>
+
+<script>
+function initSkillTree() {
+  const container = document.getElementById('skill-tree-container')
+  const svgEl = document.getElementById('skill-tree-edges')
+  if (!container || !svgEl) return
+
+  // Recalculate edge positions
+  function updateEdges() {
+    const svg = svgEl as unknown as SVGSVGElement
+    const containerRect = container!.getBoundingClientRect()
+    const scrollLeft = container!.scrollLeft
+    const scrollTop = container!.scrollTop
+
+    svg.setAttribute('width', String(container!.scrollWidth))
+    svg.setAttribute('height', String(container!.scrollHeight))
+    svg.style.width = container!.scrollWidth + 'px'
+    svg.style.height = container!.scrollHeight + 'px'
+
+    const paths = svg.querySelectorAll<SVGPathElement>('.skill-edge')
+    paths.forEach(path => {
+      const sourceId = path.dataset.edgeSource
+      const targetId = path.dataset.edgeTarget
+      if (!sourceId || !targetId) return
+
+      const sourceEl = container!.querySelector(`[data-node-id="${sourceId}"]`)
+      const targetEl = container!.querySelector(`[data-node-id="${targetId}"]`)
+      if (!sourceEl || !targetEl) { path.setAttribute('d', ''); return }
+
+      // Skip hidden nodes
+      const sourceVisible = (sourceEl as HTMLElement).offsetParent !== null
+      const targetVisible = (targetEl as HTMLElement).offsetParent !== null
+      if (!sourceVisible || !targetVisible) { path.setAttribute('d', ''); return }
+
+      const sr = sourceEl.getBoundingClientRect()
+      const tr = targetEl.getBoundingClientRect()
+      if (sr.width === 0 || tr.width === 0) { path.setAttribute('d', ''); return }
+
+      const sx = sr.left + sr.width / 2 - containerRect.left + scrollLeft
+      const sy = sr.top + sr.height / 2 - containerRect.top + scrollTop
+      const tx = tr.left + tr.width / 2 - containerRect.left + scrollLeft
+      const ty = tr.top + tr.height / 2 - containerRect.top + scrollTop
+
+      // Cubic bezier curve
+      const mx = (sx + tx) / 2
+      path.setAttribute('d', `M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ty}, ${tx} ${ty}`)
+    })
+  }
+
+  // Domain filtering
+  const filterBtns = container.parentElement?.querySelectorAll<HTMLButtonElement>('.skill-filter-btn')
+  const domainGroups = container.querySelectorAll<HTMLElement>('.skill-domain-group')
+
+  filterBtns?.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const domain = btn.dataset.domain
+      filterBtns.forEach(b => {
+        b.classList.remove('neu-inset')
+        b.classList.add('neu-btn')
+        b.setAttribute('aria-selected', 'false')
+      })
+      btn.classList.add('neu-inset')
+      btn.classList.remove('neu-btn')
+      btn.setAttribute('aria-selected', 'true')
+
+      domainGroups.forEach(group => {
+        if (domain === 'all' || group.dataset.domainId === domain) {
+          group.style.display = ''
+        } else {
+          group.style.display = 'none'
+        }
+      })
+
+      requestAnimationFrame(updateEdges)
+    })
+  })
+
+  // Hover edge highlighting
+  const nodes = container.querySelectorAll<HTMLElement>('.skill-node')
+  nodes.forEach(node => {
+    node.addEventListener('mouseenter', () => {
+      const nodeId = node.dataset.nodeId
+      const edges = svgEl!.querySelectorAll<SVGPathElement>('.skill-edge')
+      edges.forEach(edge => {
+        if (edge.dataset.edgeSource === nodeId || edge.dataset.edgeTarget === nodeId) {
+          edge.setAttribute('opacity', '0.9')
+          edge.setAttribute('stroke', '#6366f1')
+          edge.setAttribute('stroke-width', '2')
+          edge.setAttribute('stroke-dasharray', '')
+        }
+      })
+      // Show tooltip
+      const tooltip = node.querySelector('.skill-tooltip') as HTMLElement | null
+      if (tooltip) {
+        tooltip.style.opacity = '1'
+        tooltip.style.transform = 'translateX(-50%) scale(1)'
+      }
+    })
+
+    node.addEventListener('mouseleave', () => {
+      const edges = svgEl!.querySelectorAll<SVGPathElement>('.skill-edge')
+      edges.forEach(edge => {
+        edge.setAttribute('opacity', '0.4')
+        edge.setAttribute('stroke', '#94a3af')
+        edge.setAttribute('stroke-width', '1.5')
+        edge.setAttribute('stroke-dasharray', '4 3')
+      })
+      const tooltip = node.querySelector('.skill-tooltip') as HTMLElement | null
+      if (tooltip) {
+        tooltip.style.opacity = '0'
+        tooltip.style.transform = 'translateX(-50%) scale(0.95)'
+      }
+    })
+
+    // Keyboard focus mirrors hover
+    node.addEventListener('focus', () => node.dispatchEvent(new MouseEvent('mouseenter')))
+    node.addEventListener('blur', () => node.dispatchEvent(new MouseEvent('mouseleave')))
+  })
+
+  // Initial edge draw + resize observer
+  requestAnimationFrame(updateEdges)
+  const ro = new ResizeObserver(() => requestAnimationFrame(updateEdges))
+  ro.observe(container)
+  window.addEventListener('resize', () => requestAnimationFrame(updateEdges))
+}
+
+document.addEventListener('astro:page-load', initSkillTree)
+</script>
+
+<style>
+  /* Hover lift for skill nodes */
+  .skill-node:hover {
+    box-shadow: 2px 2px 5px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light) !important;
+  }
+  .skill-node:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .skill-node {
+      transition: none !important;
+    }
+    .skill-tooltip {
+      transition: none !important;
+    }
+    .skill-edge {
+      transition: none !important;
+    }
+  }
+</style>
