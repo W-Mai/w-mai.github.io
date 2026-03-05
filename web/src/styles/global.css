@@ -188,11 +188,11 @@ hr {
 
 /* Neumorphism design system */
 .neu-bg {
-  background: #e8ecf1 !important;
+  background: #e1e5eb !important;
 }
 
 .neu-card {
-  background: #e8ecf1;
+  background: #e1e5eb;
   box-shadow: 6px 6px 12px #c8ccd1, -6px -6px 12px #ffffff;
   border: none;
 }
@@ -204,7 +204,7 @@ hr {
 }
 
 .neu-btn {
-  background: #e8ecf1;
+  background: #e1e5eb;
   box-shadow: 4px 4px 8px #c8ccd1, -4px -4px 8px #ffffff;
   border: none;
   transition: box-shadow 0.2s ease;
@@ -217,13 +217,13 @@ hr {
 }
 
 .neu-inset {
-  background: #e8ecf1;
+  background: #e1e5eb;
   box-shadow: inset 4px 4px 8px #c8ccd1, inset -4px -4px 8px #ffffff;
   border: none;
 }
 
 .neu-avatar-ring {
-  background: #e8ecf1;
+  background: #e1e5eb;
   box-shadow: 3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff;
   padding: 4px;
 }
@@ -272,7 +272,7 @@ hr {
 
 /* Mermaid diagram neumorphism styling */
 pre.mermaid {
-  background: #e8ecf1 !important;
+  background: #e1e5eb !important;
   border-radius: 1rem !important;
   box-shadow: inset 4px 4px 8px #c8ccd1, inset -4px -4px 8px #ffffff;
   padding: 1.5rem !important;
@@ -281,7 +281,7 @@ pre.mermaid {
 }
 
 pre.mermaid[data-processed] {
-  background: #e8ecf1 !important;
+  background: #e1e5eb !important;
   box-shadow: inset 4px 4px 8px #c8ccd1, inset -4px -4px 8px #ffffff;
   border-radius: 1rem !important;
 }
@@ -295,7 +295,7 @@ pre.mermaid:not([data-processed]) {
 pre.mermaid .node rect,
 pre.mermaid .node circle,
 pre.mermaid .node polygon {
-  fill: #e8ecf1 !important;
+  fill: #e1e5eb !important;
   stroke: none !important;
   stroke-width: 0 !important;
   filter: drop-shadow(2px 2px 3px #c8ccd1) drop-shadow(-2px -2px 3px #ffffff);

@@ -197,7 +197,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
         <iframe
           ref={iframeRef}
           title="Blog Preview"
-          style={{ width: '100%', height: '100%', border: 'none', background: '#e8ecf1' }}
+          style={{ width: '100%', height: '100%', border: 'none', background: '#e1e5eb' }}
         />
         {/* Screenshot overlay to prevent flash during reload */}
         {snapshot && (

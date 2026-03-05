@@ -1,7 +1,7 @@
 /** Unified design tokens for the editor UI (neumorphism style) */
 export const EDITOR_TOKENS = {
   // Colors
-  colorBg: '#e8ecf1',
+  colorBg: '#e1e5eb',
   colorBgSecondary: '#e0e4e9',
   colorBgTertiary: '#d8dce1',
   colorBorder: '#c8ccd1',
