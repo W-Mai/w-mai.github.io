@@ -348,13 +348,40 @@ document.addEventListener('astro:page-load', initSkillTree)
     outline-offset: 2px;
   }
 
-  /* Learning status: subtle pulse glow */
+  /* Learning status: rotating gradient border */
   .skill-node-learning {
-    animation: skill-pulse 2s ease-in-out infinite;
+    position: relative;
+    background: var(--neu-bg) !important;
+    z-index: 0;
   }
-  @keyframes skill-pulse {
-    0%, 100% { box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light); }
-    50% { box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light), 0 0 12px rgb(99 102 241 / 0.3); }
+  .skill-node-learning::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 14px;
+    background: conic-gradient(
+      from var(--learning-angle, 0deg),
+      #6366f1, #a78bfa, #818cf8, #6366f1
+    );
+    z-index: -1;
+    animation: skill-border-spin 3s linear infinite;
+    opacity: 0.7;
+  }
+  .skill-node-learning::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: var(--neu-bg);
+    z-index: -1;
+  }
+  @keyframes skill-border-spin {
+    to { --learning-angle: 360deg; }
+  }
+  @property --learning-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
   }
 
   @media (prefers-reduced-motion: reduce) {
