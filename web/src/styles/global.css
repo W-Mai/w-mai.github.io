@@ -12,13 +12,13 @@
     --theme-background: #f6f8fa;  /* Light gray background */
     --theme-accent: #1a7f37;      /* GitHub green accent */
 
-    /* Neumorphism color system */
-    --neu-bg: #e1e5eb;
-    --neu-shadow-dark: #bec2c7;
-    --neu-shadow-light: #ffffff;
-    --neu-shadow-darker: #b4b8bd;
-    --neu-shadow-darkest: #aaaeb3;
-    --neu-cluster-bg: #d5d9de;
+    /* Neumorphism color system — use translucent rgb for natural transitions */
+    --neu-bg: #e0e5ec;
+    --neu-shadow-dark: rgb(163 177 198 / 0.6);
+    --neu-shadow-light: rgb(255 255 255 / 0.5);
+    --neu-shadow-dark-strong: rgb(163 177 198 / 0.7);
+    --neu-shadow-light-strong: rgb(255 255 255 / 0.8);
+    --neu-cluster-bg: #d5d9e0;
 
 	--accent: #2337ff;
 	--accent-dark: #000d8a;
@@ -201,7 +201,7 @@ hr {
 
 .neu-card {
   background: var(--neu-bg);
-  box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light);
+  box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light);
   border: none;
 }
 
@@ -218,21 +218,21 @@ hr {
   transition: box-shadow 0.2s ease;
 }
 .neu-btn:hover {
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+  box-shadow: 2px 2px 5px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light);
 }
 .neu-btn:active {
-  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark), inset -3px -3px 6px var(--neu-shadow-light);
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong);
 }
 
 .neu-inset {
   background: var(--neu-bg);
-  box-shadow: inset 5px 5px 10px var(--neu-shadow-dark), inset -5px -5px 10px var(--neu-shadow-light);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
   border: none;
 }
 
 .neu-avatar-ring {
   background: var(--neu-bg);
-  box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
+  box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
   padding: 4px;
 }
 
@@ -242,7 +242,7 @@ hr {
     box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
   }
   .neu-btn {
-    box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
   }
 }
 
@@ -282,7 +282,7 @@ hr {
 pre.mermaid {
   background: var(--neu-bg) !important;
   border-radius: 1rem !important;
-  box-shadow: inset 5px 5px 10px var(--neu-shadow-dark), inset -5px -5px 10px var(--neu-shadow-light);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
   padding: 1.5rem !important;
   margin: 2rem 0 !important;
   border: none !important;
@@ -290,7 +290,7 @@ pre.mermaid {
 
 pre.mermaid[data-processed] {
   background: var(--neu-bg) !important;
-  box-shadow: inset 5px 5px 10px var(--neu-shadow-dark), inset -5px -5px 10px var(--neu-shadow-light);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
   border-radius: 1rem !important;
 }
 
@@ -306,7 +306,7 @@ pre.mermaid .node polygon {
   fill: var(--neu-bg) !important;
   stroke: none !important;
   stroke-width: 0 !important;
-  filter: drop-shadow(2px 2px 3px var(--neu-shadow-dark)) drop-shadow(-2px -2px 3px var(--neu-shadow-light));
+  filter: drop-shadow(3px 3px 4px var(--neu-shadow-dark)) drop-shadow(-3px -3px 4px var(--neu-shadow-light));
   rx: 8;
   ry: 8;
 }
@@ -323,7 +323,7 @@ pre.mermaid .cluster rect {
   stroke-width: 0 !important;
   rx: 12 !important;
   ry: 12 !important;
-  filter: drop-shadow(3px 3px 5px var(--neu-shadow-darker)) drop-shadow(-2px -2px 4px var(--neu-shadow-light));
+  filter: drop-shadow(4px 4px 6px var(--neu-shadow-dark-strong)) drop-shadow(-3px -3px 5px var(--neu-shadow-light));
 }
 
 pre.mermaid .cluster .nodeLabel {

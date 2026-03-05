@@ -1,10 +1,10 @@
 /** Unified design tokens for the editor UI (neumorphism style) */
 export const EDITOR_TOKENS = {
   // Colors (synced with --neu-bg in global.css)
-  colorBg: '#e1e5eb',
-  colorBgSecondary: '#e0e4e9',
-  colorBgTertiary: '#d8dce1',
-  colorBorder: '#c8ccd1',
+  colorBg: '#e0e5ec',
+  colorBgSecondary: '#d9dee5',
+  colorBgTertiary: '#d1d6dd',
+  colorBorder: '#c4c9d0',
   colorBorderLight: '#dde1e6',
   colorText: '#111827',
   colorTextSecondary: '#6b7280',
@@ -16,11 +16,11 @@ export const EDITOR_TOKENS = {
   colorWarning: '#f59e0b',
   colorWarningBg: '#fffbeb',
 
-  // Neumorphism shadows
-  shadowRaised: '4px 4px 8px #c8ccd1, -4px -4px 8px #ffffff',
-  shadowInset: 'inset 2px 2px 5px #c8ccd1, inset -2px -2px 5px #ffffff',
-  shadowBtn: '3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff',
-  shadowBtnHover: '1px 1px 3px #c8ccd1, -1px -1px 3px #ffffff',
+  // Neumorphism shadows (synced with CSS variables in global.css)
+  shadowRaised: '5px 5px 10px rgb(163 177 198 / 0.6), -5px -5px 10px rgb(255 255 255 / 0.5)',
+  shadowInset: 'inset 3px 3px 6px rgb(163 177 198 / 0.7), inset -3px -3px 6px rgb(255 255 255 / 0.8)',
+  shadowBtn: '3px 3px 6px rgb(163 177 198 / 0.6), -3px -3px 6px rgb(255 255 255 / 0.5)',
+  shadowBtnHover: '1px 1px 3px rgb(163 177 198 / 0.6), -1px -1px 3px rgb(255 255 255 / 0.5)',
 
   // Spacing
   spacingXs: '0.25rem',
