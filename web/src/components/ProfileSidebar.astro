@@ -15,13 +15,13 @@ const { profile, showBio = false } = Astro.props
   flex flex-col gap-y-4 md:text-sm text-2xl text-slate-800">
 
   <div class="flex flex-col items-center">
-    <div class="neu-avatar-ring rounded-full p-1.5">
+    <div class="neu-avatar-ring rounded-full p-1.5 aspect-square inline-flex">
       <Image
-        class="size-46 md:size-36 rounded-full aspect-square object-cover"
+        class="size-36 rounded-full aspect-square object-cover"
         src={profile.avatar_url}
         alt={USER_NAME}
-        width={184}
-        height={184}
+        width={144}
+        height={144}
       />
     </div>
     <h4 class="mt-4 font-bold">{NICK_NAME}</h4>
