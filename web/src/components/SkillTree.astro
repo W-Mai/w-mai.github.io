@@ -166,13 +166,6 @@ for (const domain of skillTreeData.domains) {
       )
     })}
   </div>
-
-  <!-- Global tooltip (outside overflow containers) -->
-  <div id="skill-tooltip" class="fixed pointer-events-none z-50 px-3 py-1.5 rounded-lg text-xs text-slate-600 whitespace-nowrap
-                                  transition-all duration-150 hidden"
-       style="box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light); background: var(--neu-bg)"
-       role="tooltip"
-  ></div>
 </section>
 
 <script>
@@ -254,7 +247,16 @@ function initSkillTree() {
   })
 
   // Hover: highlight connected edges + show tooltip
-  const tooltip = document.getElementById('skill-tooltip')
+  // Create tooltip on body to avoid containing block issues from transform/transition ancestors
+  let tooltip = document.getElementById('skill-tooltip')
+  if (!tooltip) {
+    tooltip = document.createElement('div')
+    tooltip.id = 'skill-tooltip'
+    tooltip.className = 'fixed pointer-events-none z-50 px-3 py-1.5 rounded-lg text-xs text-slate-600 whitespace-nowrap hidden'
+    tooltip.style.cssText = 'box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light); background: var(--neu-bg)'
+    tooltip.setAttribute('role', 'tooltip')
+    document.body.appendChild(tooltip)
+  }
   const nodes = container.querySelectorAll<HTMLElement>('.skill-node')
   nodes.forEach(node => {
     node.addEventListener('mouseenter', () => {
