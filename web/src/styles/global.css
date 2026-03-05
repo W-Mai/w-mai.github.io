@@ -62,13 +62,14 @@ body {
 	margin: 0;
 	padding: 0;
 	text-align: left;
-	background: linear-gradient(var(--gray-gradient)) no-repeat;
-	background-size: 100% 600px;
+	background: var(--neu-bg);
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 	color: rgb(var(--gray-dark));
 	font-size: 20px;
 	line-height: 1.7;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 main {
 	box-sizing: border-box;
@@ -195,6 +196,22 @@ hr {
 }
 
 /* Neumorphism design system */
+
+/* Custom scrollbar for sleek look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--neu-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
 .neu-bg {
   background: var(--neu-bg) !important;
 }
@@ -203,6 +220,7 @@ hr {
   background: var(--neu-bg);
   box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light);
   border: none;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .neu-card-warm {

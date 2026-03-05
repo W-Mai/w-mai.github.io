@@ -22,24 +22,26 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 anim-fade" style="--delay:2">
         <a href="/blog" class="group flex items-center gap-2 rounded-xl neu-btn
-                                px-4 py-3 no-underline text-slate-700 transition-all duration-200">
+                                px-4 py-3 no-underline text-slate-700 transition-all duration-300
+                                hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent">
             <span class="text-base">🚀</span>
             <span class="text-xs font-semibold group-hover:text-blue-600 truncate">怼点文章</span>
             <span class="ml-auto text-blue-300 text-xs group-hover:text-blue-500 transition-colors">›</span>
         </a>
-        <div class="flex items-center gap-2 rounded-xl neu-card opacity-60
+        <div class="flex items-center gap-2 rounded-xl neu-inset opacity-50
                     px-4 py-3 text-slate-400 cursor-default">
             <span class="text-base grayscale-[30%]">⭐</span>
             <span class="text-xs font-medium truncate">怼点想法</span>
             <span class="ml-auto text-[9px] text-slate-400 whitespace-nowrap">soon</span>
         </div>
         <a href="/projects" class="group flex items-center gap-2 rounded-xl neu-btn
-                    px-4 py-3 no-underline text-slate-700 transition-all duration-200">
+                    px-4 py-3 no-underline text-slate-700 transition-all duration-300
+                    hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-transparent">
             <span class="text-base">🧩</span>
             <span class="text-xs font-semibold group-hover:text-emerald-600 truncate">怼点项目</span>
             <span class="ml-auto text-emerald-300 text-xs group-hover:text-emerald-500 transition-colors">›</span>
         </a>
-        <div class="flex items-center gap-2 rounded-xl neu-card opacity-60
+        <div class="flex items-center gap-2 rounded-xl neu-inset opacity-50
                     px-4 py-3 text-slate-400 cursor-default">
             <span class="text-base grayscale-[30%]">✅</span>
             <span class="text-xs font-medium truncate">怼点想怼嘞</span>

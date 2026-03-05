@@ -59,7 +59,9 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	header {
 		margin: 0;
 		padding: 0 1em;
-		background: var(--neu-bg);
+		background: rgba(224, 229, 236, 0.85);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 		position: relative;
 		z-index: 10;

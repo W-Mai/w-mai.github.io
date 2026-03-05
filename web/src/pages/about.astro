@@ -30,7 +30,8 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 
     <!-- Hero section -->
     <section class="flex flex-col items-center text-center mb-8 sm:mb-12 anim-fade" style="--delay:0">
-        <div class="neu-avatar-ring rounded-full anim-zoom inline-flex aspect-square">
+        <div class="neu-avatar-ring rounded-full anim-zoom inline-flex aspect-square"
+             style="box-shadow: 8px 8px 16px rgb(163 177 198 / 0.6), -8px -8px 16px rgb(255 255 255 / 0.5)">
             <Image
                 class="size-24 sm:size-32 md:size-40 rounded-full aspect-square object-cover"
                 src={profile.avatar_url}
@@ -59,7 +60,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     </section>
 
     <!-- Stats bar -->
-    <section class="neu-card rounded-2xl px-6 py-5 max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12 anim-fade" style="--delay:1">
+    <section class="neu-card rounded-2xl px-6 py-5 max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12 anim-fade" style="--delay:1; background: linear-gradient(135deg, #e3e8ef, #dde2e9)">
         <div class="flex justify-around">
             <div class="text-center">
                 <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.public_repos}</span>
