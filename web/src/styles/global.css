@@ -12,6 +12,14 @@
     --theme-background: #f6f8fa;  /* Light gray background */
     --theme-accent: #1a7f37;      /* GitHub green accent */
 
+    /* Neumorphism color system */
+    --neu-bg: #e1e5eb;
+    --neu-shadow-dark: #c8ccd1;
+    --neu-shadow-light: #ffffff;
+    --neu-shadow-darker: #c0c4c9;
+    --neu-shadow-darkest: #b8bcc1;
+    --neu-cluster-bg: #d9dde2;
+
 	--accent: #2337ff;
 	--accent-dark: #000d8a;
 	--black: 15, 18, 25;
@@ -188,12 +196,12 @@ hr {
 
 /* Neumorphism design system */
 .neu-bg {
-  background: #e1e5eb !important;
+  background: var(--neu-bg) !important;
 }
 
 .neu-card {
-  background: #e1e5eb;
-  box-shadow: 6px 6px 12px #c8ccd1, -6px -6px 12px #ffffff;
+  background: var(--neu-bg);
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
   border: none;
 }
 
@@ -204,37 +212,37 @@ hr {
 }
 
 .neu-btn {
-  background: #e1e5eb;
-  box-shadow: 4px 4px 8px #c8ccd1, -4px -4px 8px #ffffff;
+  background: var(--neu-bg);
+  box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
   border: none;
   transition: box-shadow 0.2s ease;
 }
 .neu-btn:hover {
-  box-shadow: 2px 2px 4px #c8ccd1, -2px -2px 4px #ffffff;
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
 }
 .neu-btn:active {
-  box-shadow: inset 2px 2px 5px #c8ccd1, inset -2px -2px 5px #ffffff;
+  box-shadow: inset 2px 2px 5px var(--neu-shadow-dark), inset -2px -2px 5px var(--neu-shadow-light);
 }
 
 .neu-inset {
-  background: #e1e5eb;
-  box-shadow: inset 4px 4px 8px #c8ccd1, inset -4px -4px 8px #ffffff;
+  background: var(--neu-bg);
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
   border: none;
 }
 
 .neu-avatar-ring {
-  background: #e1e5eb;
-  box-shadow: 3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff;
+  background: var(--neu-bg);
+  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
   padding: 4px;
 }
 
 /* Responsive: smaller shadows on small screens */
 @media (max-width: 400px) {
   .neu-card {
-    box-shadow: 4px 4px 8px #c8ccd1, -4px -4px 8px #ffffff;
+    box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
   }
   .neu-btn {
-    box-shadow: 3px 3px 6px #c8ccd1, -3px -3px 6px #ffffff;
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
   }
 }
 
@@ -272,22 +280,22 @@ hr {
 
 /* Mermaid diagram neumorphism styling */
 pre.mermaid {
-  background: #e1e5eb !important;
+  background: var(--neu-bg) !important;
   border-radius: 1rem !important;
-  box-shadow: inset 4px 4px 8px #c8ccd1, inset -4px -4px 8px #ffffff;
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
   padding: 1.5rem !important;
   margin: 2rem 0 !important;
   border: none !important;
 }
 
 pre.mermaid[data-processed] {
-  background: #e1e5eb !important;
-  box-shadow: inset 4px 4px 8px #c8ccd1, inset -4px -4px 8px #ffffff;
+  background: var(--neu-bg) !important;
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark), inset -4px -4px 8px var(--neu-shadow-light);
   border-radius: 1rem !important;
 }
 
 pre.mermaid:not([data-processed]) {
-  background: linear-gradient(90deg, #e0e4e9 25%, #d8dce1 50%, #e0e4e9 75%) !important;
+  background: linear-gradient(90deg, #dce0e5 25%, #d4d8dd 50%, #dce0e5 75%) !important;
   background-size: 200% 100% !important;
 }
 
@@ -295,10 +303,10 @@ pre.mermaid:not([data-processed]) {
 pre.mermaid .node rect,
 pre.mermaid .node circle,
 pre.mermaid .node polygon {
-  fill: #e1e5eb !important;
+  fill: var(--neu-bg) !important;
   stroke: none !important;
   stroke-width: 0 !important;
-  filter: drop-shadow(2px 2px 3px #c8ccd1) drop-shadow(-2px -2px 3px #ffffff);
+  filter: drop-shadow(2px 2px 3px var(--neu-shadow-dark)) drop-shadow(-2px -2px 3px var(--neu-shadow-light));
   rx: 8;
   ry: 8;
 }
@@ -310,12 +318,12 @@ pre.mermaid .node .label {
 
 /* Mermaid cluster (subgraph) neumorphism */
 pre.mermaid .cluster rect {
-  fill: #dfe3e8 !important;
+  fill: var(--neu-cluster-bg) !important;
   stroke: none !important;
   stroke-width: 0 !important;
   rx: 12 !important;
   ry: 12 !important;
-  filter: drop-shadow(3px 3px 5px #c0c4c9) drop-shadow(-2px -2px 4px #ffffff);
+  filter: drop-shadow(3px 3px 5px var(--neu-shadow-darker)) drop-shadow(-2px -2px 4px var(--neu-shadow-light));
 }
 
 pre.mermaid .cluster .nodeLabel {

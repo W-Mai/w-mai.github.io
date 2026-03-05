@@ -81,7 +81,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
     )}
 
     {/* Bottom gradient fade to neumorphism background */}
-    <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#e1e5eb]/60 to-transparent" />
+    <div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[var(--neu-bg)]/60 to-transparent" />
 
     {/* Stars badge */}
     {stars > 0 && (
@@ -106,8 +106,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
       {/* Logo */}
       {logoSrc && (
         <div class="shrink-0 -mt-7 relative z-10">
-          <div class="size-14 rounded-xl overflow-hidden bg-[#e1e5eb]
-                       shadow-lg ring-[3px] ring-[#e1e5eb]
+          <div class="size-14 rounded-xl overflow-hidden bg-[var(--neu-bg)]
+                       shadow-lg ring-[3px] ring-[var(--neu-bg)]
                        flex items-center justify-center">
             <img
               src={logoSrc}
