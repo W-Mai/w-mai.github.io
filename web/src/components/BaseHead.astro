@@ -82,3 +82,26 @@ const { title, description, image = FallbackImage } = Astro.props;
 	// Run on initial load and after each page transition
 	document.addEventListener('astro:page-load', initAnimations)
 </script>
+
+<!-- Re-initialize mermaid diagrams after View Transitions -->
+<script>
+	async function reinitMermaid() {
+		const diagrams = document.querySelectorAll('pre.mermaid:not([data-processed])');
+		if (diagrams.length === 0) return;
+		try {
+			const { default: mermaid } = await import('mermaid');
+			mermaid.initialize({ startOnLoad: false, theme: 'default' });
+			for (const el of diagrams) {
+				if (!el.getAttribute('data-diagram')) {
+					el.setAttribute('data-diagram', el.textContent || '');
+				}
+				const def = el.getAttribute('data-diagram') || '';
+				const id = 'mermaid-vt-' + Math.random().toString(36).slice(2, 11);
+				const { svg } = await mermaid.render(id, def);
+				el.innerHTML = svg;
+				el.setAttribute('data-processed', 'true');
+			}
+		} catch {}
+	}
+	document.addEventListener('astro:page-load', reinitMermaid);
+</script>
