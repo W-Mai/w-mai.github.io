@@ -8,7 +8,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 <header>
 	<nav>
 		<h2><a href="/">{SITE_TITLE}</a></h2>
-		<div class="internal-links">
+		<div class="tab-bar">
 			<HeaderLink href="/">当门</HeaderLink>
 			<HeaderLink href="/blog">怼点文章</HeaderLink>
 			<HeaderLink href="/about">自个儿</HeaderLink>
@@ -26,7 +26,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		<div class="social-links">
             {
                 SOCIALS.map((social) => (
-                    <a href={social.url} target="_blank">
+                    <a href={social.url} target="_blank" class="social-icon">
                         <span class="sr-only">{social.description}</span>
                         <img src={social.icon} alt={social.description} />
                     </a>
@@ -58,23 +58,24 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 <style>
 	header {
 		margin: 0;
-		padding: 0 1em;
+		padding: 0.75em 1.5em;
 		background: rgba(224, 229, 236, 0.85);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-		position: relative;
+		position: sticky;
+		top: 0;
 		z-index: 10;
 	}
 	header::after {
 		content: '';
 		position: absolute;
 		top: 100%;
-		left: 3%;
-		right: 3%;
-		height: 14px;
-		background: radial-gradient(ellipse at top center, rgba(0,0,0,0.15) 0%, transparent 70%);
+		left: 5%;
+		right: 5%;
+		height: 12px;
+		background: radial-gradient(ellipse at top center, rgba(163,177,198,0.3) 0%, transparent 70%);
 		z-index: -1;
+		pointer-events: none;
 	}
 	h2 {
 		margin: 0;
@@ -83,29 +84,75 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	h2 a,
 	h2 a.active {
 		text-decoration: none;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		color: rgb(var(--gray-dark));
 	}
 	nav {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 1em;
 	}
-	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
-		text-decoration: none;
-	}
-	nav a.active {
-		text-decoration: none;
-		border-bottom-color: var(--accent);
-	}
-	.internal-links {
+
+	/* Tab bar — neumorphism inset container */
+	.tab-bar {
 		display: flex;
 		align-items: center;
+		gap: 0.35em;
+		background: var(--neu-bg);
+		box-shadow: inset 3px 3px 6px rgb(163 177 198 / 0.5), inset -3px -3px 6px rgb(255 255 255 / 0.6);
+		border-radius: 1rem;
+		padding: 0.3em;
 	}
-	.social-links,
-	.social-links a {
+	/* Tab links — raised pill buttons */
+	.tab-bar :global(a) {
+		padding: 0.5em 1em;
+		color: rgb(var(--gray));
+		text-decoration: none;
+		border-radius: 0.75rem;
+		font-size: 0.85em;
+		font-weight: 500;
+		transition: all 0.2s ease;
+		white-space: nowrap;
+		border: none;
+	}
+	.tab-bar :global(a:hover) {
+		color: rgb(var(--gray-dark));
+		background: rgba(255, 255, 255, 0.3);
+	}
+	/* Active tab — pressed inset effect */
+	.tab-bar :global(a.active) {
+		color: rgb(var(--black));
+		font-weight: 700;
+		text-decoration: none;
+		background: var(--neu-bg);
+		box-shadow: inset 2px 2px 4px rgb(163 177 198 / 0.6), inset -2px -2px 4px rgb(255 255 255 / 0.7);
+	}
+
+	/* Social links */
+	.social-links {
 		display: flex;
+		gap: 0.25em;
+	}
+	.social-links :global(a) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.2em;
+		height: 2.2em;
+		border-radius: 0.6em;
+		transition: all 0.2s ease;
+		padding: 0;
+		border: none;
+	}
+	.social-links :global(a:hover) {
+		background: rgba(255, 255, 255, 0.3);
+	}
+	.social-links :global(img) {
+		width: 1em;
+		height: 1em;
+		border-radius: 0;
 	}
 
 	/* More dropdown menu */
@@ -118,18 +165,22 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		background: none;
 		border: none;
 		cursor: pointer;
-		padding: 1em 0.5em;
-		font-size: inherit;
+		padding: 0.5em 0.8em;
+		font-size: 0.85em;
 		font-family: inherit;
-		color: rgb(var(--gray-dark));
+		font-weight: 500;
+		color: rgb(var(--gray));
 		display: inline-flex;
 		align-items: center;
-		gap: 0.2em;
-		border-bottom: 4px solid transparent;
+		gap: 0.25em;
+		border-radius: 0.75rem;
 		line-height: inherit;
+		transition: all 0.2s ease;
+		white-space: nowrap;
 	}
 	.more-btn:hover {
-		color: rgb(var(--black));
+		color: rgb(var(--gray-dark));
+		background: rgba(255, 255, 255, 0.3);
 	}
 	.more-arrow {
 		font-size: 0.7em;
@@ -138,15 +189,19 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	.more-btn[aria-expanded="true"] .more-arrow {
 		transform: rotate(180deg);
 	}
+	.more-btn[aria-expanded="true"] {
+		background: var(--neu-bg);
+		box-shadow: inset 2px 2px 4px rgb(163 177 198 / 0.6), inset -2px -2px 4px rgb(255 255 255 / 0.7);
+	}
 	.more-dropdown {
 		display: none;
 		position: absolute;
-		top: 100%;
+		top: calc(100% + 0.5em);
 		right: 0;
 		background: var(--neu-bg);
-		border-radius: 0.75rem;
-		box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light);
-		min-width: 10rem;
+		border-radius: 1rem;
+		box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+		min-width: 11rem;
 		padding: 0.4rem;
 		z-index: 50;
 	}
@@ -155,31 +210,30 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		flex-direction: column;
 	}
 	.more-dropdown a {
-		padding: 0.6em 0.8em;
+		padding: 0.65em 1em;
 		border-bottom: none;
-		border-radius: 0.5rem;
+		border-radius: 0.65rem;
 		font-size: 0.85em;
 		white-space: nowrap;
 		color: rgb(var(--gray-dark));
-		transition: background 0.15s ease;
+		transition: all 0.15s ease;
 	}
 	.more-dropdown a:hover {
-		background: rgb(var(--gray-light));
+		background: rgba(255, 255, 255, 0.35);
+		box-shadow: inset 1px 1px 3px rgb(163 177 198 / 0.3), inset -1px -1px 3px rgb(255 255 255 / 0.4);
 	}
 
 	@media (max-width: 720px) {
 		nav {
 			flex-wrap: wrap;
 			justify-content: center;
-			gap: 0;
+			gap: 0.5em;
 		}
 		h2 {
 			width: 100%;
 			text-align: center;
-			padding-top: 0.5em;
 		}
-		.internal-links {
-			display: flex;
+		.tab-bar {
 			justify-content: center;
 			width: 100%;
 		}
@@ -188,10 +242,13 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		}
 	}
 	@media (max-width: 400px) {
-		nav a,
+		header {
+			padding: 0.5em 0.75em;
+		}
+		.tab-bar :global(a),
 		.more-btn {
-			padding: 0.8em 0.3em;
-			font-size: 0.85em;
+			padding: 0.4em 0.6em;
+			font-size: 0.78em;
 		}
 		h2 {
 			font-size: 0.85em;
