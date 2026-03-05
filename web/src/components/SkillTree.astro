@@ -98,6 +98,21 @@ for (const domain of skillTreeData.domains) {
     ))}
   </div>
 
+  <!-- Category filter -->
+  <div id="category-filter" class="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4" role="tablist" aria-label="技能类别筛选">
+    <button class="category-filter-btn neu-inset px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
+      data-category="all" role="tab" aria-selected="true">📂 全部类别</button>
+    {skillTreeData.categories.map(cat => {
+      const domain = skillTreeData.domains.find(d => d.id === cat.domainId)
+      return (
+        <button
+          class="category-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
+          data-category={cat.id} data-cat-domain={cat.domainId} role="tab" aria-selected="false"
+        >{cat.name}</button>
+      )
+    })}
+  </div>
+
   <!-- Status filter -->
   <div class="flex flex-wrap gap-2 sm:gap-3 mb-5 sm:mb-6" role="tablist" aria-label="技能状态筛选">
     <button class="status-filter-btn neu-inset px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-slate-600 transition-all"
@@ -254,7 +269,25 @@ function initSkillTree() {
 
   // Active filters state
   let activeDomain = 'all'
+  let activeCategory = 'all'
   let activeStatus = 'all'
+
+  const filterBtns = section?.querySelectorAll<HTMLButtonElement>('.skill-filter-btn')
+  const categoryBtns = section?.querySelectorAll<HTMLButtonElement>('.category-filter-btn')
+  const statusBtns = section?.querySelectorAll<HTMLButtonElement>('.status-filter-btn')
+  const domainGroups = container.querySelectorAll<HTMLElement>('.skill-domain-group')
+
+  // Update category button visibility based on active domain
+  function updateCategoryButtons() {
+    categoryBtns?.forEach(btn => {
+      const catDomain = btn.dataset.catDomain
+      if (!catDomain || activeDomain === 'all' || catDomain === activeDomain) {
+        btn.style.display = ''
+      } else {
+        btn.style.display = 'none'
+      }
+    })
+  }
 
   function applyFilters() {
     domainGroups.forEach(group => {
@@ -265,28 +298,54 @@ function initSkillTree() {
       }
     })
 
-    // Status filtering on individual nodes
+    // Node-level filtering by category and status
     const allNodes = container!.querySelectorAll<HTMLElement>('.skill-node')
     allNodes.forEach(node => {
       const nodeStatus = node.dataset.status || 'learned'
-      if (activeStatus === 'all' || nodeStatus === activeStatus) {
-        node.style.display = ''
-      } else {
-        node.style.display = 'none'
-      }
+      const nodeCat = node.dataset.categoryId || ''
+      const matchStatus = activeStatus === 'all' || nodeStatus === activeStatus
+      const matchCategory = activeCategory === 'all' || nodeCat === activeCategory
+      node.style.display = (matchStatus && matchCategory) ? '' : 'none'
     })
 
     requestAnimationFrame(updateAllEdges)
   }
 
   // Domain filtering
-  const filterBtns = section?.querySelectorAll<HTMLButtonElement>('.skill-filter-btn')
-  const domainGroups = container.querySelectorAll<HTMLElement>('.skill-domain-group')
-
   filterBtns?.forEach(btn => {
     btn.addEventListener('click', () => {
       activeDomain = btn.dataset.domain || 'all'
       filterBtns.forEach(b => {
+        b.classList.remove('neu-inset')
+        b.classList.add('neu-btn')
+        b.setAttribute('aria-selected', 'false')
+      })
+      btn.classList.add('neu-inset')
+      btn.classList.remove('neu-btn')
+      btn.setAttribute('aria-selected', 'true')
+      // Reset category to "all" when domain changes
+      activeCategory = 'all'
+      categoryBtns?.forEach(b => {
+        b.classList.remove('neu-inset')
+        b.classList.add('neu-btn')
+        b.setAttribute('aria-selected', 'false')
+      })
+      const allCatBtn = section?.querySelector<HTMLButtonElement>('.category-filter-btn[data-category="all"]')
+      if (allCatBtn) {
+        allCatBtn.classList.add('neu-inset')
+        allCatBtn.classList.remove('neu-btn')
+        allCatBtn.setAttribute('aria-selected', 'true')
+      }
+      updateCategoryButtons()
+      applyFilters()
+    })
+  })
+
+  // Category filtering
+  categoryBtns?.forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeCategory = btn.dataset.category || 'all'
+      categoryBtns.forEach(b => {
         b.classList.remove('neu-inset')
         b.classList.add('neu-btn')
         b.setAttribute('aria-selected', 'false')
@@ -299,7 +358,6 @@ function initSkillTree() {
   })
 
   // Status filtering
-  const statusBtns = section?.querySelectorAll<HTMLButtonElement>('.status-filter-btn')
   statusBtns?.forEach(btn => {
     btn.addEventListener('click', () => {
       activeStatus = btn.dataset.status || 'all'
