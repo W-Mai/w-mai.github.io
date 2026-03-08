@@ -73,51 +73,56 @@ export function deduplicateAssetName(name: string, existingNames: Set<string>): 
 
 // --- Reference counting ---
 
-const MD_IMAGE_RE = /!\[.*?\]\(\.?\/?\/?assets\/([^)]+)\)/g;
-const MDX_IMPORT_RE = /import\s+.*?\s+from\s+['"]\.?\/?\/?assets\/([^'"]+)['"]/g;
-const FRONTMATTER_ASSET_RE = /:\s*['"]\.?\/?\/?assets\/([^'"]+)['"]/g;
+// Asset reference patterns
+const ASSET_PATTERNS = [
+  /!\[.*?\]\(\.?\/?\/?assets\/([^)]+)\)/g,           // ![alt](./assets/foo.png)
+  /import\s+.*?\s+from\s+['"]\.?\/?\/?assets\/([^'"]+)['"]/g, // import x from './assets/foo.png'
+  /:\s*['"]?\.?\/?\/?assets\/([^'"\s\n]+)['"]?/g,    // heroImage: ./assets/foo.png
+  /['"]@posts\/assets\/([^'"]+)['"]/g,                // '@posts/assets/foo.png'
+];
 
-/** Scan all .mdx files and count references to each asset */
+/** Scan posts and src files for asset references */
 export async function computeAssetReferences(
   postsDir: string,
   assetNames: string[],
 ): Promise<Map<string, string[]>> {
   const { readdir, readFile } = await import('node:fs/promises');
-  const { join } = await import('node:path');
+  const { join, resolve } = await import('node:path');
 
   const refs = new Map<string, string[]>(assetNames.map((n) => [n, []]));
+  const srcDir = resolve(postsDir, '..', 'web', 'src');
 
-  let entries: string[];
+  // Collect all scannable files: .mdx posts + src code files
+  const scanFiles: { path: string; label: string }[] = [];
+
   try {
-    entries = await readdir(postsDir);
-  } catch {
-    return refs;
-  }
-
-  const mdxFiles = entries.filter((f) => f.endsWith('.mdx'));
-
-  for (const file of mdxFiles) {
-    const slug = file.replace(/\.mdx$/, '');
-    let content: string;
-    try {
-      content = await readFile(join(postsDir, file), 'utf-8');
-    } catch {
-      continue;
+    for (const f of await readdir(postsDir)) {
+      if (f.endsWith('.mdx')) scanFiles.push({ path: join(postsDir, f), label: f.replace(/\.mdx$/, '') });
     }
+  } catch { /* empty */ }
 
-    const found = new Set<string>();
-
-    for (const re of [MD_IMAGE_RE, MDX_IMPORT_RE, FRONTMATTER_ASSET_RE]) {
-      re.lastIndex = 0;
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(content)) !== null) {
-        found.add(m[1]);
+  try {
+    const { glob } = await import('node:fs/promises');
+    for await (const f of glob('**/*.{astro,ts,tsx,js,jsx}', { cwd: srcDir })) {
+      if (!f.includes('node_modules')) {
+        scanFiles.push({ path: join(srcDir, f), label: `[src] ${f.replace(/\.[^.]+$/, '')}` });
       }
     }
+  } catch { /* empty */ }
 
-    for (const assetName of found) {
-      const list = refs.get(assetName);
-      if (list) list.push(slug);
+  for (const { path, label } of scanFiles) {
+    let content: string;
+    try { content = await readFile(path, 'utf-8'); } catch { continue; }
+
+    const found = new Set<string>();
+    for (const re of ASSET_PATTERNS) {
+      re.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(content)) !== null) found.add(m[1]);
+    }
+
+    for (const name of found) {
+      refs.get(name)?.push(label);
     }
   }
 
