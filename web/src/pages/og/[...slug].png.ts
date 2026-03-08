@@ -5,11 +5,11 @@ import { Resvg } from '@resvg/resvg-js';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { SITE_TITLE } from '~/consts';
+import { pinyin } from 'pinyin-pro';
 
 const fontPath = resolve(process.cwd(), 'public/fonts/ark-pixel-12px-monospaced-zh_cn.ttf');
 const fontData = readFileSync(fontPath);
 
-const EMOJIS = ['📝', '💡', '🚀', '🔧', '📚', '🎯', '⚡', '🌟', '🔍', '💻', '🎨', '🧩'];
 const OG_W = 1200;
 const OG_H = 630;
 const HERO_H = Math.round(OG_H * 0.55);
@@ -19,10 +19,50 @@ function titleHue(title: string): number {
   return title.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
 }
 
-/** Generate a fallback hero image buffer using satori (gradient + emoji + circles). */
+/** Simple seeded PRNG for deterministic layout. */
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
+}
+
+/** Extract uppercase letters from title pinyin + original ASCII chars. */
+function titleLetters(title: string): string[] {
+  const py = pinyin(title, { toneType: 'none', type: 'array' });
+  const letters = py.map(s => s.replace(/\s/g, '').toUpperCase()).filter(Boolean);
+  // Also include original ASCII uppercase letters
+  for (const ch of title) {
+    if (/[A-Za-z0-9]/.test(ch)) letters.push(ch.toUpperCase());
+  }
+  return letters.length > 0 ? letters : ['A', 'B', 'C'];
+}
+
+/** Generate a fallback hero image buffer with scattered pinyin letters. */
 async function generateFallbackHero(title: string): Promise<Buffer> {
   const hue = titleHue(title);
-  const emoji = EMOJIS[Math.floor(hue / 30) % EMOJIS.length];
+  const letters = titleLetters(title);
+  const rand = seededRandom(hue + title.length * 7);
+
+  // Scatter 20-30 letters across the canvas
+  const count = 20 + Math.floor(rand() * 10);
+  const scattered: any[] = [];
+  for (let i = 0; i < count; i++) {
+    const letter = letters[i % letters.length];
+    const x = Math.floor(rand() * (OG_W - 60));
+    const y = Math.floor(rand() * (HERO_H - 40));
+    const size = 24 + Math.floor(rand() * 36);
+    const opacity = 0.06 + rand() * 0.12;
+    scattered.push({
+      type: 'div',
+      props: {
+        style: {
+          position: 'absolute', left: `${x}px`, top: `${y}px`,
+          fontSize: `${size}px`, fontWeight: 700,
+          color: `hsl(${hue}, 50%, 55%)`, opacity,
+        },
+        children: letter,
+      },
+    });
+  }
 
   const svg = await satori(
     {
@@ -33,18 +73,26 @@ async function generateFallbackHero(title: string): Promise<Buffer> {
           background: `linear-gradient(135deg, hsl(${hue},55%,92%) 0%, hsl(${hue + 30},45%,87%) 50%, hsl(${hue + 60},35%,90%) 100%)`,
         },
         children: [
+          ...scattered,
           // Decorative circles
-          { type: 'div', props: { style: { position: 'absolute', top: '20px', right: '40px', width: '160px', height: '160px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.15 } } },
-          { type: 'div', props: { style: { position: 'absolute', bottom: '-40px', left: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.1 } } },
-          { type: 'div', props: { style: { position: 'absolute', top: '50%', right: '25%', width: '90px', height: '90px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.1 } } },
-          // Center emoji + title
+          { type: 'div', props: { style: { position: 'absolute', top: '20px', right: '40px', width: '160px', height: '160px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.12 } } },
+          { type: 'div', props: { style: { position: 'absolute', bottom: '-40px', left: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.08 } } },
+          // Center title
           {
             type: 'div',
             props: {
-              style: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', gap: '16px', padding: '40px' },
+              style: {
+                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px',
+              },
               children: [
-                { type: 'span', props: { style: { fontSize: '72px' }, children: emoji } },
-                { type: 'span', props: { style: { fontSize: '36px', fontWeight: 700, color: `hsl(${hue},40%,35%)`, textAlign: 'center', lineHeight: 1.4 }, children: title } },
+                {
+                  type: 'span',
+                  props: {
+                    style: { fontSize: '40px', fontWeight: 700, color: `hsl(${hue},40%,30%)`, textAlign: 'center', lineHeight: 1.4 },
+                    children: title,
+                  },
+                },
               ],
             },
           },
@@ -101,9 +149,11 @@ export const getStaticPaths: GetStaticPaths = async () => {
           heroDataUri = await buildHeroDataUri(imgBuf);
         }
       } else {
-        // Generate fallback hero from title
+        // Generate fallback hero directly as jpeg data URI (exact size, no blur needed)
         const fallbackPng = await generateFallbackHero(post.data.title);
-        heroDataUri = await buildHeroDataUri(fallbackPng);
+        const { default: sharp } = await import('sharp');
+        const jpegBuf = await sharp(fallbackPng).jpeg({ quality: 85 }).toBuffer();
+        heroDataUri = `data:image/jpeg;base64,${jpegBuf.toString('base64')}`;
       }
     } catch { /* graceful degradation */ }
 
