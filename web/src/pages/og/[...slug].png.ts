@@ -159,15 +159,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
     return {
       params: { slug: post.id },
-      props: { title: post.data.title, description: post.data.description ?? '', heroDataUri },
+      props: { title: post.data.title, description: post.data.description ?? '', heroDataUri, hue: titleHue(post.data.title) },
     };
   }));
 };
 
 export const GET: APIRoute = async ({ props }) => {
-  const { title, description, heroDataUri } = props as {
-    title: string; description: string; heroDataUri: string;
+  const { title, description, heroDataUri, hue } = props as {
+    title: string; description: string; heroDataUri: string; hue: number;
   };
+
+  // Bottom bar gradient derived from title hue for color harmony
+  const barBg = `linear-gradient(135deg, hsl(${hue}, 30%, 18%), hsl(${hue + 20}, 25%, 12%))`;
 
   // Unified split layout: hero image top + text bar bottom
   const children = [
@@ -187,7 +190,7 @@ export const GET: APIRoute = async ({ props }) => {
         style: {
           width: '100%', height: '45%', display: 'flex', flexDirection: 'column',
           justifyContent: 'center', padding: '30px 50px',
-          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+          background: barBg,
         },
         children: [
           { type: 'div', props: { style: { fontSize: '40px', fontWeight: 700, color: '#f1f5f9', lineHeight: 1.3 }, children: title } },
