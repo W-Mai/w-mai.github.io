@@ -16,7 +16,7 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage } = A
 
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} image={heroImage ?? bodyHeroImage ?? undefined} />
 		<title>{title}</title>
 		<script is:inline>
 			// Embed mode: hide chrome and restore scroll position
