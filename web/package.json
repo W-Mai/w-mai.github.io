@@ -32,6 +32,7 @@
     "@codemirror/state": "^6.5.4",
     "@codemirror/view": "^6.39.16",
     "@mdx-js/mdx": "^3.1.1",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/postcss": "^4.1.12",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.12",
@@ -43,6 +44,7 @@
     "pinyin-pro": "^3.28.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "satori": "^0.25.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.1.12"
   },

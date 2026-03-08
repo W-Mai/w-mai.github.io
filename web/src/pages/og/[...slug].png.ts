@@ -1,0 +1,177 @@
+import type { APIRoute, GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import satori from 'satori';
+import { Resvg } from '@resvg/resvg-js';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { SITE_TITLE } from '~/consts';
+
+const fontPath = resolve(process.cwd(), 'public/fonts/ark-pixel-12px-monospaced-zh_cn.ttf');
+const fontData = readFileSync(fontPath);
+
+const EMOJIS = ['📝', '💡', '🚀', '🔧', '📚', '🎯', '⚡', '🌟', '🔍', '💻', '🎨', '🧩'];
+const OG_W = 1200;
+const OG_H = 630;
+const HERO_H = Math.round(OG_H * 0.55);
+
+/** Derive a hue from title characters, matching BlogHeroFallback logic. */
+function titleHue(title: string): number {
+  return title.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+}
+
+/** Generate a fallback hero image buffer using satori (gradient + emoji + circles). */
+async function generateFallbackHero(title: string): Promise<Buffer> {
+  const hue = titleHue(title);
+  const emoji = EMOJIS[Math.floor(hue / 30) % EMOJIS.length];
+
+  const svg = await satori(
+    {
+      type: 'div',
+      props: {
+        style: {
+          width: '100%', height: '100%', display: 'flex', position: 'relative',
+          background: `linear-gradient(135deg, hsl(${hue},55%,92%) 0%, hsl(${hue + 30},45%,87%) 50%, hsl(${hue + 60},35%,90%) 100%)`,
+        },
+        children: [
+          // Decorative circles
+          { type: 'div', props: { style: { position: 'absolute', top: '20px', right: '40px', width: '160px', height: '160px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.15 } } },
+          { type: 'div', props: { style: { position: 'absolute', bottom: '-40px', left: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.1 } } },
+          { type: 'div', props: { style: { position: 'absolute', top: '50%', right: '25%', width: '90px', height: '90px', borderRadius: '50%', background: `hsl(${hue},50%,60%)`, opacity: 0.1 } } },
+          // Center emoji + title
+          {
+            type: 'div',
+            props: {
+              style: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', gap: '16px', padding: '40px' },
+              children: [
+                { type: 'span', props: { style: { fontSize: '72px' }, children: emoji } },
+                { type: 'span', props: { style: { fontSize: '36px', fontWeight: 700, color: `hsl(${hue},40%,35%)`, textAlign: 'center', lineHeight: 1.4 }, children: title } },
+              ],
+            },
+          },
+        ],
+      },
+    } as any,
+    { width: OG_W, height: HERO_H, fonts: [{ name: 'ArkPixel', data: fontData, style: 'normal' as const }] },
+  );
+
+  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: OG_W } });
+  const pngBytes = resvg.render().asPng();
+  return Buffer.from(pngBytes.buffer, pngBytes.byteOffset, pngBytes.byteLength);
+}
+
+/** Build a composited hero data URI: blurred bg + centered foreground. */
+async function buildHeroDataUri(imgBuffer: Buffer): Promise<string> {
+  const { default: sharp } = await import('sharp');
+
+  const blurBg = await sharp(imgBuffer)
+    .resize(OG_W, HERO_H, { fit: 'cover' })
+    .blur(30)
+    .jpeg({ quality: 60 })
+    .toBuffer();
+
+  const fg = await sharp(imgBuffer)
+    .resize(OG_W, HERO_H, { fit: 'inside' })
+    .toBuffer();
+  const fgMeta = await sharp(fg).metadata();
+
+  const composite = await sharp(blurBg)
+    .composite([{
+      input: fg,
+      left: Math.round((OG_W - fgMeta.width!) / 2),
+      top: Math.round((HERO_H - fgMeta.height!) / 2),
+    }])
+    .jpeg({ quality: 80 })
+    .toBuffer();
+
+  return `data:image/jpeg;base64,${composite.toString('base64')}`;
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const posts = await getCollection('blog');
+
+  return await Promise.all(posts.map(async (post) => {
+    let heroDataUri = '';
+
+    try {
+      if (post.data.heroImage) {
+        // Read original image from filesystem
+        const fsPath = (post.data.heroImage as any).fsPath;
+        if (fsPath) {
+          const imgBuf = readFileSync(fsPath);
+          heroDataUri = await buildHeroDataUri(imgBuf);
+        }
+      } else {
+        // Generate fallback hero from title
+        const fallbackPng = await generateFallbackHero(post.data.title);
+        heroDataUri = await buildHeroDataUri(fallbackPng);
+      }
+    } catch { /* graceful degradation */ }
+
+    return {
+      params: { slug: post.id },
+      props: { title: post.data.title, description: post.data.description ?? '', heroDataUri },
+    };
+  }));
+};
+
+export const GET: APIRoute = async ({ props }) => {
+  const { title, description, heroDataUri } = props as {
+    title: string; description: string; heroDataUri: string;
+  };
+
+  // Unified split layout: hero image top + text bar bottom
+  const children = [
+    {
+      type: 'div',
+      props: {
+        style: {
+          width: '100%', height: '55%', display: 'flex',
+          backgroundImage: `url(${heroDataUri})`,
+          backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+        } as any,
+      },
+    },
+    {
+      type: 'div',
+      props: {
+        style: {
+          width: '100%', height: '45%', display: 'flex', flexDirection: 'column',
+          justifyContent: 'center', padding: '30px 50px',
+          background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+        },
+        children: [
+          { type: 'div', props: { style: { fontSize: '40px', fontWeight: 700, color: '#f1f5f9', lineHeight: 1.3 }, children: title } },
+          description ? { type: 'div', props: { style: { fontSize: '22px', color: 'rgba(241,245,249,0.6)', lineHeight: 1.4, marginTop: '12px' }, children: description } } : null,
+          {
+            type: 'div',
+            props: {
+              style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' },
+              children: [
+                { type: 'span', props: { style: { fontSize: '20px', color: 'rgba(241,245,249,0.4)' }, children: SITE_TITLE } },
+                { type: 'span', props: { style: { fontSize: '20px', color: 'rgba(241,245,249,0.3)' }, children: 'benign.host' } },
+              ],
+            },
+          },
+        ].filter(Boolean),
+      },
+    },
+  ];
+
+  const svg = await satori(
+    {
+      type: 'div',
+      props: {
+        style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', fontFamily: 'ArkPixel' } as any,
+        children,
+      },
+    } as any,
+    { width: OG_W, height: OG_H, fonts: [{ name: 'ArkPixel', data: fontData, style: 'normal' as const }] },
+  );
+
+  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: OG_W } });
+  const png = resvg.render().asPng();
+
+  return new Response(new Uint8Array(png), {
+    headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=31536000' },
+  });
+};
