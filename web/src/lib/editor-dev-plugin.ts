@@ -71,6 +71,14 @@ export default function editorDevIntegration(): AstroIntegration {
           pattern: '/api/editor/git',
           entrypoint: './src/lib/editor-routes/git/index.ts',
         });
+        injectRoute({
+          pattern: '/api/editor/stickers',
+          entrypoint: './src/lib/editor-routes/stickers/index.ts',
+        });
+        injectRoute({
+          pattern: '/api/editor/stickers/[name]',
+          entrypoint: './src/lib/editor-routes/stickers/[name].ts',
+        });
 
         updateConfig({
           vite: {

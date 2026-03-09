@@ -8,10 +8,15 @@ import {astroExpressiveCode} from "@astrojs/starlight/expressive-code";
 import tailwindcss from '@tailwindcss/vite';
 import astroMermaid from 'astro-mermaid';
 import editorDev from './src/lib/editor-dev-plugin';
+import remarkSticker from './src/lib/remark-sticker';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://benign.host',
+  markdown: {
+    remarkPlugins: [remarkSticker],
+  },
+
   integrations: [
     react(),
     editorDev(),
