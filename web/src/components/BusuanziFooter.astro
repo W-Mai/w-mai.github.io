@@ -1,10 +1,10 @@
 ---
 // Site-wide page view and unique visitor counter for the footer.
-// Loads busuanzi script independently (footer appears on ALL pages).
+// Shares busuanzi script loading with BusuanziCounter via a global promise.
 ---
 <div class="busuanzi-footer" aria-label="Site statistics">
   <span class="busuanzi-footer-loading">加载中...</span>
-  <span class="busuanzi-footer-stats hidden">
+  <span class="busuanzi-footer-stats busuanzi-footer-hidden">
     <span>本站被怼了 <span id="busuanzi_value_site_pv"></span> 下儿</span>
     <span class="busuanzi-sep">·</span>
     <span><span id="busuanzi_value_site_uv"></span> 个老铁来过</span>
@@ -12,99 +12,74 @@
 </div>
 
 <script>
+  function loadBusuanziScript(): Promise<void> {
+    // Reuse global loader if BusuanziCounter already defined it
+    if ((window as any).__loadBusuanziScript) {
+      return (window as any).__loadBusuanziScript();
+    }
+    // Fallback: create the promise ourselves
+    if ((window as any).__busuanziPromise) return (window as any).__busuanziPromise;
+
+    (window as any).__busuanziPromise = new Promise<void>((resolve, reject) => {
+      const existing = document.getElementById('busuanzi-script') as HTMLScriptElement | null;
+      if (existing) {
+        resolve();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = 'busuanzi-script';
+      script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('busuanzi script failed'));
+      document.head.appendChild(script);
+    });
+
+    return (window as any).__busuanziPromise;
+  }
+
   function initBusuanziFooter() {
     const container = document.querySelector('.busuanzi-footer') as HTMLElement | null;
-    const loading = document.querySelector('.busuanzi-footer-loading') as HTMLElement | null;
-    const stats = document.querySelector('.busuanzi-footer-stats') as HTMLElement | null;
+    const loading = container?.querySelector('.busuanzi-footer-loading') as HTMLElement | null;
+    const stats = container?.querySelector('.busuanzi-footer-stats') as HTMLElement | null;
 
     if (!container || !loading || !stats) return;
 
     // Reset state for SPA navigation
-    loading.classList.remove('hidden');
-    stats.classList.add('hidden');
+    loading.classList.remove('busuanzi-footer-hidden');
+    stats.classList.add('busuanzi-footer-hidden');
     container.style.display = '';
 
-    // Skip if busuanzi script is already loaded by another component
-    const existing = document.getElementById('busuanzi-script');
-    if (existing) {
-      // Script already present — just poll for site values
-      pollSiteValues(loading, stats, container);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = 'busuanzi-script';
-    script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
-    script.async = true;
-
-    let settled = false;
-
-    const settle = (success: boolean) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-
-      if (success) {
-        loading.classList.add('hidden');
-        stats.classList.remove('hidden');
-      } else {
-        container.style.display = 'none';
-      }
-    };
-
-    // 5-second timeout — treat as failure
-    const timer = setTimeout(() => settle(false), 5000);
-
-    script.onload = () => {
-      pollSiteValues(loading, stats, container, settle);
-    };
-
-    script.onerror = () => settle(false);
-
-    document.head.appendChild(script);
-  }
-
-  /**
-   * Poll for busuanzi site-wide values to appear in the DOM.
-   * When called without a settle callback, manages visibility directly.
-   */
-  function pollSiteValues(
-    loading: HTMLElement,
-    stats: HTMLElement,
-    container: HTMLElement,
-    settle?: (success: boolean) => void,
-  ) {
-    let attempts = 0;
-    const timeout = settle ? undefined : setTimeout(() => {
-      clearInterval(poll);
+    const timeout = setTimeout(() => {
       container.style.display = 'none';
     }, 5000);
 
-    const poll = setInterval(() => {
-      const pvEl = document.getElementById('busuanzi_value_site_pv');
-      const uvEl = document.getElementById('busuanzi_value_site_uv');
-      const pvReady = pvEl && pvEl.textContent && pvEl.textContent.trim() !== '';
-      const uvReady = uvEl && uvEl.textContent && uvEl.textContent.trim() !== '';
+    loadBusuanziScript()
+      .then(() => {
+        let attempts = 0;
+        const poll = setInterval(() => {
+          const pvEl = document.getElementById('busuanzi_value_site_pv');
+          const uvEl = document.getElementById('busuanzi_value_site_uv');
+          const pvReady = pvEl && pvEl.textContent && pvEl.textContent.trim() !== '';
+          const uvReady = uvEl && uvEl.textContent && uvEl.textContent.trim() !== '';
 
-      if (pvReady && uvReady) {
-        clearInterval(poll);
-        if (timeout) clearTimeout(timeout);
-        if (settle) {
-          settle(true);
-        } else {
-          loading.classList.add('hidden');
-          stats.classList.remove('hidden');
-        }
-      } else if (++attempts > 50) {
-        clearInterval(poll);
-        if (timeout) clearTimeout(timeout);
-        if (settle) {
-          settle(false);
-        } else {
-          container.style.display = 'none';
-        }
-      }
-    }, 50);
+          if (pvReady && uvReady) {
+            clearInterval(poll);
+            clearTimeout(timeout);
+            loading.classList.add('busuanzi-footer-hidden');
+            stats.classList.remove('busuanzi-footer-hidden');
+          } else if (++attempts > 50) {
+            clearInterval(poll);
+            clearTimeout(timeout);
+            container.style.display = 'none';
+          }
+        }, 50);
+      })
+      .catch(() => {
+        clearTimeout(timeout);
+        container.style.display = 'none';
+      });
   }
 
   document.addEventListener('astro:page-load', initBusuanziFooter);
@@ -129,7 +104,7 @@
     opacity: 0.5;
   }
 
-  .hidden {
+  .busuanzi-footer-hidden {
     display: none !important;
   }
 
