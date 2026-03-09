@@ -156,7 +156,38 @@ const GiscusClient: FC<GiscusClientProps> = ({
       marginTop: '3rem',
       fontFamily: '"ArkPixel", sans-serif',
     }}>
-      {/* Header bar */}
+      {/* Centered reaction hero — like WeChat appreciation */}
+      {meta && meta.reactionCount > 0 && (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          marginBottom: '1.5rem', gap: '0.4rem',
+        }}>
+          <div style={{
+            background: neuBg, borderRadius: '50%', padding: '8px',
+            boxShadow: `6px 6px 12px ${shadowDark}, -6px -6px 12px ${shadowLight}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'box-shadow 0.3s ease, transform 0.3s ease',
+          }}>
+            <img
+              src="/social/reaction-heart.jpg"
+              alt="reaction"
+              style={{ width: '64px', height: '64px', borderRadius: '50%', display: 'block' }}
+            />
+          </div>
+          <span style={{
+            fontSize: '1.3rem', fontWeight: 700, color: '#334155',
+          }}>
+            {meta.reactionCount}
+          </span>
+          <span style={{
+            fontSize: '0.8rem', color: '#94a3b8',
+          }}>
+            真诚点赞，手留余香
+          </span>
+        </div>
+      )}
+
+      {/* Comment section title */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: '1rem',
@@ -169,31 +200,11 @@ const GiscusClient: FC<GiscusClientProps> = ({
         </h3>
         {meta && (
           <div style={{
-            display: 'flex', gap: '0.75rem', alignItems: 'flex-end',
+            background: neuBg, borderRadius: '12px', padding: '6px 14px',
+            boxShadow: `3px 3px 6px ${shadowDark}, -3px -3px 6px ${shadowLight}`,
+            fontSize: '0.8rem', color: '#64748b',
           }}>
-            {/* Comment count badge */}
-            <div style={{
-              background: neuBg, borderRadius: '12px', padding: '6px 14px',
-              boxShadow: `3px 3px 6px ${shadowDark}, -3px -3px 6px ${shadowLight}`,
-              fontSize: '0.8rem', color: '#64748b',
-            }}>
-              🗨 {meta.totalCommentCount + meta.totalReplyCount}
-            </div>
-            {/* Reaction badge — sticker + count, vertical layout */}
-            <div style={{
-              background: neuBg, borderRadius: '14px', padding: '8px 14px',
-              boxShadow: `3px 3px 6px ${shadowDark}, -3px -3px 6px ${shadowLight}`,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
-            }}>
-              <img
-                src="/social/reaction-heart.jpg"
-                alt="reaction"
-                style={{ width: '28px', height: '28px', borderRadius: '4px' }}
-              />
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                {meta.reactionCount}
-              </span>
-            </div>
+            🗨 {meta.totalCommentCount + meta.totalReplyCount}
           </div>
         )}
       </div>
