@@ -1,5 +1,6 @@
 import {
   autocompletion,
+  startCompletion,
   type CompletionContext,
   type CompletionResult,
   type Completion,
@@ -159,7 +160,11 @@ function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | nul
   if (':sticker['.startsWith(colons + typed) || ('sticker'.startsWith(typed) && colons === ':')) {
     options.push({
       label: ':sticker[…]:',
-      apply: ':sticker[',
+      apply: (view, _completion, from, to) => {
+        view.dispatch({ changes: { from, to, insert: ':sticker[' } });
+        // Trigger stage 2 completion after insert
+        setTimeout(() => startCompletion(view), 0);
+      },
       detail: 'inline sticker',
       type: 'keyword',
     });
@@ -169,7 +174,10 @@ function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | nul
   if ('::sticker['.startsWith(colons + typed) || ('sticker'.startsWith(typed) && colons === '::')) {
     options.push({
       label: '::sticker[…]::',
-      apply: '::sticker[',
+      apply: (view, _completion, from, to) => {
+        view.dispatch({ changes: { from, to, insert: '::sticker[' } });
+        setTimeout(() => startCompletion(view), 0);
+      },
       detail: 'block sticker',
       type: 'keyword',
     });
