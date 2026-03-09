@@ -20,8 +20,11 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
   const [uploading, setUploading] = useState(false);
   const [previewSticker, setPreviewSticker] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
+  const [panelPos, setPanelPos] = useState<{ x: number; y: number } | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isDragging = useRef(false);
 
   const fetchStickers = useCallback(async () => {
     setIsLoading(true);
@@ -37,7 +40,36 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
     }
   }, []);
 
-  useEffect(() => { if (isOpen) fetchStickers(); }, [isOpen, fetchStickers]);
+  useEffect(() => {
+    if (isOpen) {
+      fetchStickers();
+      setPanelPos(null); // Reset position on reopen
+    }
+  }, [isOpen, fetchStickers]);
+
+  // Drag handlers
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    if (!panelRef.current) return;
+    e.preventDefault();
+    isDragging.current = true;
+    const rect = panelRef.current.getBoundingClientRect();
+    setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current || !dragOffset) return;
+      setPanelPos({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+    };
+    const handleMouseUp = () => { isDragging.current = false; };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isOpen, dragOffset]);
 
   // Close on Escape or click outside
   useEffect(() => {
@@ -121,20 +153,25 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
 
       {/* Floating panel */}
       <div ref={panelRef} style={{
-        position: 'fixed', top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
+        position: 'fixed',
+        ...(panelPos
+          ? { top: panelPos.y, left: panelPos.x, transform: 'none' }
+          : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }),
         width: '520px', maxWidth: '90vw', maxHeight: '70vh',
         background: T.colorBg, borderRadius: T.radiusLg,
         boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
         display: 'flex', flexDirection: 'column',
         zIndex: 2000, fontFamily: T.fontSans,
       }}>
-        {/* Header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: `${T.spacingMd} ${T.spacingLg}`,
-          borderBottom: `1px solid ${T.colorBorder}`,
-        }}>
+        {/* Header (draggable) */}
+        <div
+          onMouseDown={handleDragStart}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: `${T.spacingMd} ${T.spacingLg}`,
+            borderBottom: `1px solid ${T.colorBorder}`,
+            cursor: 'grab', userSelect: 'none',
+          }}>
           <span style={{ fontSize: T.fontSizeBase, fontWeight: 600, color: T.colorText }}>😀 Stickers</span>
           <button onClick={onClose} style={{
             background: 'none', border: 'none', cursor: 'pointer',
