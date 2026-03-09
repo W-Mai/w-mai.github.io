@@ -2,6 +2,7 @@
 import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProfileSidebar from '../components/ProfileSidebar.astro'
 import FriendCard from '../components/FriendCard.astro'
+import Giscus from '../components/Giscus.astro'
 import { fetchGitHubProfile } from '../lib/github'
 import { FRIENDS } from '../data/friends'
 
@@ -28,5 +29,11 @@ const profile = await fetchGitHubProfile()
                 />
             ))}
         </div>
+    </section>
+
+    <section class="mt-24 anim-fade" style="--delay:3">
+        <h2 class="text-2xl font-bold mb-2 text-slate-800">📮 交换友链</h2>
+        <p class="text-sm text-slate-500 mb-6">想和俺交换友链？在下面留言，附上你的博客名称、链接和一句话介绍就中～</p>
+        <Giscus />
     </section>
 </WithSidebar>
