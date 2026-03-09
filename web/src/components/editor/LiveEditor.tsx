@@ -61,8 +61,8 @@ const LiveEditor: FC = () => {
   const [aiEnabled, setAiEnabled] = useState(false);
   const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
   const [assetNames, setAssetNames] = useState<Set<string>>(new Set());
-  const [sidebarTab, setSidebarTab] = useState<'posts' | 'assets' | 'stickers'>(() => {
-    return (restoreEditorState('sidebarTab') as 'posts' | 'assets' | 'stickers') || 'posts';
+  const [sidebarTab, setSidebarTab] = useState<'posts' | 'assets'>(() => {
+    return (restoreEditorState('sidebarTab') as 'posts' | 'assets') || 'posts';
   });
   const [scrollRatio, setScrollRatio] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -70,6 +70,7 @@ const LiveEditor: FC = () => {
   const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[] }[]>([]);
   const [gitCommitting, setGitCommitting] = useState(false);
   const [showGitModal, setShowGitModal] = useState(false);
+  const [showStickerPanel, setShowStickerPanel] = useState(false);
 
   const [aiState, setAiState] = useState<AIState>({
     isActive: false, isStreaming: false,
@@ -482,6 +483,9 @@ const LiveEditor: FC = () => {
           view.focus();
         });
         break;
+      case 'insert-sticker':
+        setShowStickerPanel(true);
+        break;
     }
   }, [handleAIAction]);
 
@@ -504,7 +508,7 @@ const LiveEditor: FC = () => {
         }}>
           {/* Sidebar tabs */}
           <div style={{ display: 'flex', borderBottom: `1px solid ${T.colorBorder}` }}>
-            {(['posts', 'assets', 'stickers'] as const).map((tab) => (
+            {(['posts', 'assets'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setSidebarTab(tab)}
@@ -518,7 +522,7 @@ const LiveEditor: FC = () => {
                   cursor: 'pointer', transition: `all ${T.transitionFast}`,
                 }}
               >
-                {tab === 'posts' ? '📝' : tab === 'assets' ? '🖼' : '😀'}
+                {tab === 'posts' ? '📝 Posts' : '🖼 Assets'}
               </button>
             ))}
           </div>
@@ -558,16 +562,6 @@ const LiveEditor: FC = () => {
           {sidebarTab === 'assets' && (
             <div style={{ flex: 1, overflow: 'hidden' }}>
               <AssetPanel aiEnabled={aiEnabled} refreshKey={assetRefreshKey} onInsert={handleInsertAsset} />
-            </div>
-          )}
-
-          {/* Stickers tab */}
-          {sidebarTab === 'stickers' && (
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <StickerPanel
-                onInsertInline={(syntax) => editorRef.current?.insertText(syntax)}
-                onInsertBlock={(syntax) => editorRef.current?.insertText(`\n${syntax}\n`)}
-              />
             </div>
           )}
         </div>
@@ -666,7 +660,7 @@ const LiveEditor: FC = () => {
 
         {/* Toolbar */}
         {state.selectedSlug && (
-          <Toolbar editorView={editorRef.current?.getView() ?? null} activeFormats={activeFormats} />
+          <Toolbar editorView={editorRef.current?.getView() ?? null} activeFormats={activeFormats} onStickerOpen={() => setShowStickerPanel(true)} />
         )}
 
         {/* Editor + Preview split */}
@@ -749,6 +743,14 @@ const LiveEditor: FC = () => {
         aiEnabled={aiEnabled}
         onCommit={handleGitCommitConfirm}
         onCancel={() => setShowGitModal(false)}
+      />
+
+      {/* Sticker Picker */}
+      <StickerPanel
+        isOpen={showStickerPanel}
+        onClose={() => setShowStickerPanel(false)}
+        onInsertInline={(syntax) => editorRef.current?.insertText(syntax)}
+        onInsertBlock={(syntax) => editorRef.current?.insertText(syntax)}
       />
     </div>
   );

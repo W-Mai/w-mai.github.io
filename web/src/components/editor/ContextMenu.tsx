@@ -38,6 +38,8 @@ function getMenuItems(hasSelection: boolean, aiEnabled: boolean): (MenuItem | ty
     { label: 'Insert Code Block', action: 'insert-code-block', shortcut: '⌘⇧K' },
     { label: 'Insert Table', action: 'insert-table' },
     { label: 'Insert Frontmatter', action: 'insert-frontmatter' },
+    DIVIDER,
+    { label: '😀 Insert Sticker', action: 'insert-sticker' },
   ];
 }
 

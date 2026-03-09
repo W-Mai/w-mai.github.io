@@ -6,6 +6,7 @@ import { EDITOR_TOKENS as T } from './editor-tokens';
 interface ToolbarProps {
   editorView: EditorView | null;
   activeFormats: Set<string>;
+  onStickerOpen?: () => void;
 }
 
 interface ToolbarItem {
@@ -40,7 +41,7 @@ const TOOLBAR_GROUPS: ToolbarItem[][] = [
   ],
 ];
 
-const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats }) => {
+const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen }) => {
   const handleClick = (action: FormatAction) => {
     if (!editorView) return;
     FORMAT_ACTIONS[action](editorView);
@@ -97,6 +98,21 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats }) => {
           })}
         </div>
       ))}
+      {/* Sticker picker button */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ width: '1px', height: '18px', background: T.colorBorder, margin: `0 ${T.spacingXs}` }} />
+        <button
+          onClick={onStickerOpen}
+          title="Insert Sticker"
+          style={{
+            background: 'none', border: 'none', borderRadius: T.radiusSm,
+            cursor: 'pointer', padding: `2px ${T.spacingSm}`,
+            fontSize: T.fontSizeSm, color: T.colorTextSecondary,
+            transition: `all ${T.transitionFast}`, lineHeight: 1.4,
+            minWidth: '26px', textAlign: 'center',
+          }}
+        >😀</button>
+      </div>
     </div>
   );
 };
