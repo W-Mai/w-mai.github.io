@@ -282,6 +282,10 @@ hr {
   opacity: 1;
   transform: translateY(0);
 }
+.anim-fade.anim-done {
+  transition: box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+  transition-delay: 0s;
+}
 
 /* Zoom-in entrance animation */
 .anim-zoom {

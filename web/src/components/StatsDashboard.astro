@@ -18,7 +18,7 @@ const { totalPosts, totalWords, averageWords, earliestDate, latestDate } = Astro
     <span class="h-0.5 flex-1 bg-slate-200/60 rounded-full"></span>
   </h2>
 
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
     <!-- Total posts -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
       <span class="block text-xl sm:text-2xl font-bold text-slate-800">{totalPosts}</span>
@@ -39,8 +39,20 @@ const { totalPosts, totalWords, averageWords, earliestDate, latestDate } = Astro
       <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">平均每篇 {averageWords.toLocaleString()} 字</span>
     </div>
 
-    <!-- Date range -->
+    <!-- Site PV (busuanzi) -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800 busuanzi-stats-value" id="stats_site_pv">-</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">被怼了多少下儿</span>
+    </div>
+
+    <!-- Site UV (busuanzi) -->
+    <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800 busuanzi-stats-value" id="stats_site_uv">-</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">多少老铁来过</span>
+    </div>
+
+    <!-- Date range (spans 2 cols on mobile) -->
+    <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center col-span-2 sm:col-span-1 md:col-span-2">
       <span class="block text-sm sm:text-base font-bold text-slate-800">
         <FormattedDate date={earliestDate} />
       </span>
@@ -52,3 +64,34 @@ const { totalPosts, totalWords, averageWords, earliestDate, latestDate } = Astro
     </div>
   </div>
 </section>
+
+<script>
+  import { triggerReload } from '../lib/busuanzi-loader';
+
+  function initStatsBusuanzi() {
+    const pvEl = document.getElementById('stats_site_pv');
+    const uvEl = document.getElementById('stats_site_uv');
+    if (!pvEl || !uvEl) return;
+
+    triggerReload().then(() => {
+      let attempts = 0;
+      const poll = setInterval(() => {
+        // Read from the hidden busuanzi elements populated by the footer
+        const srcPv = document.getElementById('busuanzi_site_pv');
+        const srcUv = document.getElementById('busuanzi_site_uv');
+        const pv = srcPv?.innerText?.trim() ?? '';
+        const uv = srcUv?.innerText?.trim() ?? '';
+
+        if (pv !== '' && /^\d+$/.test(pv) && uv !== '' && /^\d+$/.test(uv)) {
+          clearInterval(poll);
+          pvEl.textContent = Number(pv).toLocaleString();
+          uvEl.textContent = Number(uv).toLocaleString();
+        } else if (++attempts > 100) {
+          clearInterval(poll);
+        }
+      }, 50);
+    }).catch(() => {});
+  }
+
+  document.addEventListener('astro:page-load', initStatsBusuanzi);
+</script>

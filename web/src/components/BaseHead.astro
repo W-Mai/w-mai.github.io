@@ -81,6 +81,12 @@ const ogImageUrl = isBlogPost
 							el.classList.add('visible')
 						})
 						observer.unobserve(entry.target)
+
+						// After entrance animation, switch to fast hover transitions
+						const delay = parseFloat(getComputedStyle(entry.target).transitionDelay) || 0
+						setTimeout(() => {
+							entry.target.classList.add('anim-done')
+						}, (delay + 0.6) * 1000)
 					}
 				})
 			},

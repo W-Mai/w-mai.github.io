@@ -90,7 +90,8 @@ const yearlyFrequency = [...yearlyMap.entries()]
       {postRanking.map((post, idx) => (
         <a href={`/blog/${post.id}/`}
            class="stats-rank-card neu-card flex items-center gap-4 rounded-xl px-4 py-3
-                  no-underline transition-all duration-200">
+                  no-underline transition-all duration-200 anim-fade"
+           style={`--delay:${3.5 + idx * 0.5}`}>
           <span class:list={[
             'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold',
             idx === 0 ? 'bg-amber-100 text-amber-700' :
@@ -126,8 +127,9 @@ const yearlyFrequency = [...yearlyMap.entries()]
     <div class="mb-6">
       <h3 class="text-base font-semibold text-slate-700 mb-3">年度汇总</h3>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {yearlyFrequency.map((item) => (
-          <div class="neu-card rounded-xl px-4 py-3 text-center transition-all duration-200 hover:translate-y-[-2px]">
+        {yearlyFrequency.map((item, idx) => (
+          <div class="neu-card freq-card rounded-xl px-4 py-3 text-center transition-all duration-200 anim-fade"
+               style={`--delay:${4.5 + idx * 0.5}`}>
             <span class="block text-lg font-bold text-slate-800">{item.count}</span>
             <span class="text-xs text-slate-400">{item.year} 年</span>
           </div>
@@ -139,8 +141,9 @@ const yearlyFrequency = [...yearlyMap.entries()]
     <div>
       <h3 class="text-base font-semibold text-slate-700 mb-3">月度明细</h3>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {monthlyFrequency.map((item) => (
-          <div class="neu-card rounded-xl px-4 py-3 text-center transition-all duration-200 hover:translate-y-[-2px]">
+        {monthlyFrequency.map((item, idx) => (
+          <div class="neu-card freq-card rounded-xl px-4 py-3 text-center transition-all duration-200 anim-fade"
+               style={`--delay:${5 + idx * 0.5}`}>
             <span class="block text-lg font-bold text-slate-800">{item.count}</span>
             <span class="text-xs text-slate-400">{item.period}</span>
           </div>
@@ -154,5 +157,11 @@ const yearlyFrequency = [...yearlyMap.entries()]
   .stats-rank-card:hover {
     box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
     transform: translateY(-2px);
+  }
+
+  /* Hover lift for frequency cards */
+  .freq-card:hover {
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+    transform: translateY(-4px);
   }
 </style>
