@@ -11,6 +11,8 @@
 </div>
 
 <script>
+  import { triggerReload } from '../lib/busuanzi-loader';
+
   function initBusuanziFooter() {
     const container = document.querySelector(
       '.busuanzi-footer',
@@ -32,11 +34,7 @@
       container.style.display = 'none';
     }, 5000);
 
-    const trigger =
-      (window as any).__triggerBusuanziReload ??
-      (() => Promise.reject(new Error('no busuanzi loader')));
-
-    trigger()
+    triggerReload()
       .then(() => {
         let attempts = 0;
         const poll = setInterval(() => {

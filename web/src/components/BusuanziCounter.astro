@@ -1,5 +1,5 @@
 ---
-// Busuanzi page view counter (v3.6.9) — self-hosted script with fetch API.
+// Busuanzi page view counter (v3.6.9) — self-hosted standard version, cumulative totals.
 // Displays per-page PV with loading/error states.
 ---
 <span class="busuanzi-pv-counter" aria-label="Page views">
@@ -8,38 +8,7 @@
 </span>
 
 <script>
-  function loadBusuanzi(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      // Reset the guard flag so the script re-executes on SPA navigation
-      (window as any).busuanziRequestSent = false;
-
-      // Remove previous script tag
-      const old = document.getElementById('busuanzi-script');
-      if (old) old.remove();
-
-      const script = document.createElement('script');
-      script.id = 'busuanzi-script';
-      script.src = '/busuanzi.min.js';
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('busuanzi script failed'));
-      document.head.appendChild(script);
-    });
-  }
-
-  // Shared reload state
-  (window as any).__busuanziReloadPromise = null as Promise<void> | null;
-
-  function triggerBusuanziReload(): Promise<void> {
-    if (!(window as any).__busuanziReloadPromise) {
-      (window as any).__busuanziReloadPromise = loadBusuanzi().finally(() => {
-        (window as any).__busuanziReloadPromise = null;
-      });
-    }
-    return (window as any).__busuanziReloadPromise;
-  }
-
-  (window as any).__triggerBusuanziReload = triggerBusuanziReload;
+  import { triggerReload } from '../lib/busuanzi-loader';
 
   function initBusuanziCounter() {
     const container = document.querySelector(
@@ -62,7 +31,7 @@
       container.style.display = 'none';
     }, 5000);
 
-    triggerBusuanziReload()
+    triggerReload()
       .then(() => {
         let attempts = 0;
         const poll = setInterval(() => {
