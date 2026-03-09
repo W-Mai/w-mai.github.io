@@ -1,13 +1,12 @@
 ---
-// Site-wide page view and unique visitor counter for the footer.
-// Shares busuanzi script reload with BusuanziCounter.
+// Site-wide page view and unique visitor counter for the footer (busuanzi v3.6.9).
 ---
 <div class="busuanzi-footer" aria-label="Site statistics">
   <span class="busuanzi-footer-loading">加载中...</span>
   <span class="busuanzi-footer-stats busuanzi-footer-hidden">
-    <span>本站被怼了 <span id="busuanzi_value_site_pv"></span> 下儿</span>
+    <span>本站被怼了 <span id="busuanzi_site_pv"></span> 下儿</span>
     <span class="busuanzi-sep">·</span>
-    <span><span id="busuanzi_value_site_uv"></span> 个老铁来过</span>
+    <span><span id="busuanzi_site_uv"></span> 个老铁来过</span>
   </span>
 </div>
 
@@ -25,7 +24,6 @@
 
     if (!container || !loading || !stats) return;
 
-    // Reset visibility
     loading.classList.remove('busuanzi-footer-hidden');
     stats.classList.add('busuanzi-footer-hidden');
     container.style.display = '';
@@ -34,7 +32,6 @@
       container.style.display = 'none';
     }, 5000);
 
-    // Use the shared reload trigger from BusuanziCounter
     const trigger =
       (window as any).__triggerBusuanziReload ??
       (() => Promise.reject(new Error('no busuanzi loader')));
@@ -43,12 +40,12 @@
       .then(() => {
         let attempts = 0;
         const poll = setInterval(() => {
-          const pvEl = document.getElementById('busuanzi_value_site_pv');
-          const uvEl = document.getElementById('busuanzi_value_site_uv');
+          const pvEl = document.getElementById('busuanzi_site_pv');
+          const uvEl = document.getElementById('busuanzi_site_uv');
           const pvReady =
-            pvEl && pvEl.textContent && pvEl.textContent.trim() !== '';
+            pvEl && pvEl.innerText && pvEl.innerText.trim() !== '';
           const uvReady =
-            uvEl && uvEl.textContent && uvEl.textContent.trim() !== '';
+            uvEl && uvEl.innerText && uvEl.innerText.trim() !== '';
 
           if (pvReady && uvReady) {
             clearInterval(poll);

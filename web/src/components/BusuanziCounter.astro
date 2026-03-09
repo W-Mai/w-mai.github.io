@@ -1,64 +1,44 @@
 ---
-// Busuanzi page view counter — displays per-page PV with loading/error states.
-// Reloads busuanzi script on each page navigation to get fresh data.
+// Busuanzi page view counter (v3.6.9) — self-hosted script with fetch API.
+// Displays per-page PV with loading/error states.
 ---
 <span class="busuanzi-pv-counter" aria-label="Page views">
   <span class="busuanzi-pv-loading">加载中...</span>
-  <span class="busuanzi-pv-value busuanzi-hidden">被怼了 <span id="busuanzi_value_page_pv"></span> 下儿</span>
+  <span class="busuanzi-pv-value busuanzi-hidden">被怼了 <span id="busuanzi_page_pv"></span> 下儿</span>
 </span>
 
 <script>
-  /**
-   * Load (or reload) the busuanzi script. Returns a promise that resolves
-   * once the script's onload fires. Each call removes the old script tag
-   * and injects a fresh one so busuanzi re-fetches data for the current page.
-   */
-  function reloadBusuanziScript(): Promise<void> {
+  function loadBusuanzi(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      // Remove previous script so busuanzi re-executes its JSONP request
+      // Reset the guard flag so the script re-executes on SPA navigation
+      (window as any).busuanziRequestSent = false;
+
+      // Remove previous script tag
       const old = document.getElementById('busuanzi-script');
       if (old) old.remove();
 
-      // Clear previous values so poll doesn't see stale data
-      const ids = [
-        'busuanzi_value_page_pv',
-        'busuanzi_value_site_pv',
-        'busuanzi_value_site_uv',
-      ];
-      for (const id of ids) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = '';
-      }
-
       const script = document.createElement('script');
       script.id = 'busuanzi-script';
-      script.src =
-        '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+      script.src = '/busuanzi.min.js';
       script.async = true;
-      script.referrerPolicy = 'no-referrer-when-downgrade';
       script.onload = () => resolve();
       script.onerror = () => reject(new Error('busuanzi script failed'));
       document.head.appendChild(script);
     });
   }
 
-  // Expose globally so BusuanziFooter can share the same reload
-  (window as any).__reloadBusuanziScript = reloadBusuanziScript;
-  // Track whether a reload is already in progress to avoid double-loading
+  // Shared reload state
   (window as any).__busuanziReloadPromise = null as Promise<void> | null;
 
   function triggerBusuanziReload(): Promise<void> {
     if (!(window as any).__busuanziReloadPromise) {
-      (window as any).__busuanziReloadPromise = reloadBusuanziScript().finally(
-        () => {
-          (window as any).__busuanziReloadPromise = null;
-        },
-      );
+      (window as any).__busuanziReloadPromise = loadBusuanzi().finally(() => {
+        (window as any).__busuanziReloadPromise = null;
+      });
     }
     return (window as any).__busuanziReloadPromise;
   }
 
-  // Also expose the trigger
   (window as any).__triggerBusuanziReload = triggerBusuanziReload;
 
   function initBusuanziCounter() {
@@ -74,7 +54,6 @@
 
     if (!container || !loading || !value) return;
 
-    // Reset visibility
     loading.classList.remove('busuanzi-hidden');
     value.classList.add('busuanzi-hidden');
     container.style.display = '';
@@ -87,8 +66,8 @@
       .then(() => {
         let attempts = 0;
         const poll = setInterval(() => {
-          const pvEl = document.getElementById('busuanzi_value_page_pv');
-          if (pvEl && pvEl.textContent && pvEl.textContent.trim() !== '') {
+          const pvEl = document.getElementById('busuanzi_page_pv');
+          if (pvEl && pvEl.innerText && pvEl.innerText.trim() !== '') {
             clearInterval(poll);
             clearTimeout(timeout);
             loading.classList.add('busuanzi-hidden');
