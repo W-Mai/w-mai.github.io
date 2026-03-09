@@ -1,111 +1,122 @@
-/*! Neumorphism theme for giscus */
+/*! Neumorphism theme for giscus — raised/inset depth effects */
 
 :root {
   --neu-bg: #e0e5ec;
-  --neu-shadow-dark: rgb(163 177 198 / 0.6);
-  --neu-shadow-light: rgb(255 255 255 / 0.5);
-  --neu-shadow-dark-strong: rgb(163 177 198 / 0.7);
-  --neu-shadow-light-strong: rgb(255 255 255 / 0.8);
-  --neu-text: #334155;
-  --neu-text-muted: #64748b;
-  --neu-accent: #2337ff;
-  --neu-border: transparent;
-  --neu-radius: 16px;
-  --neu-radius-sm: 10px;
+  --sd: rgb(163 177 198 / 0.6);
+  --sl: rgb(255 255 255 / 0.5);
+  --sd-s: rgb(163 177 198 / 0.7);
+  --sl-s: rgb(255 255 255 / 0.8);
+  --text: #334155;
+  --text-m: #64748b;
+  --accent: #2337ff;
+  --r: 16px;
+  --r-sm: 10px;
 }
 
-/* Global background */
+/* Base */
 body, .gsc-main {
   background: var(--neu-bg) !important;
-  color: var(--neu-text) !important;
+  color: var(--text) !important;
+  font-family: inherit !important;
 }
 
-/* Main comment container */
-.gsc-comments {
-  gap: 1.25rem !important;
-}
-
-/* Each comment card */
+/* ── Raised comment cards ── */
 .gsc-comment {
   background: var(--neu-bg) !important;
   border: none !important;
-  border-radius: var(--neu-radius) !important;
-  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light) !important;
-  padding: 1rem !important;
-  margin-bottom: 0.75rem !important;
+  border-radius: var(--r) !important;
+  box-shadow: 8px 8px 16px var(--sd), -8px -8px 16px var(--sl) !important;
+  padding: 1.25rem !important;
+  margin-bottom: 1rem !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
 }
 
-/* Comment box (new comment area) */
+.gsc-comment:hover {
+  box-shadow: 6px 6px 12px var(--sd), -6px -6px 12px var(--sl) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── Inset comment box (write area) ── */
 .gsc-comment-box {
   background: var(--neu-bg) !important;
   border: none !important;
-  border-radius: var(--neu-radius) !important;
-  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light) !important;
+  border-radius: var(--r) !important;
+  box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
+  padding: 1rem !important;
 }
 
-/* Textarea */
+/* ── Inset textarea ── */
 .gsc-comment-box textarea,
 .gsc-comment-box-textarea {
   background: var(--neu-bg) !important;
   border: none !important;
-  border-radius: var(--neu-radius-sm) !important;
-  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong) !important;
-  color: var(--neu-text) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: inset 4px 4px 8px var(--sd-s), inset -4px -4px 8px var(--sl-s) !important;
+  color: var(--text) !important;
   padding: 0.75rem !important;
+  transition: box-shadow 0.2s ease !important;
 }
 
 .gsc-comment-box textarea:focus,
 .gsc-comment-box-textarea:focus {
   outline: none !important;
-  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong) !important;
+  box-shadow: inset 5px 5px 10px var(--sd-s), inset -5px -5px 10px var(--sl-s) !important;
 }
 
-/* Buttons */
+/* ── Raised buttons ── */
 .gsc-comment-box .btn-primary,
 .gsc-reply-box .btn-primary {
   background: var(--neu-bg) !important;
   border: none !important;
-  border-radius: var(--neu-radius-sm) !important;
-  box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light) !important;
-  color: var(--neu-accent) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 5px 5px 10px var(--sd), -5px -5px 10px var(--sl) !important;
+  color: var(--accent) !important;
   font-weight: 600 !important;
   transition: box-shadow 0.2s ease, transform 0.2s ease !important;
 }
 
 .gsc-comment-box .btn-primary:hover,
 .gsc-reply-box .btn-primary:hover {
-  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light) !important;
+  box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
   transform: translateY(-1px) !important;
 }
 
 .gsc-comment-box .btn-primary:active,
 .gsc-reply-box .btn-primary:active {
-  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong) !important;
+  box-shadow: inset 3px 3px 6px var(--sd-s), inset -3px -3px 6px var(--sl-s) !important;
   transform: translateY(0) !important;
 }
 
-/* Secondary/outline buttons */
+/* Secondary buttons — raised */
 .btn,
 .gsc-comment-box .btn,
 .gsc-reply-box .btn {
   background: var(--neu-bg) !important;
   border: none !important;
-  border-radius: var(--neu-radius-sm) !important;
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light) !important;
-  color: var(--neu-text-muted) !important;
-  transition: box-shadow 0.2s ease !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl) !important;
+  color: var(--text-m) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
 }
 
 .btn:hover,
 .gsc-comment-box .btn:hover,
 .gsc-reply-box .btn:hover {
-  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light) !important;
-  color: var(--neu-text) !important;
+  box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl) !important;
+  transform: translateY(-1px) !important;
+  color: var(--text) !important;
 }
 
-/* Reactions bar */
+.btn:active,
+.gsc-comment-box .btn:active,
+.gsc-reply-box .btn:active {
+  box-shadow: inset 2px 2px 4px var(--sd-s), inset -2px -2px 4px var(--sl-s) !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Raised reaction buttons ── */
 .gsc-reactions {
-  background: var(--neu-bg) !important;
+  background: transparent !important;
   border: none !important;
 }
 
@@ -113,38 +124,34 @@ body, .gsc-main {
 .gsc-direct-reaction-button {
   background: var(--neu-bg) !important;
   border: none !important;
-  border-radius: var(--neu-radius-sm) !important;
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl) !important;
   transition: box-shadow 0.2s ease, transform 0.2s ease !important;
 }
 
 .gsc-reactions-button:hover,
 .gsc-direct-reaction-button:hover {
-  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light) !important;
+  box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl) !important;
   transform: translateY(-1px) !important;
 }
 
+/* Reacted = pressed inset */
 .gsc-reactions-button.has-reacted,
 .gsc-direct-reaction-button.has-reacted {
-  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong) !important;
-  color: var(--neu-accent) !important;
+  box-shadow: inset 3px 3px 6px var(--sd-s), inset -3px -3px 6px var(--sl-s) !important;
+  color: var(--accent) !important;
 }
 
-/* Avatar */
+/* ── Avatar ring ── */
 .gsc-comment .avatar,
 img.avatar {
   border-radius: 50% !important;
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light) !important;
-  padding: 2px !important;
+  box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl) !important;
+  padding: 3px !important;
   background: var(--neu-bg) !important;
 }
 
-/* Header area */
-.gsc-header {
-  border-bottom: none !important;
-}
-
-/* Reply area */
+/* ── Inset replies ── */
 .gsc-replies {
   border-left: none !important;
   padding-left: 1rem !important;
@@ -153,13 +160,13 @@ img.avatar {
 .gsc-reply {
   background: var(--neu-bg) !important;
   border: none !important;
-  border-radius: var(--neu-radius-sm) !important;
-  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: inset 4px 4px 8px var(--sd-s), inset -4px -4px 8px var(--sl-s) !important;
   padding: 0.75rem !important;
   margin-bottom: 0.5rem !important;
 }
 
-/* Tabs (Write / Preview) */
+/* ── Tabs ── */
 .gsc-comment-box-tabs {
   background: var(--neu-bg) !important;
   border-bottom: none !important;
@@ -168,73 +175,52 @@ img.avatar {
 .gsc-comment-box-tabs button {
   background: var(--neu-bg) !important;
   border: none !important;
-  color: var(--neu-text-muted) !important;
-  border-radius: var(--neu-radius-sm) var(--neu-radius-sm) 0 0 !important;
+  color: var(--text-m) !important;
+  border-radius: var(--r-sm) var(--r-sm) 0 0 !important;
+  box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
+  transition: box-shadow 0.2s ease !important;
 }
 
+/* Active tab = pressed inset */
 .gsc-comment-box-tabs button[aria-selected="true"],
 .gsc-comment-box-tabs button.selected {
-  color: var(--neu-text) !important;
+  color: var(--text) !important;
   font-weight: 600 !important;
-  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong) !important;
+  box-shadow: inset 3px 3px 6px var(--sd-s), inset -3px -3px 6px var(--sl-s) !important;
 }
 
-/* Links */
-a {
-  color: var(--neu-accent) !important;
-  text-decoration: none !important;
+/* ── Header ── */
+.gsc-header {
+  border-bottom: none !important;
 }
 
-a:hover {
-  text-decoration: underline !important;
-}
+/* ── Links ── */
+a { color: var(--accent) !important; text-decoration: none !important; }
+a:hover { text-decoration: underline !important; }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--neu-bg);
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--neu-bg); }
+::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
 
-/* Remove default borders and backgrounds that conflict */
+/* ── Override GitHub color utility classes ── */
 .gsc-comment-box-separator,
 .gsc-comment-box-bottom {
   border: none !important;
   background: transparent !important;
 }
 
-.color-bg-primary,
-.color-bg-secondary,
-.color-bg-tertiary,
-.color-bg-overlay,
-.color-bg-canvas,
-.color-bg-default,
-.color-bg-subtle,
-.color-bg-inset {
+.color-bg-primary, .color-bg-secondary, .color-bg-tertiary,
+.color-bg-overlay, .color-bg-canvas, .color-bg-default,
+.color-bg-subtle, .color-bg-inset {
   background: var(--neu-bg) !important;
 }
 
-.color-border-primary,
-.color-border-secondary,
-.color-border-default,
-.color-border-muted {
+.color-border-primary, .color-border-secondary,
+.color-border-default, .color-border-muted {
   border-color: transparent !important;
 }
 
-.color-text-primary,
-.color-fg-default {
-  color: var(--neu-text) !important;
-}
-
-.color-text-secondary,
-.color-fg-muted {
-  color: var(--neu-text-muted) !important;
-}
+.color-text-primary, .color-fg-default { color: var(--text) !important; }
+.color-text-secondary, .color-fg-muted { color: var(--text-m) !important; }
