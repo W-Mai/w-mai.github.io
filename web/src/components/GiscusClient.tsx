@@ -203,41 +203,36 @@ const GiscusClient: FC<GiscusClientProps> = ({
         background: neuBg,
         borderRadius: '1.5rem',
         boxShadow: `9px 9px 16px ${shadowDark}, -9px -9px 16px ${shadowLight}`,
-        padding: '1.25rem',
+        padding: '0.5rem',
         transition: 'box-shadow 0.3s ease',
+        overflow: 'hidden',
+        minHeight: loaded ? undefined : '200px',
+        position: 'relative',
       }}>
-        {/* Inset iframe well */}
-        <div style={{
-          borderRadius: '1rem',
-          boxShadow: `inset 6px 6px 10px ${shadowDarkStrong}, inset -6px -6px 10px ${shadowLightStrong}`,
-          overflow: 'hidden',
-          minHeight: loaded ? undefined : '200px',
-          position: 'relative',
-        }}>
-          {!loaded && (
-            <div style={{
-              position: 'absolute', inset: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#94a3b8', fontSize: '0.85rem',
-            }}>
-              Loading comments...
-            </div>
-          )}
-          <iframe
-            ref={iframeRef}
-            className="giscus-frame"
-            title="Comments"
-            src={buildSrc()}
-            loading={loading}
-            onLoad={() => setLoaded(true)}
-            style={{
-              width: '100%', border: 'none',
-              height: '150px', colorScheme: 'light',
-              opacity: loaded ? 1 : 0,
-              transition: 'opacity 0.3s ease, height 0.2s ease',
-            }}
-          />
-        </div>
+        {!loaded && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#94a3b8', fontSize: '0.85rem',
+          }}>
+            Loading comments...
+          </div>
+        )}
+        <iframe
+          ref={iframeRef}
+          className="giscus-frame"
+          title="Comments"
+          src={buildSrc()}
+          loading={loading}
+          onLoad={() => setLoaded(true)}
+          style={{
+            width: '100%', border: 'none',
+            height: '150px', colorScheme: 'light',
+            borderRadius: '1rem',
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 0.3s ease, height 0.2s ease',
+          }}
+        />
       </div>
     </div>
   );
