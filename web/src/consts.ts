@@ -5,6 +5,7 @@ export const USER_NAME = 'W-Mai';
 export const NICK_NAME = 'B3n1gn X';
 export const SITE_TITLE = 'B3n1gn X';
 export const SITE_DESCRIPTION = 'B3n1gn X | Personal Website';
+export const SITE_URL = 'https://benign.host';
 
 // Pinned projects displayed as featured cards on homepage
 // Format: 'owner/repo' or just 'repo' (defaults to USER_NAME as owner)

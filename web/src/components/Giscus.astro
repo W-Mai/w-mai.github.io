@@ -1,5 +1,6 @@
 ---
 // Giscus comment system powered by GitHub Discussions
+import { SITE_URL } from '../consts';
 ---
 
 <section class="giscus-wrapper mt-12 pt-8 border-t border-slate-200">
@@ -14,7 +15,7 @@
     data-reactions-enabled="1"
     data-emit-metadata="1"
     data-input-position="bottom"
-    data-theme="preferred_color_scheme"
+    data-theme={`${SITE_URL}/giscus-neumorphism.css`}
     data-lang="zh-CN"
     data-loading="lazy"
     crossorigin="anonymous"

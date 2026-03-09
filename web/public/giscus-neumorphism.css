@@ -1,0 +1,240 @@
+/*! Neumorphism theme for giscus */
+
+:root {
+  --neu-bg: #e0e5ec;
+  --neu-shadow-dark: rgb(163 177 198 / 0.6);
+  --neu-shadow-light: rgb(255 255 255 / 0.5);
+  --neu-shadow-dark-strong: rgb(163 177 198 / 0.7);
+  --neu-shadow-light-strong: rgb(255 255 255 / 0.8);
+  --neu-text: #334155;
+  --neu-text-muted: #64748b;
+  --neu-accent: #2337ff;
+  --neu-border: transparent;
+  --neu-radius: 16px;
+  --neu-radius-sm: 10px;
+}
+
+/* Global background */
+body, .gsc-main {
+  background: var(--neu-bg) !important;
+  color: var(--neu-text) !important;
+}
+
+/* Main comment container */
+.gsc-comments {
+  gap: 1.25rem !important;
+}
+
+/* Each comment card */
+.gsc-comment {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius) !important;
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light) !important;
+  padding: 1rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+/* Comment box (new comment area) */
+.gsc-comment-box {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius) !important;
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light) !important;
+}
+
+/* Textarea */
+.gsc-comment-box textarea,
+.gsc-comment-box-textarea {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong) !important;
+  color: var(--neu-text) !important;
+  padding: 0.75rem !important;
+}
+
+.gsc-comment-box textarea:focus,
+.gsc-comment-box-textarea:focus {
+  outline: none !important;
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong) !important;
+}
+
+/* Buttons */
+.gsc-comment-box .btn-primary,
+.gsc-reply-box .btn-primary {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: 4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light) !important;
+  color: var(--neu-accent) !important;
+  font-weight: 600 !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+
+.gsc-comment-box .btn-primary:hover,
+.gsc-reply-box .btn-primary:hover {
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light) !important;
+  transform: translateY(-1px) !important;
+}
+
+.gsc-comment-box .btn-primary:active,
+.gsc-reply-box .btn-primary:active {
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong) !important;
+  transform: translateY(0) !important;
+}
+
+/* Secondary/outline buttons */
+.btn,
+.gsc-comment-box .btn,
+.gsc-reply-box .btn {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light) !important;
+  color: var(--neu-text-muted) !important;
+  transition: box-shadow 0.2s ease !important;
+}
+
+.btn:hover,
+.gsc-comment-box .btn:hover,
+.gsc-reply-box .btn:hover {
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light) !important;
+  color: var(--neu-text) !important;
+}
+
+/* Reactions bar */
+.gsc-reactions {
+  background: var(--neu-bg) !important;
+  border: none !important;
+}
+
+.gsc-reactions-button,
+.gsc-direct-reaction-button {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+
+.gsc-reactions-button:hover,
+.gsc-direct-reaction-button:hover {
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light) !important;
+  transform: translateY(-1px) !important;
+}
+
+.gsc-reactions-button.has-reacted,
+.gsc-direct-reaction-button.has-reacted {
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong) !important;
+  color: var(--neu-accent) !important;
+}
+
+/* Avatar */
+.gsc-comment .avatar,
+img.avatar {
+  border-radius: 50% !important;
+  box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light) !important;
+  padding: 2px !important;
+  background: var(--neu-bg) !important;
+}
+
+/* Header area */
+.gsc-header {
+  border-bottom: none !important;
+}
+
+/* Reply area */
+.gsc-replies {
+  border-left: none !important;
+  padding-left: 1rem !important;
+}
+
+.gsc-reply {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  border-radius: var(--neu-radius-sm) !important;
+  box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong) !important;
+  padding: 0.75rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Tabs (Write / Preview) */
+.gsc-comment-box-tabs {
+  background: var(--neu-bg) !important;
+  border-bottom: none !important;
+}
+
+.gsc-comment-box-tabs button {
+  background: var(--neu-bg) !important;
+  border: none !important;
+  color: var(--neu-text-muted) !important;
+  border-radius: var(--neu-radius-sm) var(--neu-radius-sm) 0 0 !important;
+}
+
+.gsc-comment-box-tabs button[aria-selected="true"],
+.gsc-comment-box-tabs button.selected {
+  color: var(--neu-text) !important;
+  font-weight: 600 !important;
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong) !important;
+}
+
+/* Links */
+a {
+  color: var(--neu-accent) !important;
+  text-decoration: none !important;
+}
+
+a:hover {
+  text-decoration: underline !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--neu-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Remove default borders and backgrounds that conflict */
+.gsc-comment-box-separator,
+.gsc-comment-box-bottom {
+  border: none !important;
+  background: transparent !important;
+}
+
+.color-bg-primary,
+.color-bg-secondary,
+.color-bg-tertiary,
+.color-bg-overlay,
+.color-bg-canvas,
+.color-bg-default,
+.color-bg-subtle,
+.color-bg-inset {
+  background: var(--neu-bg) !important;
+}
+
+.color-border-primary,
+.color-border-secondary,
+.color-border-default,
+.color-border-muted {
+  border-color: transparent !important;
+}
+
+.color-text-primary,
+.color-fg-default {
+  color: var(--neu-text) !important;
+}
+
+.color-text-secondary,
+.color-fg-muted {
+  color: var(--neu-text-muted) !important;
+}
