@@ -1,6 +1,6 @@
 ---
 // Site-wide page view and unique visitor counter for the footer.
-// Shares busuanzi script loading with BusuanziCounter via a global promise.
+// Shares busuanzi script reload with BusuanziCounter.
 ---
 <div class="busuanzi-footer" aria-label="Site statistics">
   <span class="busuanzi-footer-loading">加载中...</span>
@@ -12,41 +12,20 @@
 </div>
 
 <script>
-  function loadBusuanziScript(): Promise<void> {
-    // Reuse global loader if BusuanziCounter already defined it
-    if ((window as any).__loadBusuanziScript) {
-      return (window as any).__loadBusuanziScript();
-    }
-    // Fallback: create the promise ourselves
-    if ((window as any).__busuanziPromise) return (window as any).__busuanziPromise;
-
-    (window as any).__busuanziPromise = new Promise<void>((resolve, reject) => {
-      const existing = document.getElementById('busuanzi-script') as HTMLScriptElement | null;
-      if (existing) {
-        resolve();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.id = 'busuanzi-script';
-      script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('busuanzi script failed'));
-      document.head.appendChild(script);
-    });
-
-    return (window as any).__busuanziPromise;
-  }
-
   function initBusuanziFooter() {
-    const container = document.querySelector('.busuanzi-footer') as HTMLElement | null;
-    const loading = container?.querySelector('.busuanzi-footer-loading') as HTMLElement | null;
-    const stats = container?.querySelector('.busuanzi-footer-stats') as HTMLElement | null;
+    const container = document.querySelector(
+      '.busuanzi-footer',
+    ) as HTMLElement | null;
+    const loading = container?.querySelector(
+      '.busuanzi-footer-loading',
+    ) as HTMLElement | null;
+    const stats = container?.querySelector(
+      '.busuanzi-footer-stats',
+    ) as HTMLElement | null;
 
     if (!container || !loading || !stats) return;
 
-    // Reset state for SPA navigation
+    // Reset visibility
     loading.classList.remove('busuanzi-footer-hidden');
     stats.classList.add('busuanzi-footer-hidden');
     container.style.display = '';
@@ -55,21 +34,28 @@
       container.style.display = 'none';
     }, 5000);
 
-    loadBusuanziScript()
+    // Use the shared reload trigger from BusuanziCounter
+    const trigger =
+      (window as any).__triggerBusuanziReload ??
+      (() => Promise.reject(new Error('no busuanzi loader')));
+
+    trigger()
       .then(() => {
         let attempts = 0;
         const poll = setInterval(() => {
           const pvEl = document.getElementById('busuanzi_value_site_pv');
           const uvEl = document.getElementById('busuanzi_value_site_uv');
-          const pvReady = pvEl && pvEl.textContent && pvEl.textContent.trim() !== '';
-          const uvReady = uvEl && uvEl.textContent && uvEl.textContent.trim() !== '';
+          const pvReady =
+            pvEl && pvEl.textContent && pvEl.textContent.trim() !== '';
+          const uvReady =
+            uvEl && uvEl.textContent && uvEl.textContent.trim() !== '';
 
           if (pvReady && uvReady) {
             clearInterval(poll);
             clearTimeout(timeout);
             loading.classList.add('busuanzi-footer-hidden');
             stats.classList.remove('busuanzi-footer-hidden');
-          } else if (++attempts > 50) {
+          } else if (++attempts > 100) {
             clearInterval(poll);
             clearTimeout(timeout);
             container.style.display = 'none';
