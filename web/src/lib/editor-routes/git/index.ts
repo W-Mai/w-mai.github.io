@@ -11,14 +11,17 @@ function getRepoRoot(): string {
 }
 
 /** Commit message template matching project convention */
-function commitMsg(title: string): string {
-  return `📝(post): add "${title}"`;
+function commitMsg(title: string, action: 'add' | 'update' | 'delete'): string {
+  return `📝(post): ${action} "${title}"`;
 }
 
 /** Run git command in repo root (trims trailing whitespace only) */
 function git(...args: string[]): string {
   const root = getRepoRoot();
-  return execFileSync('git', args, { cwd: root, encoding: 'utf-8' }).replace(/\s+$/, '');
+  return execFileSync('git', args, {
+    cwd: root, encoding: 'utf-8',
+    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+  }).replace(/\s+$/, '');
 }
 
 /** Extract title from MDX frontmatter */
@@ -34,36 +37,41 @@ function json(data: unknown, status = 200) {
   });
 }
 
+/** Map porcelain status code to action verb */
+function statusAction(line: string): 'add' | 'update' | 'delete' {
+  const xy = line.slice(0, 2);
+  if (xy.includes('D')) return 'delete';
+  if (xy.includes('?') || xy.includes('A')) return 'add';
+  return 'update';
+}
+
 /** Collect untracked/modified post files, grouped by slug */
-async function collectPendingPosts(): Promise<{ slug: string; title: string; files: string[] }[]> {
+async function collectPendingPosts(): Promise<{ slug: string; title: string; files: string[]; action: 'add' | 'update' | 'delete' }[]> {
   const statusOut = git('status', '--porcelain', '--', 'posts/');
   if (!statusOut) return [];
 
   const lines = statusOut.split('\n').filter(Boolean);
-  const slugMap = new Map<string, Set<string>>();
+  const slugMap = new Map<string, { files: Set<string>; action: 'add' | 'update' | 'delete' }>();
 
   for (const line of lines) {
     const filePath = line.slice(3).trim();
-    // Match posts/<slug>.mdx or posts/assets/<name>
     const mdxMatch = filePath.match(/^posts\/([^/]+)\.mdx$/);
     if (mdxMatch) {
       const slug = mdxMatch[1];
-      if (!slugMap.has(slug)) slugMap.set(slug, new Set());
-      slugMap.get(slug)!.add(filePath);
+      if (!slugMap.has(slug)) slugMap.set(slug, { files: new Set(), action: statusAction(line) });
+      slugMap.get(slug)!.files.add(filePath);
     }
   }
 
-  // For each slug, find referenced assets that are also pending
   const pendingFiles = new Set(lines.map((l) => l.slice(3).trim()));
-  const results: { slug: string; title: string; files: string[] }[] = [];
+  const results: { slug: string; title: string; files: string[]; action: 'add' | 'update' | 'delete' }[] = [];
 
-  for (const [slug, files] of slugMap) {
+  for (const [slug, { files, action }] of slugMap) {
     const mdxPath = resolve(getRepoRoot(), `posts/${slug}.mdx`);
     let title = slug;
     try {
       const content = await readFile(mdxPath, 'utf-8');
       title = extractTitle(content);
-      // Find referenced assets in the content
       const assetRe = /\.\/assets\/([^\s)'"]+)/g;
       let m: RegExpExecArray | null;
       while ((m = assetRe.exec(content))) {
@@ -71,15 +79,28 @@ async function collectPendingPosts(): Promise<{ slug: string; title: string; fil
         if (pendingFiles.has(assetPath)) files.add(assetPath);
       }
     } catch {}
-    results.push({ slug, title, files: [...files] });
+    results.push({ slug, title, files: [...files], action });
   }
 
   return results;
 }
 
-/** GET /api/editor/git — list pending posts to commit */
-export const GET: APIRoute = async () => {
+/** GET /api/editor/git — list pending posts or get diff for a slug */
+export const GET: APIRoute = async ({ url }) => {
   try {
+    const slug = url.searchParams.get('diff');
+    if (slug) {
+      // Return diff for a specific post slug
+      const filePath = `posts/${slug}.mdx`;
+      let diff: string;
+      try {
+        diff = git('-c', 'color.diff=false', 'diff', '--', filePath);
+      } catch {
+        // Untracked file — show full content as diff
+        diff = git('-c', 'color.diff=false', 'diff', '--no-index', '/dev/null', filePath);
+      }
+      return json({ slug, diff });
+    }
     const pending = await collectPendingPosts();
     return json({ pending });
   } catch (err: any) {
@@ -106,7 +127,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     for (const post of pending) {
       git('add', ...post.files);
-      const msg = messages?.[post.slug] || commitMsg(post.title);
+      const msg = messages?.[post.slug] || commitMsg(post.title, post.action);
       git('commit', '-m', msg);
       const hash = git('rev-parse', '--short', 'HEAD');
       committed.push({ slug: post.slug, title: post.title, hash });

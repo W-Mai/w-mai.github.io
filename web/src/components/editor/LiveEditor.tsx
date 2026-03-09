@@ -69,7 +69,7 @@ const LiveEditor: FC = () => {
   const [scrollRatio, setScrollRatio] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [assetRefreshKey, setAssetRefreshKey] = useState(0);
-  const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[] }[]>([]);
+  const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[]; action: 'add' | 'update' | 'delete' }[]>([]);
   const [gitCommitting, setGitCommitting] = useState(false);
   const [showGitModal, setShowGitModal] = useState(false);
   const [showStickerPanel, setShowStickerPanel] = useState(false);

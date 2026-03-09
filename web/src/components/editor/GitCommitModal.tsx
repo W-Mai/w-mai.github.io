@@ -6,6 +6,7 @@ interface PendingPost {
   slug: string;
   title: string;
   files: string[];
+  action: 'add' | 'update' | 'delete';
 }
 
 interface GitCommitModalProps {
@@ -17,8 +18,8 @@ interface GitCommitModalProps {
 }
 
 /** Default commit message template */
-function defaultMsg(title: string): string {
-  return `📝(post): add "${title}"`;
+function defaultMsg(title: string, action: 'add' | 'update' | 'delete'): string {
+  return `📝(post): ${action} "${title}"`;
 }
 
 const GitCommitModal: FC<GitCommitModalProps> = ({
@@ -32,7 +33,7 @@ const GitCommitModal: FC<GitCommitModalProps> = ({
   useEffect(() => {
     if (isOpen && !prevOpen.current) {
       const defaults: Record<string, string> = {};
-      for (const p of pending) defaults[p.slug] = defaultMsg(p.title);
+      for (const p of pending) defaults[p.slug] = defaultMsg(p.title, p.action);
       setMessages(defaults);
       setAiLoading({});
     }
@@ -43,20 +44,25 @@ const GitCommitModal: FC<GitCommitModalProps> = ({
     setMessages((prev) => ({ ...prev, [slug]: msg }));
   }, []);
 
-  // AI-generate commit message from post content
-  const handleAISuggest = useCallback(async (slug: string, title: string) => {
+  // AI-generate commit message from diff content
+  const handleAISuggest = useCallback(async (slug: string, title: string, action: string) => {
     setAiLoading((prev) => ({ ...prev, [slug]: true }));
     try {
-      const postRes = await fetch(`/api/editor/posts/${slug}`);
-      if (!postRes.ok) throw new Error('Failed to load post');
-      const content = await postRes.text();
-      // Take first 2000 chars as summary context
-      const summary = content.slice(0, 2000);
+      // Fetch diff for this post
+      const diffRes = await fetch(`/api/editor/git?diff=${encodeURIComponent(slug)}`);
+      if (!diffRes.ok) throw new Error('Failed to get diff');
+      const { diff } = await diffRes.json();
+
+      // Truncate diff to 3000 chars to stay within token limits
+      const diffTruncated = diff?.slice(0, 3000) || '(no diff available)';
 
       const res = await fetch('/api/editor/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'suggest-commit-msg', content: `Title: ${title}\n\n${summary}` }),
+        body: JSON.stringify({
+          action: 'suggest-commit-msg',
+          content: `Title: ${title}\nAction: ${action}\n\nDiff:\n${diffTruncated}`,
+        }),
       });
       if (!res.ok) throw new Error('AI request failed');
 
@@ -85,9 +91,7 @@ const GitCommitModal: FC<GitCommitModalProps> = ({
       }
 
       if (fullText.trim()) {
-        // Keep the emoji prefix, replace the description part
-        const aiBody = fullText.trim().replace(/^["']|["']$/g, '');
-        updateMessage(slug, `📝(post): add "${title}"\n\n${aiBody}`);
+        updateMessage(slug, fullText.trim().replace(/^["']|["']$/g, ''));
       }
     } catch {
       // Silently fail, keep existing message
@@ -145,7 +149,7 @@ const GitCommitModal: FC<GitCommitModalProps> = ({
                 </span>
                 {aiEnabled && (
                   <button
-                    onClick={() => handleAISuggest(post.slug, post.title)}
+                    onClick={() => handleAISuggest(post.slug, post.title, post.action)}
                     disabled={!!aiLoading[post.slug]}
                     title="AI-generate commit message"
                     style={{
