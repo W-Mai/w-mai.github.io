@@ -134,7 +134,52 @@ async function assetCompletion(ctx: CompletionContext): Promise<CompletionResult
 }
 
 /**
- * Sticker name completion — triggers after `:sticker[` or `::sticker[`
+ * Stage 1: Sticker syntax completion — triggers on `:s` or `::s` prefix,
+ * offers `:sticker[` and `::sticker[` commands. Selecting one inserts the
+ * syntax and places cursor inside `[` ready for stage 2 name completion.
+ */
+function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | null {
+  const line = ctx.state.doc.lineAt(ctx.pos);
+  const textBefore = line.text.slice(0, ctx.pos - line.from);
+
+  // Already inside sticker bracket — let stage 2 handle it
+  if (/::?sticker\[/.test(textBefore)) return null;
+
+  // Match `:` or `::` followed by partial text (at least 1 char after colon)
+  const m = textBefore.match(/(:{1,2})(\w*)$/);
+  if (!m || m[2].length === 0) return null;
+
+  const colons = m[1];
+  const typed = m[2];
+  const from = ctx.pos - colons.length - typed.length;
+
+  const options: Completion[] = [];
+
+  // Inline sticker: :sticker[name]:
+  if (':sticker['.startsWith(colons + typed) || ('sticker'.startsWith(typed) && colons === ':')) {
+    options.push({
+      label: ':sticker[…]:',
+      apply: ':sticker[',
+      detail: 'inline sticker',
+      type: 'keyword',
+    });
+  }
+
+  // Block sticker: ::sticker[name]::
+  if ('::sticker['.startsWith(colons + typed) || ('sticker'.startsWith(typed) && colons === '::')) {
+    options.push({
+      label: '::sticker[…]::',
+      apply: '::sticker[',
+      detail: 'block sticker',
+      type: 'keyword',
+    });
+  }
+
+  return options.length > 0 ? { from, options, filter: false } : null;
+}
+
+/**
+ * Stage 2: Sticker name completion — triggers after `:sticker[` or `::sticker[`
  */
 async function stickerCompletion(ctx: CompletionContext): Promise<CompletionResult | null> {
   const line = ctx.state.doc.lineAt(ctx.pos);
@@ -149,10 +194,14 @@ async function stickerCompletion(ctx: CompletionContext): Promise<CompletionResu
   const stickers = await fetchStickers();
   if (stickers.length === 0) return null;
 
+  const isBlock = textBefore.includes('::sticker[');
+  const closingSuffix = isBlock ? ']::' : ']:';
+
   const options: Completion[] = stickers
     .filter(s => s.name.toLowerCase().includes(prefix.toLowerCase()))
     .map(s => ({
       label: s.name,
+      apply: s.name + closingSuffix,
       type: 'variable',
       detail: 'sticker',
       info: () => stickerPreviewInfo(s.name),
@@ -164,7 +213,7 @@ async function stickerCompletion(ctx: CompletionContext): Promise<CompletionResu
 /** CodeMirror extension: asset + sticker autocomplete with preview tooltips */
 export function editorAutocomplete(): Extension {
   return autocompletion({
-    override: [assetCompletion, stickerCompletion],
+    override: [stickerSyntaxCompletion, stickerCompletion, assetCompletion],
     icons: false,
     optionClass: () => 'cm-editor-autocomplete',
     tooltipClass: () => 'cm-editor-autocomplete-tooltip',
