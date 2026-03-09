@@ -1,15 +1,24 @@
 ---
 import { Image } from 'astro:assets'
+import { getCollection } from 'astro:content'
 import BaseHead from '~/components/BaseHead.astro'
 import Header from '~/components/Header.astro'
 import Footer from '~/components/Footer.astro'
 import GitHubActivityCalendar from '~/components/GitHubActivityCalendar.astro'
+import StatsDashboard from '~/components/StatsDashboard.astro'
 import { fetchGitHubProfile } from '~/lib/github'
+import { computeBlogStats } from '~/lib/reading-stats'
 import SkillTree from '~/components/SkillTree.astro'
 import { USER_NAME, NICK_NAME, SITE_DESCRIPTION, SOCIALS } from '~/consts'
 import HeroImage from '@posts/assets/my_hero_img.png'
 
 const profile = await fetchGitHubProfile()
+
+// Compute blog writing stats for the dashboard
+const posts = await getCollection('blog')
+const blogStats = computeBlogStats(
+  posts.map((p) => ({ body: p.body ?? '', pubDate: p.data.pubDate }))
+)
 const blogUrl = profile.blog
     ? profile.blog.startsWith('http') ? profile.blog : `https://${profile.blog}`
     : null
@@ -123,6 +132,15 @@ const afterCount = Math.floor(Math.random() * 60) + 20
             <GitHubActivityCalendar username={USER_NAME} />
         </div>
     </section>
+
+    <!-- Stats Dashboard -->
+    <StatsDashboard
+      totalPosts={blogStats.totalPosts}
+      totalWords={blogStats.totalWords}
+      averageWords={blogStats.averageWords}
+      earliestDate={blogStats.earliestDate}
+      latestDate={blogStats.latestDate}
+    />
 
     <!-- Skill Tree -->
     <SkillTree />

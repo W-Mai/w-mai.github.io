@@ -1,0 +1,158 @@
+---
+import { getCollection } from 'astro:content'
+import WithSidebar from '~/layouts/WithSidebar.astro'
+import ProfileSidebar from '~/components/ProfileSidebar.astro'
+import StatsDashboard from '~/components/StatsDashboard.astro'
+import FormattedDate from '~/components/FormattedDate.astro'
+import { fetchGitHubProfile } from '~/lib/github'
+import { computeBlogStats, stripMarkdown, countWords, estimateReadingTime } from '~/lib/reading-stats'
+
+const profile = await fetchGitHubProfile()
+
+const posts = await getCollection('blog')
+
+// Compute overall blog stats
+const blogStats = computeBlogStats(
+  posts.map((p) => ({ body: p.body ?? '', pubDate: p.data.pubDate }))
+)
+
+// Post ranking: sorted by word count descending
+const postRanking = posts
+  .map((p) => {
+    const stripped = stripMarkdown(p.body ?? '')
+    const wc = countWords(stripped).total
+    const readMin = estimateReadingTime(p.body ?? '')
+    return {
+      title: p.data.title,
+      id: p.id,
+      wordCount: wc,
+      readingTime: readMin,
+      pubDate: p.data.pubDate,
+    }
+  })
+  .sort((a, b) => b.wordCount - a.wordCount)
+
+// Monthly frequency: group by YYYY-MM, sorted descending
+const monthlyMap = new Map<string, number>()
+for (const post of posts) {
+  const d = post.data.pubDate
+  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  monthlyMap.set(key, (monthlyMap.get(key) ?? 0) + 1)
+}
+const monthlyFrequency = [...monthlyMap.entries()]
+  .sort((a, b) => b[0].localeCompare(a[0]))
+  .map(([period, count]) => ({ period, count }))
+
+// Yearly frequency: group by year, sorted descending
+const yearlyMap = new Map<string, number>()
+for (const post of posts) {
+  const year = String(post.data.pubDate.getFullYear())
+  yearlyMap.set(year, (yearlyMap.get(year) ?? 0) + 1)
+}
+const yearlyFrequency = [...yearlyMap.entries()]
+  .sort((a, b) => b[0].localeCompare(a[0]))
+  .map(([year, count]) => ({ year, count }))
+---
+
+<WithSidebar>
+  <Fragment slot="sidebar">
+    <ProfileSidebar profile={profile} />
+  </Fragment>
+
+  <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">📊 怼点统计</h1>
+  <p class="text-lg text-slate-500 mb-8 anim-fade" style="--delay:1">
+    俺写嘞文章，都搁这儿统计着嘞
+    <a href="/blog" class="text-blue-500 hover:text-blue-600 ml-2 text-sm no-underline neu-btn px-3 py-1 rounded-lg inline-block">
+      ← 回去看文章
+    </a>
+  </p>
+
+  <!-- Stats Dashboard -->
+  <div class="anim-fade" style="--delay:2">
+    <StatsDashboard
+      totalPosts={blogStats.totalPosts}
+      totalWords={blogStats.totalWords}
+      averageWords={blogStats.averageWords}
+      earliestDate={blogStats.earliestDate}
+      latestDate={blogStats.latestDate}
+    />
+  </div>
+
+  <!-- Post ranking -->
+  <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 mb-8 anim-fade" style="--delay:3">
+    <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+      🏆 文章排行
+      <span class="text-sm font-normal text-slate-400 ml-1">{postRanking.length} 篇</span>
+      <span class="h-0.5 flex-1 bg-slate-200 rounded-full"></span>
+    </h2>
+
+    <div class="space-y-3">
+      {postRanking.map((post, idx) => (
+        <a href={`/blog/${post.id}/`}
+           class="stats-rank-card neu-card flex items-center gap-4 rounded-xl px-4 py-3
+                  no-underline transition-all duration-200">
+          <span class:list={[
+            'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold',
+            idx === 0 ? 'bg-amber-100 text-amber-700' :
+            idx === 1 ? 'bg-slate-200 text-slate-600' :
+            idx === 2 ? 'bg-orange-100 text-orange-600' :
+            'bg-slate-100 text-slate-400'
+          ]}>
+            {idx + 1}
+          </span>
+          <div class="flex-1 min-w-0">
+            <h3 class="text-sm font-semibold text-slate-800 m-0 truncate">{post.title}</h3>
+            <p class="text-xs text-slate-400 m-0 mt-0.5">
+              <FormattedDate date={post.pubDate} />
+            </p>
+          </div>
+          <div class="flex-shrink-0 text-right">
+            <span class="block text-sm font-bold text-slate-700">{post.wordCount.toLocaleString()} 字</span>
+            <span class="block text-xs text-slate-400">{post.readingTime} 分钟</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Monthly / Yearly frequency -->
+  <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:4">
+    <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+      📅 发布频率
+      <span class="h-0.5 flex-1 bg-slate-200 rounded-full"></span>
+    </h2>
+
+    <!-- Yearly summary -->
+    <div class="mb-6">
+      <h3 class="text-base font-semibold text-slate-700 mb-3">年度汇总</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {yearlyFrequency.map((item) => (
+          <div class="neu-card rounded-xl px-4 py-3 text-center transition-all duration-200 hover:translate-y-[-2px]">
+            <span class="block text-lg font-bold text-slate-800">{item.count}</span>
+            <span class="text-xs text-slate-400">{item.year} 年</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Monthly detail -->
+    <div>
+      <h3 class="text-base font-semibold text-slate-700 mb-3">月度明细</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {monthlyFrequency.map((item) => (
+          <div class="neu-card rounded-xl px-4 py-3 text-center transition-all duration-200 hover:translate-y-[-2px]">
+            <span class="block text-lg font-bold text-slate-800">{item.count}</span>
+            <span class="text-xs text-slate-400">{item.period}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</WithSidebar>
+
+<style>
+  .stats-rank-card:hover {
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+    transform: translateY(-2px);
+  }
+</style>

@@ -1,0 +1,54 @@
+---
+import FormattedDate from './FormattedDate.astro'
+
+interface Props {
+  totalPosts: number
+  totalWords: number
+  averageWords: number
+  earliestDate: Date
+  latestDate: Date
+}
+
+const { totalPosts, totalWords, averageWords, earliestDate, latestDate } = Astro.props
+---
+
+<section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:3.5">
+  <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
+    📊 写作统计
+    <span class="h-0.5 flex-1 bg-slate-200/60 rounded-full"></span>
+  </h2>
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+    <!-- Total posts -->
+    <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800">{totalPosts}</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">怼了 {totalPosts} 篇文章</span>
+    </div>
+
+    <!-- Total words -->
+    <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800">
+        {totalWords >= 10000 ? `${(totalWords / 10000).toFixed(1)}万` : totalWords.toLocaleString()}
+      </span>
+      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">共 {totalWords.toLocaleString()} 字</span>
+    </div>
+
+    <!-- Average words -->
+    <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800">{averageWords.toLocaleString()}</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">平均每篇 {averageWords.toLocaleString()} 字</span>
+    </div>
+
+    <!-- Date range -->
+    <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
+      <span class="block text-sm sm:text-base font-bold text-slate-800">
+        <FormattedDate date={earliestDate} />
+      </span>
+      <span class="block text-[10px] sm:text-xs text-slate-400">~</span>
+      <span class="block text-sm sm:text-base font-bold text-slate-800">
+        <FormattedDate date={latestDate} />
+      </span>
+      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">创作时间跨度</span>
+    </div>
+  </div>
+</section>

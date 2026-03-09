@@ -4,7 +4,7 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import type { ImageMetadata } from 'astro';
-import { SITE_TITLE } from '../consts';
+import { SITE_TITLE, GA4_MEASUREMENT_ID } from '../consts';
 
 interface Props {
 	title: string;
@@ -114,3 +114,16 @@ const ogImageUrl = isBlogPost
 	}
 	document.addEventListener('astro:page-load', reinitMermaid);
 </script>
+
+{/* GA4 tracking script — production only */}
+{import.meta.env.PROD && (
+	<script async src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}></script>
+	<script define:vars={{ GA4_MEASUREMENT_ID }}>
+		if (navigator.doNotTrack !== '1') {
+			window.dataLayer = window.dataLayer || [];
+			function gtag() { dataLayer.push(arguments); }
+			gtag('js', new Date());
+			gtag('config', GA4_MEASUREMENT_ID);
+		}
+	</script>
+)}

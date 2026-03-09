@@ -18,6 +18,9 @@ export const PINNED_PROJECTS = [
     'macmemana',
 ];
 
+// Google Analytics 4 Measurement ID (replace with your actual ID)
+export const GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+
 export const SOCIALS = [
     {
         name: 'GitHub',
