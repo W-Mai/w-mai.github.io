@@ -61,7 +61,6 @@ const GiscusClient: FC<GiscusClientProps> = ({
     if (typeof window === 'undefined') return '';
     const params: Record<string, string> = {
       origin: location.href,
-      session,
       theme,
       reactionsEnabled: reactionsEnabled ? '1' : '0',
       emitMetadata: emitMetadata ? '1' : '0',
@@ -75,6 +74,8 @@ const GiscusClient: FC<GiscusClientProps> = ({
         "meta[property='og:description'],meta[name='description']"
       )?.content || '',
     };
+
+    if (session) params.session = session;
 
     switch (mapping) {
       case 'url': params.term = location.href; break;
@@ -102,6 +103,18 @@ const GiscusClient: FC<GiscusClientProps> = ({
       if (e.origin !== GISCUS_ORIGIN) return;
       const data = e.data;
       if (typeof data !== 'object' || !data?.giscus) return;
+
+      // Handle iframe resize
+      if (data.giscus.resizeHeight && iframeRef.current) {
+        iframeRef.current.style.height = `${data.giscus.resizeHeight}px`;
+      }
+
+      // Handle sign out
+      if (data.giscus.signOut) {
+        localStorage.removeItem(SESSION_KEY);
+        setSession('');
+        return;
+      }
 
       // Handle error messages
       if (data.giscus.error) {
@@ -208,9 +221,9 @@ const GiscusClient: FC<GiscusClientProps> = ({
             onLoad={() => setLoaded(true)}
             style={{
               width: '100%', border: 'none',
-              minHeight: '300px', colorScheme: 'light',
+              height: '150px', colorScheme: 'light',
               opacity: loaded ? 1 : 0,
-              transition: 'opacity 0.3s ease',
+              transition: 'opacity 0.3s ease, height 0.2s ease',
             }}
           />
         </div>
