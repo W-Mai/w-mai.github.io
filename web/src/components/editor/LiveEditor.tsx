@@ -13,6 +13,8 @@ import AIDiffPanel from './AIDiffPanel';
 import GitCommitModal from './GitCommitModal';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import { persistEditorState, restoreEditorState } from '../../lib/editor-utils';
+import { setStickerPickerCallback } from '../../lib/editor-autocomplete';
+import StickerPicker from './StickerPicker';
 
 interface PostInfo {
   slug: string;
@@ -71,6 +73,9 @@ const LiveEditor: FC = () => {
   const [gitCommitting, setGitCommitting] = useState(false);
   const [showGitModal, setShowGitModal] = useState(false);
   const [showStickerPanel, setShowStickerPanel] = useState(false);
+  const [stickerPicker, setStickerPicker] = useState<{
+    pos: { x: number; y: number }; isBlock: boolean;
+  } | null>(null);
 
   const [aiState, setAiState] = useState<AIState>({
     isActive: false, isStreaming: false,
@@ -81,6 +86,14 @@ const LiveEditor: FC = () => {
   });
 
   const editorRef = useRef<MdxEditorHandle>(null);
+
+  // Register sticker picker callback for autocomplete integration
+  useEffect(() => {
+    setStickerPickerCallback((pos, isBlock) => {
+      setStickerPicker({ pos, isBlock });
+    });
+    return () => setStickerPickerCallback(null);
+  }, []);
 
   // Check AI availability on mount
   useEffect(() => {
@@ -753,6 +766,20 @@ const LiveEditor: FC = () => {
         onInsertInline={(syntax) => editorRef.current?.insertText(syntax)}
         onInsertBlock={(syntax) => editorRef.current?.insertText(syntax)}
       />
+
+      {/* Inline sticker grid picker (from autocomplete) */}
+      {stickerPicker && (
+        <StickerPicker
+          position={stickerPicker.pos}
+          onSelect={(name) => {
+            const suffix = stickerPicker.isBlock ? ']::' : ']:';
+            editorRef.current?.insertText(name + suffix);
+            setStickerPicker(null);
+            editorRef.current?.getView()?.focus();
+          }}
+          onClose={() => setStickerPicker(null)}
+        />
+      )}
     </div>
   );
 };
