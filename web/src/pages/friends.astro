@@ -1,0 +1,32 @@
+---
+import WithSidebar from '~/layouts/WithSidebar.astro'
+import ProfileSidebar from '../components/ProfileSidebar.astro'
+import FriendCard from '../components/FriendCard.astro'
+import { fetchGitHubProfile } from '../lib/github'
+import { FRIENDS } from '../data/friends'
+
+const profile = await fetchGitHubProfile()
+---
+
+<WithSidebar>
+    <Fragment slot="sidebar">
+        <ProfileSidebar profile={profile} />
+    </Fragment>
+
+    <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">🤝 怼点友链</h1>
+    <p class="text-lg text-slate-500 mb-8 anim-fade" style="--delay:1">都是俺嘞好伙计，点进去瞅瞅中不中</p>
+
+    <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {FRIENDS.map((friend) => (
+                <FriendCard
+                    name={friend.name}
+                    url={friend.url}
+                    avatar={friend.avatar}
+                    description={friend.description}
+                    tags={friend.tags}
+                />
+            ))}
+        </div>
+    </section>
+</WithSidebar>

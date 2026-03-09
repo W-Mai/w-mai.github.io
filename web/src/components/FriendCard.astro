@@ -1,0 +1,89 @@
+---
+import { hasAvatar, getFallbackChar } from '~/lib/friend-links'
+
+interface Props {
+  name: string
+  url: string
+  avatar: string
+  description: string
+  tags?: string[]
+}
+
+const { name, url, avatar, description, tags } = Astro.props
+const showAvatar = hasAvatar(avatar)
+const fallbackChar = getFallbackChar(name)
+---
+
+<a
+  href={url}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="friend-card neu-card block rounded-2xl p-6
+         no-underline text-slate-800
+         transition-all duration-200 ease-out
+         focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
+>
+  <div class="flex items-center gap-5">
+    {showAvatar ? (
+      <div class="friend-avatar-ring size-16 rounded-full flex-shrink-0 overflow-hidden">
+        <img
+          class="size-full rounded-full object-cover"
+          src={avatar}
+          alt={name}
+          loading="lazy"
+        />
+      </div>
+    ) : (
+      <div class="friend-avatar-fallback size-16 rounded-full flex-shrink-0
+                  flex items-center justify-center text-2xl font-bold text-slate-500">
+        {fallbackChar}
+      </div>
+    )}
+    <div class="min-w-0 flex-1">
+      <h3 class="m-0 text-lg font-bold truncate text-slate-800">{name}</h3>
+      <p class="mt-2 mb-0 text-sm text-slate-500 line-clamp-2">{description}</p>
+    </div>
+  </div>
+  {tags && tags.length > 0 && (
+    <div class="flex flex-wrap gap-2 mt-4">
+      {tags.map((tag) => (
+        <span class="friend-tag neu-inset text-xs px-3 py-1 rounded-lg text-slate-500">
+          {tag}
+        </span>
+      ))}
+    </div>
+  )}
+</a>
+
+<style>
+  .friend-card {
+    color: rgb(30 41 59) !important;
+    will-change: transform, box-shadow;
+  }
+  .friend-card:hover {
+    color: rgb(30 41 59) !important;
+    box-shadow: 2px 2px 5px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light);
+    transform: translateY(-4px);
+  }
+  .friend-card:active {
+    box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);
+    transform: translateY(0);
+  }
+
+  /* Circular neumorphism ring for avatar image */
+  .friend-avatar-ring {
+    background: var(--neu-bg);
+    box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
+  }
+
+  /* Fallback avatar with inset neumorphism style */
+  .friend-avatar-fallback {
+    background: var(--neu-bg);
+    box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong);
+  }
+
+  /* Tag badge inherits neu-inset but with smaller shadow */
+  .friend-tag {
+    box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong);
+  }
+</style>
