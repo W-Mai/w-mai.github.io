@@ -17,11 +17,11 @@ export const FRIENDS: readonly FriendLink[] = [
     tags: ['开源', 'CS', 'LVGL', 'openvela', 'VSCode'],
   },
   {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
+    name: 'Wcowin',
+    url: 'https://wcowin.work',
+    avatar: 'https://avatars.githubusercontent.com/Wcowin',
+    description: '技术博客作者，OneClip 和 MaterialX 开发者，MkDocs 主题爱好者。',
+    tags: ['博客', '开源', 'OneClip'],
   },
   {
     name: '虚位以待',
