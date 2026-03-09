@@ -236,7 +236,12 @@ textarea:focus {
 /* Kill all focus outlines globally */
 *:focus, *:focus-visible {
   outline: none !important;
-  outline-offset: 0 !important;
+}
+
+/* Only textarea/input get inset shadow on focus */
+textarea:focus, textarea:focus-visible,
+input:focus, input:focus-visible {
+  outline: none !important;
   box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
 }
 
@@ -349,6 +354,14 @@ img.avatar, .avatar {
 .gsc-header {
   background: transparent !important;
   padding: 0 0.5rem !important;
+}
+
+/* ── Footer / powered-by area ── */
+.gsc-footer,
+.gsc-main > :last-child {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* ── Links — slate color, not bright blue ── */
