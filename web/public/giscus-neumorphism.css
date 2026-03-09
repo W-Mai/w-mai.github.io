@@ -233,6 +233,7 @@ main {
   border: none !important;
   border-radius: var(--r-sm) var(--r-sm) 0 0 !important;
   box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
+  transition: box-shadow 0.3s ease, color 0.3s ease !important;
 }
 .gsc-comment-box-tabs button[aria-selected="true"],
 .gsc-comment-box-tabs button.selected,
@@ -249,6 +250,7 @@ textarea, .form-control {
   box-shadow: inset 4px 4px 8px var(--sd-s), inset -4px -4px 8px var(--sl-s) !important;
   color: #334155 !important;
   padding: 0.75rem !important;
+  transition: box-shadow 0.3s ease !important;
 }
 textarea:focus, .form-control:focus,
 .gsc-comment-box-textarea:focus,
@@ -264,6 +266,9 @@ textarea:focus, .form-control:focus,
 }
 
 /* ── Focus states ── */
+input {
+  transition: box-shadow 0.3s ease !important;
+}
 textarea:focus, textarea:focus-visible,
 input:focus, input:focus-visible {
   box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
@@ -293,7 +298,7 @@ button:focus, button:focus-visible,
   box-shadow: 5px 5px 10px var(--sd), -5px -5px 10px var(--sl) !important;
   color: #334155 !important;
   font-weight: 600 !important;
-  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
 }
 .btn-primary:hover, button.btn-primary:hover {
   box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
@@ -311,7 +316,7 @@ button:focus, button:focus-visible,
   border-radius: var(--r-sm) !important;
   box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl) !important;
   color: #64748b !important;
-  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, color 0.3s ease !important;
 }
 .btn:hover, button.btn:hover {
   box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl) !important;
@@ -335,7 +340,7 @@ button:focus, button:focus-visible,
   border: none !important;
   border-radius: var(--r-sm) !important;
   box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl) !important;
-  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
 }
 .gsc-reactions-button:hover,
 .gsc-direct-reaction-button:hover,
@@ -356,6 +361,7 @@ img.avatar, .avatar {
   box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
   padding: 2px !important;
   background: rgba(var(--bg-default), 1) !important;
+  transition: box-shadow 0.3s ease !important;
 }
 
 /* ── Inset replies ── */
@@ -415,7 +421,7 @@ a.color-text-link,
   box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
   padding: 4px 14px !important;
   display: inline-block !important;
-  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
   text-decoration: none !important;
   color: #475569 !important;
   font-weight: 500 !important;
