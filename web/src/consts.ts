@@ -19,7 +19,7 @@ export const PINNED_PROJECTS = [
 ];
 
 // Google Analytics 4 Measurement ID (replace with your actual ID)
-export const GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+export const GA4_MEASUREMENT_ID = 'G-J49CNGTJGN';
 
 export const SOCIALS = [
     {
