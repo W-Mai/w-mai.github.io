@@ -380,24 +380,14 @@ a:hover {
 ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
 
-/* ── Highlight pulse for reaction area ── */
-@keyframes neu-pulse {
-  0% { box-shadow: 6px 6px 12px var(--sd), -6px -6px 12px var(--sl); transform: scale(1); }
-  50% { box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl), 0 0 20px rgba(51,65,85,0.15); transform: scale(1.03); }
-  100% { box-shadow: 6px 6px 12px var(--sd), -6px -6px 12px var(--sl); transform: scale(1); }
-}
-
-.gsc-reactions,
-.gsc-direct-reaction-buttons {
-  animation: neu-pulse 0.6s ease 2 !important;
-  border-radius: var(--r) !important;
-  padding: 0.75rem !important;
-  margin: 0.5rem !important;
-  overflow: visible !important;
+/* ── Highlight glow for reaction buttons — no layout shift ── */
+@keyframes neu-glow {
+  0%, 100% { box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl); }
+  50% { box-shadow: 0 0 0 3px rgba(51,65,85,0.12), 4px 4px 8px var(--sd), -4px -4px 8px var(--sl); }
 }
 
 .gsc-reactions-button,
-.gsc-direct-reaction-button {
-  animation: neu-pulse 0.6s ease 2 !important;
-  margin: 0.25rem !important;
+.gsc-direct-reaction-button,
+.gsc-social-reaction-summary-item {
+  animation: neu-glow 0.5s ease 3 !important;
 }
