@@ -1,23 +1,24 @@
 import type { APIRoute } from 'astro';
-import { execFile } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { promisify } from 'node:util';
 
 export const prerender = false;
 
-const execFileAsync = promisify(execFile);
-const repoRoot = resolve(process.cwd(), '..');
+/** Resolve repo root via git */
+function getRepoRoot(): string {
+  return execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf-8' }).trim();
+}
 
 /** Commit message template matching project convention */
 function commitMsg(title: string): string {
   return `📝(post): add "${title}"`;
 }
 
-/** Run git command in repo root */
-async function git(...args: string[]): Promise<string> {
-  const { stdout } = await execFileAsync('git', args, { cwd: repoRoot });
-  return stdout.trim();
+/** Run git command in repo root (trims trailing whitespace only) */
+function git(...args: string[]): string {
+  const root = getRepoRoot();
+  return execFileSync('git', args, { cwd: root, encoding: 'utf-8' }).replace(/\s+$/, '');
 }
 
 /** Extract title from MDX frontmatter */
@@ -35,7 +36,7 @@ function json(data: unknown, status = 200) {
 
 /** Collect untracked/modified post files, grouped by slug */
 async function collectPendingPosts(): Promise<{ slug: string; title: string; files: string[] }[]> {
-  const statusOut = await git('status', '--porcelain', '--', 'posts/');
+  const statusOut = git('status', '--porcelain', '--', 'posts/');
   if (!statusOut) return [];
 
   const lines = statusOut.split('\n').filter(Boolean);
@@ -57,7 +58,7 @@ async function collectPendingPosts(): Promise<{ slug: string; title: string; fil
   const results: { slug: string; title: string; files: string[] }[] = [];
 
   for (const [slug, files] of slugMap) {
-    const mdxPath = resolve(repoRoot, `posts/${slug}.mdx`);
+    const mdxPath = resolve(getRepoRoot(), `posts/${slug}.mdx`);
     let title = slug;
     try {
       const content = await readFile(mdxPath, 'utf-8');
@@ -104,10 +105,10 @@ export const POST: APIRoute = async ({ request }) => {
     const committed: { slug: string; title: string; hash: string }[] = [];
 
     for (const post of pending) {
-      await git('add', ...post.files);
+      git('add', ...post.files);
       const msg = messages?.[post.slug] || commitMsg(post.title);
-      await git('commit', '-m', msg);
-      const hash = await git('rev-parse', '--short', 'HEAD');
+      git('commit', '-m', msg);
+      const hash = git('rev-parse', '--short', 'HEAD');
       committed.push({ slug: post.slug, title: post.title, hash });
     }
 
