@@ -391,3 +391,31 @@ pre.mermaid .edgePath marker path {
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+
+/* Giscus comment container — raised card */
+.giscus {
+  background: var(--neu-bg);
+  border-radius: 1.5rem;
+  box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light);
+  padding: 1.25rem;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.giscus:hover {
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+  transform: translateY(-2px);
+}
+
+.giscus-frame {
+  border: none !important;
+  border-radius: 1rem;
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
+}
+
+@media (max-width: 400px) {
+  .giscus {
+    box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
+    padding: 0.75rem;
+    border-radius: 1rem;
+  }
+}
