@@ -169,20 +169,31 @@ const GiscusClient: FC<GiscusClientProps> = ({
         </h3>
         {meta && (
           <div style={{
-            display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: '#64748b',
+            display: 'flex', gap: '0.75rem', alignItems: 'flex-end',
           }}>
-            <span style={{
-              background: neuBg, borderRadius: '10px', padding: '4px 12px',
+            {/* Comment count badge */}
+            <div style={{
+              background: neuBg, borderRadius: '12px', padding: '6px 14px',
               boxShadow: `3px 3px 6px ${shadowDark}, -3px -3px 6px ${shadowLight}`,
+              fontSize: '0.8rem', color: '#64748b',
             }}>
               🗨 {meta.totalCommentCount + meta.totalReplyCount}
-            </span>
-            <span style={{
-              background: neuBg, borderRadius: '10px', padding: '4px 12px',
+            </div>
+            {/* Reaction badge — sticker + count, vertical layout */}
+            <div style={{
+              background: neuBg, borderRadius: '14px', padding: '8px 14px',
               boxShadow: `3px 3px 6px ${shadowDark}, -3px -3px 6px ${shadowLight}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
             }}>
-              ❤️ {meta.reactionCount}
-            </span>
+              <img
+                src="/social/reaction-heart.jpg"
+                alt="reaction"
+                style={{ width: '28px', height: '28px', borderRadius: '4px' }}
+              />
+              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                {meta.reactionCount}
+              </span>
+            </div>
           </div>
         )}
       </div>
