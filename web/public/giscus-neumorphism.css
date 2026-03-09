@@ -102,8 +102,8 @@ main {
   --color-border-muted: rgba(var(--bg-default), 1);
   --color-neutral-muted: rgba(var(--bg-default), 0.3);
 
-  /* Accent — use slate color instead of bright blue */
-  --color-accent-fg: #475569;
+  /* Accent — hide focus borders by matching background */
+  --color-accent-fg: rgba(var(--bg-default), 1);
   --color-accent-emphasis: #334155;
   --color-accent-muted: #94a3b8;
   --color-accent-subtle: rgba(var(--bg-default), 0.5);
@@ -119,6 +119,8 @@ main {
 
   /* Inset shadow — match background */
   --color-primer-shadow-inset: 0 0 0 rgba(var(--bg-default), 1), inset 0 0 0 rgba(var(--bg-default), 1);
+  --color-primer-shadow-focus: 0 0 0 3px transparent;
+  --color-primer-shadow-highlight: inset 0 0 0 transparent;
   --color-scale-gray-1: rgba(var(--bg-default), 0.8);
   --color-scale-blue-1: rgba(var(--primary-default), 0.15);
 
@@ -156,9 +158,34 @@ main {
   overflow: visible !important;
 }
 
-/* ── Nuclear border kill ── */
-*, *::before, *::after {
+/* ── Nuclear border kill — all states including focus ── */
+*, *::before, *::after,
+*:focus, *:focus-visible, *:focus-within {
   border-color: rgba(var(--bg-default), 1) !important;
+  outline: none !important;
+}
+
+/* Force zero border on form controls — use highest specificity */
+.form-control.input-contrast.gsc-comment-box-textarea,
+.form-control.input-contrast.gsc-comment-box-textarea:focus,
+.form-control.input-contrast.gsc-comment-box-textarea-extras,
+.form-control.input-contrast.gsc-comment-box-textarea-extras:focus,
+.gsc-comment-box-write:focus-within .form-control,
+.gsc-comment-box-main:focus-within .form-control {
+  border: 0 !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+/* Also target the write container itself */
+.gsc-comment-box-write,
+.gsc-comment-box-write:focus-within,
+.gsc-comment-box-main,
+.gsc-comment-box-main:focus-within {
+  border: 0 !important;
+  border-width: 0 !important;
+  outline: none !important;
 }
 
 /* ── Raised comment cards ── */
@@ -216,40 +243,35 @@ main {
 }
 
 /* ── Textarea ── */
-.gsc-comment-box textarea,
-.gsc-comment-box-textarea,
-textarea {
+textarea, .form-control {
   background: rgba(var(--bg-default), 1) !important;
-  border: none !important;
   border-radius: var(--r-sm) !important;
   box-shadow: inset 4px 4px 8px var(--sd-s), inset -4px -4px 8px var(--sl-s) !important;
   color: #334155 !important;
   padding: 0.75rem !important;
 }
-.gsc-comment-box textarea:focus,
-textarea:focus {
-  outline: none !important;
-  border: none !important;
+textarea:focus, .form-control:focus,
+.gsc-comment-box-textarea:focus,
+.form-control.input-contrast.gsc-comment-box-textarea:focus {
   box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
+  border-color: transparent !important;
 }
 
-/* Kill all focus outlines globally */
-*:focus, *:focus-visible {
-  outline: none !important;
+/* Markdown hint extras bar */
+.gsc-comment-box-textarea-extras {
+  background: rgba(var(--bg-default), 1) !important;
+  box-shadow: none !important;
 }
 
-/* Only textarea/input get inset shadow on focus */
+/* ── Focus states ── */
 textarea:focus, textarea:focus-visible,
 input:focus, input:focus-visible {
-  outline: none !important;
   box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
 }
 
-/* Buttons should keep raised shadow on focus, not inset */
+button:focus, button:focus-visible,
 .btn:focus, .btn:focus-visible,
-.btn-primary:focus, .btn-primary:focus-visible,
-button:focus, button:focus-visible {
-  outline: none !important;
+.btn-primary:focus, .btn-primary:focus-visible {
   box-shadow: 5px 5px 10px var(--sd), -5px -5px 10px var(--sl) !important;
 }
 
