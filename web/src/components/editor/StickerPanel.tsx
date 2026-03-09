@@ -1,6 +1,21 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 
+const POS_KEY = 'editor:stickerPanelPos';
+
+function savePanelPos(pos: { x: number; y: number }) {
+  try { localStorage.setItem(POS_KEY, JSON.stringify(pos)); } catch {}
+}
+
+function loadPanelPos(): { x: number; y: number } | null {
+  try {
+    const raw = localStorage.getItem(POS_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    return typeof p.x === 'number' && typeof p.y === 'number' ? p : null;
+  } catch { return null; }
+}
+
 interface StickerInfo {
   name: string;
   size: number;
@@ -21,7 +36,7 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
   const [previewSticker, setPreviewSticker] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
-  const [panelPos, setPanelPos] = useState<{ x: number; y: number } | null>(null);
+  const [panelPos, setPanelPos] = useState<{ x: number; y: number } | null>(() => loadPanelPos());
   const panelRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDragging = useRef(false);
@@ -41,10 +56,7 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
   }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      fetchStickers();
-      setPanelPos(null); // Reset position on reopen
-    }
+    if (isOpen) fetchStickers();
   }, [isOpen, fetchStickers]);
 
   // Drag handlers
@@ -62,7 +74,13 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
       if (!isDragging.current || !dragOffset) return;
       setPanelPos({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
     };
-    const handleMouseUp = () => { isDragging.current = false; };
+    const handleMouseUp = () => {
+      if (isDragging.current && panelRef.current) {
+        const rect = panelRef.current.getBoundingClientRect();
+        savePanelPos({ x: rect.left, y: rect.top });
+      }
+      isDragging.current = false;
+    };
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
     return () => {
