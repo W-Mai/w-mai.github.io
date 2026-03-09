@@ -3,8 +3,8 @@
 // Displays per-page PV with loading/error states.
 ---
 <span class="busuanzi-pv-counter" aria-label="Page views">
-  <span class="busuanzi-pv-loading">加载中...</span>
-  <span class="busuanzi-pv-value busuanzi-hidden">被怼了 <span id="busuanzi_page_pv"></span> 下儿</span>
+  <span class="busuanzi-pv-loading"><span class="busuanzi-dot">·</span> 加载中...</span>
+  <span class="busuanzi-pv-value busuanzi-hidden"><span class="busuanzi-dot">·</span> 被怼了 <span id="busuanzi_page_pv"></span> 下儿</span>
 </span>
 
 <script>
@@ -67,7 +67,8 @@
         let attempts = 0;
         const poll = setInterval(() => {
           const pvEl = document.getElementById('busuanzi_page_pv');
-          if (pvEl && pvEl.innerText && pvEl.innerText.trim() !== '') {
+          const pvText = pvEl?.innerText?.trim() ?? '';
+          if (pvText !== '' && /^\d+$/.test(pvText)) {
             clearInterval(poll);
             clearTimeout(timeout);
             loading.classList.add('busuanzi-hidden');

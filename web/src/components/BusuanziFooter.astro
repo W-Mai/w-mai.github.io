@@ -42,10 +42,10 @@
         const poll = setInterval(() => {
           const pvEl = document.getElementById('busuanzi_site_pv');
           const uvEl = document.getElementById('busuanzi_site_uv');
-          const pvReady =
-            pvEl && pvEl.innerText && pvEl.innerText.trim() !== '';
-          const uvReady =
-            uvEl && uvEl.innerText && uvEl.innerText.trim() !== '';
+          const pvText = pvEl?.innerText?.trim() ?? '';
+          const uvText = uvEl?.innerText?.trim() ?? '';
+          const pvReady = pvText !== '' && /^\d+$/.test(pvText);
+          const uvReady = uvText !== '' && /^\d+$/.test(uvText);
 
           if (pvReady && uvReady) {
             clearInterval(poll);
