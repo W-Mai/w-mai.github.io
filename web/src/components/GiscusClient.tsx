@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, type FC } from 'react';
 
 const GISCUS_ORIGIN = 'https://giscus.app';
 const SESSION_KEY = 'giscus-session';
+const GH_API = 'https://api.github.com';
 
 interface GiscusClientProps {
   repo: string;
@@ -24,6 +25,11 @@ interface DiscussionMeta {
   reactionCount: number;
 }
 
+interface Reactor {
+  login: string;
+  avatarUrl: string;
+}
+
 const GiscusClient: FC<GiscusClientProps> = ({
   repo, repoId, category, categoryId, mapping, theme,
   lang = 'zh-CN', term = '', reactionsEnabled = true,
@@ -34,6 +40,8 @@ const GiscusClient: FC<GiscusClientProps> = ({
   const [loaded, setLoaded] = useState(false);
   const [meta, setMeta] = useState<DiscussionMeta | null>(null);
   const [session, setSession] = useState('');
+  const [reactors, setReactors] = useState<Reactor[]>([]);
+  const [pressed, setPressed] = useState(false);
 
   // SSR guard
   useEffect(() => { setMounted(true); }, []);
@@ -55,6 +63,41 @@ const GiscusClient: FC<GiscusClientProps> = ({
       if (saved) setSession(JSON.parse(saved) || '');
     } catch { localStorage.removeItem(SESSION_KEY); }
   }, [mounted]);
+
+  // Fetch reactor avatars from GitHub Discussions search API
+  useEffect(() => {
+    if (!mounted) return;
+    const searchTerm = location.pathname.length < 2
+      ? 'index'
+      : location.pathname.slice(1).replace(/\.\w+$/, '');
+
+    fetch(`${GH_API}/search/discussions?q=${encodeURIComponent(searchTerm)}+repo:${repo}`, {
+      headers: { Accept: 'application/vnd.github.v3+json' },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.items?.length) return;
+        const disc = data.items[0];
+        // Fetch reactions for this discussion
+        return fetch(`${GH_API}/repos/${repo}/discussions/${disc.number}/reactions`, {
+          headers: { Accept: 'application/vnd.github.squirrel-girl-preview+json' },
+        });
+      })
+      .then(r => r?.ok ? r.json() : null)
+      .then(reactions => {
+        if (!Array.isArray(reactions)) return;
+        const seen = new Set<string>();
+        const users: Reactor[] = [];
+        for (const r of reactions) {
+          if (r.user && !seen.has(r.user.login)) {
+            seen.add(r.user.login);
+            users.push({ login: r.user.login, avatarUrl: r.user.avatar_url });
+          }
+        }
+        setReactors(users);
+      })
+      .catch(() => {});
+  }, [mounted, repo]);
 
   // Build iframe src
   const buildSrc = useCallback(() => {
@@ -104,19 +147,16 @@ const GiscusClient: FC<GiscusClientProps> = ({
       const data = e.data;
       if (typeof data !== 'object' || !data?.giscus) return;
 
-      // Handle iframe resize
       if (data.giscus.resizeHeight && iframeRef.current) {
         iframeRef.current.style.height = `${data.giscus.resizeHeight}px`;
       }
 
-      // Handle sign out
       if (data.giscus.signOut) {
         localStorage.removeItem(SESSION_KEY);
         setSession('');
         return;
       }
 
-      // Handle error messages
       if (data.giscus.error) {
         const msg: string = data.giscus.error;
         if (msg.includes('Bad credentials') || msg.includes('Invalid state value')) {
@@ -126,7 +166,6 @@ const GiscusClient: FC<GiscusClientProps> = ({
         return;
       }
 
-      // Handle metadata
       if (data.giscus.discussion) {
         const d = data.giscus.discussion;
         setMeta({
@@ -141,47 +180,101 @@ const GiscusClient: FC<GiscusClientProps> = ({
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  // Neumorphism inline styles
+  // Click handler — scroll to iframe reaction area
+  const handleReactionClick = useCallback(() => {
+    setPressed(true);
+    setTimeout(() => setPressed(false), 300);
+    // Scroll to the iframe so user can interact with giscus reactions
+    iframeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const neuBg = '#e0e5ec';
 
   if (!mounted) return null;
 
-  const shadowDark = 'rgb(163 177 198 / 0.6)';
-  const shadowLight = 'rgb(255 255 255 / 0.5)';
-  const shadowDarkStrong = 'rgb(163 177 198 / 0.7)';
-  const shadowLightStrong = 'rgb(255 255 255 / 0.8)';
+  const sd = 'rgb(163 177 198 / 0.6)';
+  const sl = 'rgb(255 255 255 / 0.5)';
 
   return (
     <div style={{
       marginTop: '3rem',
       fontFamily: '"ArkPixel", sans-serif',
     }}>
-      {/* Centered reaction hero — like WeChat appreciation */}
+      {/* Centered reaction hero */}
       {meta && meta.reactionCount > 0 && (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           marginBottom: '1.5rem', gap: '0.4rem',
         }}>
-          <div style={{
-            background: neuBg, borderRadius: '50%', padding: '8px',
-            boxShadow: `6px 6px 12px ${shadowDark}, -6px -6px 12px ${shadowLight}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'box-shadow 0.3s ease, transform 0.3s ease',
-          }}>
+          <button
+            type="button"
+            onClick={handleReactionClick}
+            aria-label="Scroll to reactions"
+            style={{
+              background: neuBg, borderRadius: '50%', padding: '8px',
+              boxShadow: pressed
+                ? `inset 4px 4px 8px ${sd}, inset -4px -4px 8px ${sl}`
+                : `6px 6px 12px ${sd}, -6px -6px 12px ${sl}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+              transform: pressed ? 'scale(0.92)' : 'scale(1)',
+              border: 'none', cursor: 'pointer',
+            }}
+          >
             <img
               src="/social/reaction-heart.jpg"
               alt="reaction"
               style={{ width: '64px', height: '64px', borderRadius: '50%', display: 'block' }}
             />
-          </div>
-          <span style={{
-            fontSize: '1.3rem', fontWeight: 700, color: '#334155',
-          }}>
+          </button>
+          <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#334155' }}>
             {meta.reactionCount}
           </span>
-          <span style={{
-            fontSize: '0.8rem', color: '#94a3b8',
-          }}>
+
+          {/* Reactor avatars */}
+          {reactors.length > 0 && (
+            <div style={{
+              display: 'flex', gap: '0', marginTop: '0.25rem',
+            }}>
+              {reactors.slice(0, 8).map((r, i) => (
+                <a
+                  key={r.login}
+                  href={`https://github.com/${r.login}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={r.login}
+                  style={{
+                    marginLeft: i === 0 ? 0 : '-6px',
+                    zIndex: reactors.length - i,
+                  }}
+                >
+                  <img
+                    src={`${r.avatarUrl}&s=40`}
+                    alt={r.login}
+                    style={{
+                      width: '28px', height: '28px', borderRadius: '50%',
+                      border: `2px solid ${neuBg}`,
+                      boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
+                    }}
+                  />
+                </a>
+              ))}
+              {reactors.length > 8 && (
+                <span style={{
+                  marginLeft: '-6px', width: '28px', height: '28px',
+                  borderRadius: '50%', background: neuBg,
+                  border: `2px solid ${neuBg}`,
+                  boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.6rem', color: '#64748b', fontWeight: 600,
+                }}>
+                  +{reactors.length - 8}
+                </span>
+              )}
+            </div>
+          )}
+
+          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
             真诚点赞，手留余香
           </span>
         </div>
@@ -192,16 +285,13 @@ const GiscusClient: FC<GiscusClientProps> = ({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: '1rem',
       }}>
-        <h3 style={{
-          margin: 0, fontSize: '1.15rem', fontWeight: 700,
-          color: '#334155',
-        }}>
+        <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#334155' }}>
           💬 评论
         </h3>
         {meta && (
           <div style={{
             background: neuBg, borderRadius: '12px', padding: '6px 14px',
-            boxShadow: `3px 3px 6px ${shadowDark}, -3px -3px 6px ${shadowLight}`,
+            boxShadow: `3px 3px 6px ${sd}, -3px -3px 6px ${sl}`,
             fontSize: '0.8rem', color: '#64748b',
           }}>
             🗨 {meta.totalCommentCount + meta.totalReplyCount}
@@ -213,7 +303,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
       <div style={{
         background: neuBg,
         borderRadius: '1.5rem',
-        boxShadow: `9px 9px 16px ${shadowDark}, -9px -9px 16px ${shadowLight}`,
+        boxShadow: `9px 9px 16px ${sd}, -9px -9px 16px ${sl}`,
         padding: '0.5rem',
         transition: 'box-shadow 0.3s ease',
         overflow: 'hidden',
