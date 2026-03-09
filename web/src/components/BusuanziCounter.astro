@@ -35,6 +35,7 @@
       script.src =
         '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
       script.async = true;
+      script.referrerPolicy = 'no-referrer-when-downgrade';
       script.onload = () => resolve();
       script.onerror = () => reject(new Error('busuanzi script failed'));
       document.head.appendChild(script);
