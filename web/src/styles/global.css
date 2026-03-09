@@ -20,8 +20,8 @@
     --neu-shadow-light-strong: rgb(255 255 255 / 0.8);
     --neu-cluster-bg: #d5d9e0;
 
-	--accent: #2337ff;
-	--accent-dark: #000d8a;
+	--accent: #475569;
+	--accent-dark: #1e293b;
 	--black: 15, 18, 25;
 	--gray: 96, 115, 159;
 	--gray-light: 229, 233, 240;
@@ -117,7 +117,7 @@ a {
 	color: var(--accent);
 }
 a:hover {
-	color: var(--accent);
+	color: var(--accent-dark);
 }
 p {
 	margin-bottom: 1em;
