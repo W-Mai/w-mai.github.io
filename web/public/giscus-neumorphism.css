@@ -374,6 +374,47 @@ a:hover {
   text-decoration: underline !important;
 }
 
+/* ── Upvote / direct reaction buttons — more horizontal padding ── */
+.gsc-direct-reaction-button,
+.gsc-social-reaction-summary-item {
+  padding: 4px 12px !important;
+  min-width: 48px !important;
+  gap: 6px !important;
+}
+
+/* ── "Write a reply" link — make it look clickable ── */
+.gsc-reply-box [href$="app"],
+.gsc-replies > a,
+a.color-text-link,
+.gsc-comment a[href*="giscus.app"] {
+  cursor: pointer !important;
+  background: rgba(var(--bg-default), 1) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
+  padding: 4px 14px !important;
+  display: inline-block !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+  text-decoration: none !important;
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+.gsc-reply-box [href$="app"]:hover,
+.gsc-replies > a:hover,
+a.color-text-link:hover,
+.gsc-comment a[href*="giscus.app"]:hover {
+  box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl) !important;
+  transform: translateY(-1px) !important;
+  text-decoration: none !important;
+  color: #334155 !important;
+}
+.gsc-reply-box [href$="app"]:active,
+.gsc-replies > a:active,
+a.color-text-link:active,
+.gsc-comment a[href*="giscus.app"]:active {
+  box-shadow: inset 2px 2px 4px var(--sd-s), inset -2px -2px 4px var(--sl-s) !important;
+  transform: translateY(0) !important;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: rgba(var(--bg-default), 1); }
