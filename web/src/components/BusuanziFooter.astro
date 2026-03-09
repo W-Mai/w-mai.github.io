@@ -1,0 +1,140 @@
+---
+// Site-wide page view and unique visitor counter for the footer.
+// Loads busuanzi script independently (footer appears on ALL pages).
+---
+<div class="busuanzi-footer" aria-label="Site statistics">
+  <span class="busuanzi-footer-loading">加载中...</span>
+  <span class="busuanzi-footer-stats hidden">
+    <span>本站被怼了 <span id="busuanzi_value_site_pv"></span> 下儿</span>
+    <span class="busuanzi-sep">·</span>
+    <span><span id="busuanzi_value_site_uv"></span> 个老铁来过</span>
+  </span>
+</div>
+
+<script>
+  function initBusuanziFooter() {
+    const container = document.querySelector('.busuanzi-footer') as HTMLElement | null;
+    const loading = document.querySelector('.busuanzi-footer-loading') as HTMLElement | null;
+    const stats = document.querySelector('.busuanzi-footer-stats') as HTMLElement | null;
+
+    if (!container || !loading || !stats) return;
+
+    // Reset state for SPA navigation
+    loading.classList.remove('hidden');
+    stats.classList.add('hidden');
+    container.style.display = '';
+
+    // Skip if busuanzi script is already loaded by another component
+    const existing = document.getElementById('busuanzi-script');
+    if (existing) {
+      // Script already present — just poll for site values
+      pollSiteValues(loading, stats, container);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = 'busuanzi-script';
+    script.src = '//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js';
+    script.async = true;
+
+    let settled = false;
+
+    const settle = (success: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+
+      if (success) {
+        loading.classList.add('hidden');
+        stats.classList.remove('hidden');
+      } else {
+        container.style.display = 'none';
+      }
+    };
+
+    // 5-second timeout — treat as failure
+    const timer = setTimeout(() => settle(false), 5000);
+
+    script.onload = () => {
+      pollSiteValues(loading, stats, container, settle);
+    };
+
+    script.onerror = () => settle(false);
+
+    document.head.appendChild(script);
+  }
+
+  /**
+   * Poll for busuanzi site-wide values to appear in the DOM.
+   * When called without a settle callback, manages visibility directly.
+   */
+  function pollSiteValues(
+    loading: HTMLElement,
+    stats: HTMLElement,
+    container: HTMLElement,
+    settle?: (success: boolean) => void,
+  ) {
+    let attempts = 0;
+    const timeout = settle ? undefined : setTimeout(() => {
+      clearInterval(poll);
+      container.style.display = 'none';
+    }, 5000);
+
+    const poll = setInterval(() => {
+      const pvEl = document.getElementById('busuanzi_value_site_pv');
+      const uvEl = document.getElementById('busuanzi_value_site_uv');
+      const pvReady = pvEl && pvEl.textContent && pvEl.textContent.trim() !== '';
+      const uvReady = uvEl && uvEl.textContent && uvEl.textContent.trim() !== '';
+
+      if (pvReady && uvReady) {
+        clearInterval(poll);
+        if (timeout) clearTimeout(timeout);
+        if (settle) {
+          settle(true);
+        } else {
+          loading.classList.add('hidden');
+          stats.classList.remove('hidden');
+        }
+      } else if (++attempts > 50) {
+        clearInterval(poll);
+        if (timeout) clearTimeout(timeout);
+        if (settle) {
+          settle(false);
+        } else {
+          container.style.display = 'none';
+        }
+      }
+    }, 50);
+  }
+
+  document.addEventListener('astro:page-load', initBusuanziFooter);
+</script>
+
+<style>
+  .busuanzi-footer {
+    margin-top: 0.75em;
+    font-size: 0.8rem;
+    color: rgb(var(--gray));
+    text-align: center;
+    transition: opacity 0.3s ease;
+  }
+
+  .busuanzi-footer-loading {
+    display: inline-block;
+    animation: busuanzi-footer-pulse 1.5s ease-in-out infinite;
+  }
+
+  .busuanzi-sep {
+    margin: 0 0.4em;
+    opacity: 0.5;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  @keyframes busuanzi-footer-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+</style>

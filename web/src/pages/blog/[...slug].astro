@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { extractFirstBodyImage } from '../../lib/blog-hero';
+import { formatReadingTime, stripMarkdown, countWords } from '../../lib/reading-stats';
 
 // Glob-import all post assets for body image fallback
 const assetImages = import.meta.glob<{ default: ImageMetadata }>(
@@ -31,8 +32,12 @@ const { Content } = await render(post);
 // Resolve fallback hero image from body content
 const bodyImgPath = !post.data.heroImage ? extractFirstBodyImage(post.body) : null;
 const bodyImgMeta = bodyImgPath ? resolveBodyImage(bodyImgPath) : null;
+
+// Calculate reading stats at build time
+const readingTime = formatReadingTime(post.body ?? '');
+const wordCount = countWords(stripMarkdown(post.body ?? '')).total;
 ---
 
-<BlogPost {...post.data} bodyHeroImage={bodyImgMeta}>
+<BlogPost {...post.data} bodyHeroImage={bodyImgMeta} readingTime={readingTime} wordCount={wordCount}>
 	<Content />
 </BlogPost>
