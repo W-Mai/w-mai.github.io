@@ -180,12 +180,10 @@ const GiscusClient: FC<GiscusClientProps> = ({
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  // Click handler — scroll to iframe and highlight reaction area
+  // Click handler — highlight reaction area in iframe
   const handleReactionClick = useCallback(() => {
     setPressed(true);
     setTimeout(() => setPressed(false), 300);
-
-    iframeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     // Switch to highlight theme via postMessage
     const highlightTheme = theme.replace('.css', '-highlight.css');
