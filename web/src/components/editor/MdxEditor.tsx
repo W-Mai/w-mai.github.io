@@ -8,6 +8,7 @@ import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
 import { editorKeymap } from '../../lib/editor-shortcuts';
 import { detectActiveFormats } from '../../lib/editor-formatting';
+import { editorAutocomplete } from '../../lib/editor-autocomplete';
 
 export interface MdxEditorHandle {
   getView: () => EditorView | null;
@@ -23,6 +24,7 @@ interface MdxEditorProps {
   onContextMenu?: (e: { x: number; y: number; hasSelection: boolean }) => void;
   onShowShortcuts?: () => void;
   onFileUpload?: (file: File) => void;
+  onStickerOpen?: () => void;
 }
 
 const ALLOWED_EXT = /\.(png|jpe?g|gif|svg|webp|avif|ico|pdf)$/i;
@@ -44,7 +46,7 @@ const editorTheme = EditorView.theme({
 });
 
 const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
-  ({ content, onChange, onSave, onScroll, onActiveFormatsChange, onContextMenu, onShowShortcuts, onFileUpload }, ref) => {
+  ({ content, onChange, onSave, onScroll, onActiveFormatsChange, onContextMenu, onShowShortcuts, onFileUpload, onStickerOpen }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const onChangeRef = useRef(onChange);
@@ -54,6 +56,7 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
     const onContextMenuRef = useRef(onContextMenu);
     const onShowShortcutsRef = useRef(onShowShortcuts);
     const onFileUploadRef = useRef(onFileUpload);
+    const onStickerOpenRef = useRef(onStickerOpen);
 
     onChangeRef.current = onChange;
     onSaveRef.current = onSave;
@@ -62,6 +65,7 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
     onContextMenuRef.current = onContextMenu;
     onShowShortcutsRef.current = onShowShortcuts;
     onFileUploadRef.current = onFileUpload;
+    onStickerOpenRef.current = onStickerOpen;
 
     useImperativeHandle(ref, () => ({
       getView: () => viewRef.current,
@@ -80,6 +84,11 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
         onSave: () => onSaveRef.current(),
         onShowShortcuts: () => onShowShortcutsRef.current?.(),
       });
+
+      const stickerShortcut = keymap.of([{
+        key: 'Mod-e',
+        run: () => { onStickerOpenRef.current?.(); return true; },
+      }]);
 
       const updateListener = EditorView.updateListener.of((update) => {
         if (update.docChanged) {
@@ -140,6 +149,8 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
           updateListener,
           editorTheme,
           EditorView.lineWrapping,
+          editorAutocomplete(),
+          stickerShortcut,
           dropPasteHandler,
           contextMenuHandler,
         ],

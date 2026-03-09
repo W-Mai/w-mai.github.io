@@ -677,6 +677,7 @@ const LiveEditor: FC = () => {
                 onContextMenu={handleContextMenu}
                 onShowShortcuts={() => setShowShortcuts(true)}
                 onFileUpload={handleFileUpload}
+                onStickerOpen={() => setShowStickerPanel(true)}
               />
             ) : (
               <div style={{

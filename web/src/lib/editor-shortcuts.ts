@@ -21,6 +21,7 @@ export const SHORTCUTS: ShortcutDef[] = [
   { key: 'Tab', label: 'Indent', action: 'indent', category: 'editing' },
   { key: 'Shift-Tab', label: 'Dedent', action: 'dedent', category: 'editing' },
   { key: 'Mod-Shift-?', label: 'Shortcut Reference', action: 'show-shortcuts', category: 'navigation' },
+  { key: 'Mod-e', label: 'Insert Sticker', action: 'sticker', category: 'formatting' },
 ];
 
 /** CodeMirror keymap extension with all editor shortcuts */
