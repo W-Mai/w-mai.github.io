@@ -42,6 +42,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
   const [session, setSession] = useState('');
   const [reactors, setReactors] = useState<Reactor[]>([]);
   const [pressed, setPressed] = useState(false);
+  const [glowing, setGlowing] = useState(false);
 
   // SSR guard
   useEffect(() => { setMounted(true); }, []);
@@ -180,26 +181,14 @@ const GiscusClient: FC<GiscusClientProps> = ({
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  // Click handler — highlight reaction area in iframe
+  // Click handler — flash glow overlay on iframe container
   const handleReactionClick = useCallback(() => {
     setPressed(true);
     setTimeout(() => setPressed(false), 300);
 
-    // Switch to highlight theme via postMessage
-    const highlightTheme = theme.replace('.css', '-highlight.css');
-    iframeRef.current?.contentWindow?.postMessage(
-      { giscus: { setConfig: { theme: highlightTheme } } },
-      GISCUS_ORIGIN,
-    );
-
-    // Revert to normal theme after animation completes
-    setTimeout(() => {
-      iframeRef.current?.contentWindow?.postMessage(
-        { giscus: { setConfig: { theme } } },
-        GISCUS_ORIGIN,
-      );
-    }, 2500);
-  }, [theme]);
+    setGlowing(true);
+    setTimeout(() => setGlowing(false), 1800);
+  }, []);
 
   const neuBg = '#e0e5ec';
 
@@ -213,6 +202,17 @@ const GiscusClient: FC<GiscusClientProps> = ({
       marginTop: '3rem',
       fontFamily: '"ArkPixel", sans-serif',
     }}>
+      {/* Keyframe for glow overlay pulse */}
+      <style>{`
+        @keyframes neu-container-glow {
+          0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+          50% { box-shadow: inset 0 0 40px 8px rgba(51,65,85,0.15); }
+        }
+        @keyframes neu-spot-pulse {
+          0%, 100% { opacity: 0; }
+          40%, 60% { opacity: 1; }
+        }
+      `}</style>
       {/* Centered reaction hero — always visible */}
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -312,13 +312,36 @@ const GiscusClient: FC<GiscusClientProps> = ({
       <div style={{
         background: neuBg,
         borderRadius: '1.5rem',
-        boxShadow: `9px 9px 16px ${sd}, -9px -9px 16px ${sl}`,
+        boxShadow: glowing
+          ? `0 0 0 5px rgba(51,65,85,0.22), 9px 9px 16px ${sd}, -9px -9px 16px ${sl}`
+          : `9px 9px 16px ${sd}, -9px -9px 16px ${sl}`,
         padding: '0.5rem',
-        transition: 'box-shadow 0.3s ease',
+        transition: 'box-shadow 0.4s ease',
         overflow: 'hidden',
         minHeight: loaded ? undefined : '200px',
         position: 'relative',
       }}>
+        {/* Glow overlay — visible when hero is clicked */}
+        {glowing && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            borderRadius: '1.5rem',
+            pointerEvents: 'none',
+            animation: 'neu-container-glow 0.6s ease 3',
+            background: 'transparent',
+          }} />
+        )}
+        {/* Spotlight on reaction area — top of iframe */}
+        {glowing && (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0,
+            height: '140px', zIndex: 2,
+            borderRadius: '1.5rem',
+            pointerEvents: 'none',
+            background: 'radial-gradient(ellipse 100% 160% at 50% 0%, rgba(51,65,85,0.28) 0%, transparent 55%)',
+            animation: 'neu-spot-pulse 0.6s ease 3',
+          }} />
+        )}
         {!loaded && (
           <div style={{
             position: 'absolute', inset: 0,
