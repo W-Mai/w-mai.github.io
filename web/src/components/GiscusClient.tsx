@@ -213,85 +213,83 @@ const GiscusClient: FC<GiscusClientProps> = ({
       marginTop: '3rem',
       fontFamily: '"ArkPixel", sans-serif',
     }}>
-      {/* Centered reaction hero */}
-      {meta && (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          marginBottom: '1.5rem', gap: '0.4rem',
-        }}>
-          <button
-            type="button"
-            onClick={handleReactionClick}
-            aria-label="Scroll to reactions"
-            style={{
-              background: neuBg, borderRadius: '50%', padding: '8px',
-              boxShadow: pressed
-                ? `inset 4px 4px 8px ${sd}, inset -4px -4px 8px ${sl}`
-                : `6px 6px 12px ${sd}, -6px -6px 12px ${sl}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'box-shadow 0.2s ease, transform 0.2s ease',
-              transform: pressed ? 'scale(0.92)' : 'scale(1)',
-              border: 'none', cursor: 'pointer',
-            }}
-          >
-            <img
-              src="/social/reaction-heart.jpg"
-              alt="reaction"
-              style={{ width: '64px', height: '64px', borderRadius: '50%', display: 'block' }}
-            />
-          </button>
-          <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#334155' }}>
-            {meta.reactionCount}
-          </span>
+      {/* Centered reaction hero — always visible */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        marginBottom: '1.5rem', gap: '0.4rem',
+      }}>
+        <button
+          type="button"
+          onClick={handleReactionClick}
+          aria-label="Scroll to reactions"
+          style={{
+            background: neuBg, borderRadius: '50%', padding: '8px',
+            boxShadow: pressed
+              ? `inset 4px 4px 8px ${sd}, inset -4px -4px 8px ${sl}`
+              : `6px 6px 12px ${sd}, -6px -6px 12px ${sl}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'box-shadow 0.2s ease, transform 0.2s ease',
+            transform: pressed ? 'scale(0.92)' : 'scale(1)',
+            border: 'none', cursor: 'pointer',
+          }}
+        >
+          <img
+            src="/social/reaction-heart.jpg"
+            alt="reaction"
+            style={{ width: '64px', height: '64px', borderRadius: '50%', display: 'block' }}
+          />
+        </button>
+        <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#334155' }}>
+          {meta?.reactionCount ?? 0}
+        </span>
 
-          {/* Reactor avatars */}
-          {reactors.length > 0 && (
-            <div style={{
-              display: 'flex', gap: '0', marginTop: '0.25rem',
-            }}>
-              {reactors.slice(0, 8).map((r, i) => (
-                <a
-                  key={r.login}
-                  href={`https://github.com/${r.login}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={r.login}
+        {/* Reactor avatars */}
+        {reactors.length > 0 && (
+          <div style={{
+            display: 'flex', gap: '0', marginTop: '0.25rem',
+          }}>
+            {reactors.slice(0, 8).map((r, i) => (
+              <a
+                key={r.login}
+                href={`https://github.com/${r.login}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={r.login}
+                style={{
+                  marginLeft: i === 0 ? 0 : '-6px',
+                  zIndex: reactors.length - i,
+                }}
+              >
+                <img
+                  src={`${r.avatarUrl}&s=40`}
+                  alt={r.login}
                   style={{
-                    marginLeft: i === 0 ? 0 : '-6px',
-                    zIndex: reactors.length - i,
+                    width: '28px', height: '28px', borderRadius: '50%',
+                    border: `2px solid ${neuBg}`,
+                    boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
                   }}
-                >
-                  <img
-                    src={`${r.avatarUrl}&s=40`}
-                    alt={r.login}
-                    style={{
-                      width: '28px', height: '28px', borderRadius: '50%',
-                      border: `2px solid ${neuBg}`,
-                      boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
-                    }}
-                  />
-                </a>
-              ))}
-              {reactors.length > 8 && (
-                <span style={{
-                  marginLeft: '-6px', width: '28px', height: '28px',
-                  borderRadius: '50%', background: neuBg,
-                  border: `2px solid ${neuBg}`,
-                  boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.6rem', color: '#64748b', fontWeight: 600,
-                }}>
-                  +{reactors.length - 8}
-                </span>
-              )}
-            </div>
-          )}
+                />
+              </a>
+            ))}
+            {reactors.length > 8 && (
+              <span style={{
+                marginLeft: '-6px', width: '28px', height: '28px',
+                borderRadius: '50%', background: neuBg,
+                border: `2px solid ${neuBg}`,
+                boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.6rem', color: '#64748b', fontWeight: 600,
+              }}>
+                +{reactors.length - 8}
+              </span>
+            )}
+          </div>
+        )}
 
-          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-            真诚点赞，手留余香
-          </span>
-        </div>
-      )}
+        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+          真诚点赞，手留余香
+        </span>
+      </div>
 
       {/* Comment section title */}
       <div style={{
@@ -301,15 +299,13 @@ const GiscusClient: FC<GiscusClientProps> = ({
         <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#334155' }}>
           💬 评论
         </h3>
-        {meta && (
-          <div style={{
-            background: neuBg, borderRadius: '12px', padding: '6px 14px',
-            boxShadow: `3px 3px 6px ${sd}, -3px -3px 6px ${sl}`,
-            fontSize: '0.8rem', color: '#64748b',
-          }}>
-            🗨 {meta.totalCommentCount + meta.totalReplyCount}
-          </div>
-        )}
+        <div style={{
+          background: neuBg, borderRadius: '12px', padding: '6px 14px',
+          boxShadow: `3px 3px 6px ${sd}, -3px -3px 6px ${sl}`,
+          fontSize: '0.8rem', color: '#64748b',
+        }}>
+          🗨 {meta ? meta.totalCommentCount + meta.totalReplyCount : 0}
+        </div>
       </div>
 
       {/* Raised card container */}
