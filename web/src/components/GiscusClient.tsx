@@ -180,13 +180,28 @@ const GiscusClient: FC<GiscusClientProps> = ({
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  // Click handler — scroll to iframe reaction area
+  // Click handler — scroll to iframe and highlight reaction area
   const handleReactionClick = useCallback(() => {
     setPressed(true);
     setTimeout(() => setPressed(false), 300);
-    // Scroll to the iframe so user can interact with giscus reactions
+
     iframeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
+
+    // Switch to highlight theme via postMessage
+    const highlightTheme = theme.replace('.css', '-highlight.css');
+    iframeRef.current?.contentWindow?.postMessage(
+      { giscus: { setConfig: { theme: highlightTheme } } },
+      GISCUS_ORIGIN,
+    );
+
+    // Revert to normal theme after animation completes
+    setTimeout(() => {
+      iframeRef.current?.contentWindow?.postMessage(
+        { giscus: { setConfig: { theme } } },
+        GISCUS_ORIGIN,
+      );
+    }, 2500);
+  }, [theme]);
 
   const neuBg = '#e0e5ec';
 
@@ -201,7 +216,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
       fontFamily: '"ArkPixel", sans-serif',
     }}>
       {/* Centered reaction hero */}
-      {meta && meta.reactionCount > 0 && (
+      {meta && (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           marginBottom: '1.5rem', gap: '0.4rem',
