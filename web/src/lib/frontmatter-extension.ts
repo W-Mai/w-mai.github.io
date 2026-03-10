@@ -2,11 +2,10 @@ import {
   WidgetType,
   Decoration,
   ViewPlugin,
-  type ViewUpdate,
   EditorView,
   type DecorationSet,
 } from '@codemirror/view';
-import type { Extension } from '@codemirror/state';
+import { StateField, StateEffect, type Extension, type Transaction } from '@codemirror/state';
 import { createRoot, type Root } from 'react-dom/client';
 import { createElement } from 'react';
 
@@ -21,15 +20,21 @@ import {
 import FrontmatterPanel from '../components/editor/FrontmatterPanel';
 import { EDITOR_TOKENS as T } from '../components/editor/editor-tokens';
 
-// ── Task 6.1: FrontmatterWidget ──────────────────────────────────────
+// Module-level flag to prevent re-entrant updates from widget dispatches
+let dispatching = false;
+
+// StateEffect to inject the EditorView reference into the state field
+const setViewEffect = StateEffect.define<EditorView>();
+
+// ── FrontmatterWidget ────────────────────────────────────────────────
 
 class FrontmatterWidget extends WidgetType {
   private root: Root | null = null;
 
   constructor(
-    private data: FrontmatterData,
-    private parseResult: ParseResult,
-    private range: FrontmatterRange,
+    readonly data: FrontmatterData,
+    readonly parseResult: ParseResult,
+    readonly range: FrontmatterRange,
     private view: EditorView,
   ) {
     super();
@@ -45,7 +50,6 @@ class FrontmatterWidget extends WidgetType {
     container.style.fontFamily = T.fontSans;
 
     if (!this.parseResult.ok) {
-      // Render error banner with raw YAML fallback
       this.renderError(container, this.parseResult.error, this.range.yamlText);
       return container;
     }
@@ -57,20 +61,18 @@ class FrontmatterWidget extends WidgetType {
         onChange: this.handleFieldChange,
       }),
     );
-
     return container;
   }
 
   destroy(): void {
-    if (this.root) {
-      this.root.unmount();
+    const root = this.root;
+    if (root) {
       this.root = null;
+      setTimeout(() => { try { root.unmount(); } catch {} }, 0);
     }
   }
 
-  /** Render error banner and raw YAML text as fallback */
   private renderError(container: HTMLElement, error: string, rawYaml: string): void {
-    // Error banner
     const banner = document.createElement('div');
     banner.style.cssText = `
       padding: ${T.spacingMd} ${T.spacingLg};
@@ -84,7 +86,6 @@ class FrontmatterWidget extends WidgetType {
     banner.textContent = `YAML parse error: ${error}`;
     container.appendChild(banner);
 
-    // Raw YAML fallback
     const pre = document.createElement('pre');
     pre.style.cssText = `
       padding: ${T.spacingMd} ${T.spacingLg};
@@ -100,27 +101,17 @@ class FrontmatterWidget extends WidgetType {
     container.appendChild(pre);
   }
 
-  // ── Task 6.3: Panel → Document bidirectional sync ──────────────────
+  // ── Panel → Document sync ──────────────────────────────────────────
 
-  /** Per-field debounce timers */
   private fieldTimers = new Map<string, ReturnType<typeof setTimeout>>();
-
-  /** Flag to prevent re-entrant updates from our own dispatches */
-  private dispatching = false;
-
-  get isDispatching(): boolean {
-    return this.dispatching;
-  }
 
   private handleFieldChange = (
     field: keyof FrontmatterData,
     value: FrontmatterData[keyof FrontmatterData],
   ): void => {
-    // Clear existing timer for this field
     const existing = this.fieldTimers.get(field);
     if (existing != null) clearTimeout(existing);
 
-    // Debounce per-field (300ms)
     const timer = setTimeout(() => {
       this.fieldTimers.delete(field);
       this.dispatchUpdate(field, value);
@@ -135,12 +126,10 @@ class FrontmatterWidget extends WidgetType {
     try {
       const updatedData = { ...this.data, [field]: value };
       const yaml = serializeFrontmatter(updatedData);
-
-      // Re-detect range from current doc state to avoid stale offsets
       const currentRange = detectFrontmatterRange(this.view.state.doc);
       if (!currentRange) return;
 
-      this.dispatching = true;
+      dispatching = true;
       this.view.dispatch({
         changes: {
           from: currentRange.from,
@@ -148,22 +137,20 @@ class FrontmatterWidget extends WidgetType {
           insert: yaml,
         },
       });
-      this.dispatching = false;
     } catch (e) {
-      this.dispatching = false;
       console.error('[frontmatter-extension] dispatch failed:', e);
+    } finally {
+      dispatching = false;
     }
   }
 }
 
-// ── Task 6.2: frontmatterPlugin ViewPlugin ───────────────────────────
+// ── StateField for block-level decorations ───────────────────────────
 
-/** Build a DecorationSet from the current document state */
-function buildDecorations(view: EditorView): { decorations: DecorationSet; widget: FrontmatterWidget | null } {
+/** Build decorations from document state + view reference */
+function buildDecorations(view: EditorView): DecorationSet {
   const range = detectFrontmatterRange(view.state.doc);
-  if (!range) {
-    return { decorations: Decoration.none, widget: null };
-  }
+  if (!range) return Decoration.none;
 
   const parseResult = parseFrontmatter(range.yamlText);
   const data: FrontmatterData = parseResult.ok
@@ -171,55 +158,51 @@ function buildDecorations(view: EditorView): { decorations: DecorationSet; widge
     : { title: '', description: '', pubDate: '', tags: [] };
 
   const widget = new FrontmatterWidget(data, parseResult, range, view);
-
-  const deco = Decoration.replace({
-    widget,
-    block: true,
-  });
-
-  return {
-    decorations: Decoration.set([deco.range(range.from, range.to)]),
-    widget,
-  };
+  const deco = Decoration.replace({ widget, block: true });
+  return Decoration.set([deco.range(range.from, range.to)]);
 }
 
-const frontmatterPlugin = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet;
-    private currentWidget: FrontmatterWidget | null = null;
+/** Stores the current EditorView reference for decoration building */
+let activeView: EditorView | null = null;
 
-    constructor(view: EditorView) {
-      const result = buildDecorations(view);
-      this.decorations = result.decorations;
-      this.currentWidget = result.widget;
-    }
-
-    update(update: ViewUpdate): void {
-      // Skip re-entrant updates triggered by our own dispatch
-      if (this.currentWidget?.isDispatching) return;
-
-      if (update.docChanged) {
-        const result = buildDecorations(update.view);
-        this.decorations = result.decorations;
-        this.currentWidget = result.widget;
+const frontmatterDecoField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none;
+  },
+  update(decos, tr) {
+    // Capture view reference from effect
+    for (const e of tr.effects) {
+      if (e.is(setViewEffect)) {
+        activeView = e.value;
+        return buildDecorations(activeView);
       }
     }
-
-    destroy(): void {
-      this.currentWidget = null;
+    // Skip re-entrant updates
+    if (dispatching) return decos;
+    // Rebuild on doc changes
+    if (tr.docChanged && activeView) {
+      return buildDecorations(activeView);
     }
+    return decos;
   },
-  {
-    decorations: (v) => v.decorations,
+  provide(field) {
+    return EditorView.decorations.from(field);
   },
-);
+});
 
-// ── Task 6.4: frontmatterExtension() factory ─────────────────────────
+// ViewPlugin that injects the EditorView reference on creation
+const viewRefPlugin = ViewPlugin.define((view) => {
+  // Dispatch the view reference so the StateField can build decorations
+  queueMicrotask(() => {
+    view.dispatch({ effects: setViewEffect.of(view) });
+  });
+  return { update() {} };
+});
 
 /**
- * Create a CM6 extension that replaces the frontmatter YAML region
- * with a visual editing panel. Add to the MdxEditor extensions array.
+ * CM6 extension that replaces the frontmatter YAML region
+ * with a visual editing panel.
  */
 export function frontmatterExtension(): Extension {
-  return frontmatterPlugin;
+  return [frontmatterDecoField, viewRefPlugin];
 }
