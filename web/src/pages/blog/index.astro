@@ -56,14 +56,14 @@ const [featured, ...rest] = posts;
 								width={960} height={480}
 								src={featured.data.heroImage}
 								alt=""
-								class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
+								class="card-cover-img"
 							/>
 						) : bodyImgMeta ? (
 							<Image
 								width={960} height={480}
 								src={bodyImgMeta}
 								alt=""
-								class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
+								class="card-cover-img"
 							/>
 						) : (
 							<BlogHeroFallback title={featured.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
@@ -106,14 +106,14 @@ const [featured, ...rest] = posts;
 											width={720} height={360}
 											src={post.data.heroImage}
 											alt=""
-											class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
+											class="card-cover-img"
 										/>
 									) : bodyImgMeta ? (
 										<Image
 											width={720} height={360}
 											src={bodyImgMeta}
 											alt=""
-											class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 rounded-none"
+											class="card-cover-img"
 										/>
 									) : (
 										<BlogHeroFallback title={post.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />

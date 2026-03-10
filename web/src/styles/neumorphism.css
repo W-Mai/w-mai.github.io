@@ -172,3 +172,27 @@ html:not(.no-transitions) .neu-inset {
     font-size: 0.875rem;
   }
 }
+
+/* Card section: raised card used as page section container */
+.neu-card-section {
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+@media (min-width: 640px) {
+  .neu-card-section {
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+}
+@media (min-width: 768px) {
+  .neu-card-section { padding: 2rem; }
+}
+
+/* Frequency card: compact card with centered content */
+.neu-freq-card {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}

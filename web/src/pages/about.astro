@@ -95,7 +95,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
                 <span class="text-lg sm:text-xl">📍</span>
                 <div class="min-w-0">
                     <p class="text-xs text-[var(--text-muted)] m-0">Location</p>
-                    <p class="text-xs sm:text-sm font-medium text-[var(--text-primary)] m-0 truncate">{profile.location}</p>
+                    <p class="info-card-value">{profile.location}</p>
                 </div>
             </div>
         )}
@@ -104,7 +104,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
                 <span class="text-lg sm:text-xl">🏢</span>
                 <div class="min-w-0">
                     <p class="text-xs text-[var(--text-muted)] m-0">Company</p>
-                    <p class="text-xs sm:text-sm font-medium text-[var(--text-primary)] m-0 truncate">{profile.company}</p>
+                    <p class="info-card-value">{profile.company}</p>
                 </div>
             </div>
         )}
@@ -115,14 +115,14 @@ const afterCount = Math.floor(Math.random() * 60) + 20
                 <span class="text-lg sm:text-xl">🔗</span>
                 <div class="min-w-0">
                     <p class="text-xs text-[var(--text-muted)] m-0">Blog</p>
-                    <p class="text-xs sm:text-sm font-medium text-[var(--text-primary)] m-0 truncate">{profile.blog}</p>
+                    <p class="info-card-value">{profile.blog}</p>
                 </div>
             </a>
         )}
     </section>
 
     <!-- GitHub Activity -->
-    <section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:3">
+    <section class="neu-card neu-card-section anim-fade" style="--delay:3">
         <h2 class="neu-section-title mb-4 sm:mb-6">
             🟩 GitHub 活动
             <span class="neu-section-divider"></span>
