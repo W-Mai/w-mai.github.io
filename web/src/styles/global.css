@@ -1,354 +1,301 @@
+/* ==========================================================================
+   § 0  TAILWIND v4 — imports, plugins & custom variant
+   ========================================================================== */
+
 @import "tailwindcss/theme";
 @tailwind utilities;
 @plugin "@tailwindcss/typography";
 
-/* Enable class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --color-accent-board: #6b7280;
-    --color-accent-board-light: #f3f4f6;
-    --color-accent-board-dark: #4b5563;
+  --color-accent-board:       #6b7280;
+  --color-accent-board-light: #f3f4f6;
+  --color-accent-board-dark:  #4b5563;
 }
+
+
+/* ==========================================================================
+   § 1  DESIGN TOKENS — Light (default)
+   ========================================================================== */
 
 :root {
-    --theme-background: #f6f8fa;  /* Light gray background */
-    --theme-accent: #1a7f37;      /* GitHub green accent */
+  /* ---- Neumorphism foundation ---- */
+  --neu-bg:                 #e0e5ec;
+  --neu-shadow-dark:        rgb(163 177 198 / 0.6);
+  --neu-shadow-light:       rgb(255 255 255 / 0.5);
+  --neu-shadow-dark-strong: rgb(163 177 198 / 0.7);
+  --neu-shadow-light-strong:rgb(255 255 255 / 0.8);
+  --neu-cluster-bg:         #d5d9e0;
 
-    /* Neumorphism color system — use translucent rgb for natural transitions */
-    --neu-bg: #e0e5ec;
-    --neu-shadow-dark: rgb(163 177 198 / 0.6);
-    --neu-shadow-light: rgb(255 255 255 / 0.5);
-    --neu-shadow-dark-strong: rgb(163 177 198 / 0.7);
-    --neu-shadow-light-strong: rgb(255 255 255 / 0.8);
-    --neu-cluster-bg: #d5d9e0;
+  /* ---- Semantic text ---- */
+  --text-primary:   #1e293b;   /* slate-800 */
+  --text-secondary: #64748b;   /* slate-500 */
+  --text-muted:     #94a3b8;   /* slate-400 */
+  --text-heading:   #1e293b;   /* slate-800 */
 
-	--accent: #475569;
-	--accent-dark: #1e293b;
-	--black: 15, 18, 25;
-	--gray: 96, 115, 159;
-	--gray-light: 229, 233, 240;
-	--gray-dark: 34, 41, 57;
-	--gray-gradient: rgba(var(--gray-light), 50%), #fff;
-	--box-shadow:
-		0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px
-		rgba(var(--gray), 33%);
+  /* ---- Semantic surfaces ---- */
+  --bg-surface:               #f1f5f9;
+  --bg-surface-glass:         rgba(224, 229, 236, 0.85);
+  --bg-surface-gradient-from: #e3e8ef;
+  --bg-surface-gradient-to:   #dde2e9;
+  --bg-code:                  #f1f5f9;
 
-    --sl-color-gray-5: #9ca3af;
-    --sl-text-sm: 0.875rem;
+  /* ---- Semantic borders ---- */
+  --border-subtle:  rgba(226, 232, 240, 0.6);
+  --border-divider: #e2e8f0;
 
-    /* Semantic theme tokens */
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    --text-heading: #1e293b;
+  /* ---- Semantic links ---- */
+  --text-link:       #475569;  /* slate-600 */
+  --text-link-hover: #1e293b;  /* slate-800 */
 
-    --bg-surface: #f1f5f9;
-    --bg-surface-glass: rgba(224, 229, 236, 0.85);
-    --bg-surface-gradient-from: #e3e8ef;
-    --bg-surface-gradient-to: #dde2e9;
-    --bg-code: #f1f5f9;
+  /* ---- Giscus comment glow ---- */
+  --giscus-glow:        rgba(51, 65, 85, 0.15);
+  --giscus-glow-border: rgba(51, 65, 85, 0.22);
+  --giscus-spot:        rgba(51, 65, 85, 0.28);
 
-    --border-subtle: rgba(226, 232, 240, 0.6);
-    --border-divider: #e2e8f0;
-
-    --text-link: #475569;
-    --text-link-hover: #1e293b;
-
-    --giscus-glow: rgba(51, 65, 85, 0.15);
-    --giscus-glow-border: rgba(51, 65, 85, 0.22);
-    --giscus-spot: rgba(51, 65, 85, 0.28);
+  /* ---- Legacy / third-party ---- */
+  --theme-background: #f6f8fa;
+  --theme-accent:     #1a7f37;
+  --accent:           #475569;
+  --accent-dark:      #1e293b;
+  --black:            15, 18, 25;
+  --gray:             96, 115, 159;
+  --gray-light:       229, 233, 240;
+  --gray-dark:        34, 41, 57;
+  --gray-gradient:    rgba(var(--gray-light), 50%), #fff;
+  --box-shadow:
+    0 2px 6px rgba(var(--gray), 25%),
+    0 8px 24px rgba(var(--gray), 33%),
+    0 16px 32px rgba(var(--gray), 33%);
+  --sl-color-gray-5:  #9ca3af;
+  --sl-text-sm:       0.875rem;
 }
 
-/* For dark mode support */
 @media (prefers-color-scheme: dark) {
-    :root {
-        --theme-background: #ffffff;  /* GitHub dark background */
-        --theme-accent: #3fb950;      /* Brighter green for dark mode */
-    }
+  :root {
+    --theme-background: #ffffff;
+    --theme-accent:     #3fb950;
+  }
 }
 
-/* Dark mode Neumorphism design tokens */
+
+/* ==========================================================================
+   § 2  DESIGN TOKENS — Dark
+   ========================================================================== */
+
 html.dark {
-  --neu-bg: #2d3436;
-  --neu-shadow-dark: rgb(30 32 34 / 0.7);
-  --neu-shadow-light: rgb(55 59 61 / 0.5);
+  /* ---- Neumorphism foundation ---- */
+  --neu-bg:                 #2d3436;
+  --neu-shadow-dark:        rgb(30 32 34 / 0.7);
+  --neu-shadow-light:       rgb(55 59 61 / 0.5);
   --neu-shadow-dark-strong: rgb(25 27 29 / 0.8);
-  --neu-shadow-light-strong: rgb(60 64 66 / 0.6);
-  --neu-cluster-bg: #262b2d;
+  --neu-shadow-light-strong:rgb(60 64 66 / 0.6);
+  --neu-cluster-bg:         #262b2d;
 
-  --black: 226, 232, 240;
-  --gray: 148, 163, 184;
-  --gray-light: 51, 65, 85;
-  --gray-dark: 226, 232, 240;
-  --accent: #94a3b8;
-  --accent-dark: #cbd5e1;
+  /* ---- Semantic text ---- */
+  --text-primary:   #e2e8f0;   /* slate-200 */
+  --text-secondary: #94a3b8;   /* slate-400 */
+  --text-muted:     #64748b;   /* slate-500 */
+  --text-heading:   #f1f5f9;   /* slate-100 */
 
-  --theme-background: #2d3436;
-  --theme-accent: #3fb950;
-
-  /* Semantic theme tokens */
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-heading: #f1f5f9;
-
-  --bg-surface: rgba(45, 52, 54, 0.3);
-  --bg-surface-glass: rgba(45, 52, 54, 0.85);
+  /* ---- Semantic surfaces ---- */
+  --bg-surface:               rgba(45, 52, 54, 0.3);
+  --bg-surface-glass:         rgba(45, 52, 54, 0.85);
   --bg-surface-gradient-from: #2d3436;
-  --bg-surface-gradient-to: #262b2d;
-  --bg-code: #1e2426;
+  --bg-surface-gradient-to:   #262b2d;
+  --bg-code:                  #1e2426;
 
-  --border-subtle: rgba(71, 85, 105, 0.4);
+  /* ---- Semantic borders ---- */
+  --border-subtle:  rgba(71, 85, 105, 0.4);
   --border-divider: #475569;
 
-  --text-link: #94a3b8;
-  --text-link-hover: #e2e8f0;
+  /* ---- Semantic links ---- */
+  --text-link:       #94a3b8;  /* slate-400 */
+  --text-link-hover: #e2e8f0;  /* slate-200 */
 
-  --giscus-glow: rgba(200, 215, 230, 0.1);
+  /* ---- Giscus comment glow ---- */
+  --giscus-glow:        rgba(200, 215, 230, 0.1);
   --giscus-glow-border: rgba(200, 215, 230, 0.15);
-  --giscus-spot: rgba(200, 215, 230, 0.18);
+  --giscus-spot:        rgba(200, 215, 230, 0.18);
+
+  /* ---- Legacy / third-party ---- */
+  --theme-background: #2d3436;
+  --theme-accent:     #3fb950;
+  --accent:           #94a3b8;
+  --accent-dark:      #cbd5e1;
+  --black:            226, 232, 240;
+  --gray:             148, 163, 184;
+  --gray-light:       51, 65, 85;
+  --gray-dark:        226, 232, 240;
+}
+
+
+/* ==========================================================================
+   § 3  FONTS
+   ========================================================================== */
+
+@font-face {
+  font-family: "Atkinson";
+  src: url("/fonts/atkinson-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson";
+  src: url("/fonts/atkinson-bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "ArkPixel";
+  src: url("/fonts/ark-pixel-12px-monospaced-zh_cn.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* ==========================================================================
+   § 4  BASE ELEMENT STYLES
+   ========================================================================== */
+
+body {
+  font-family: "ArkPixel", "Atkinson", sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  background: var(--neu-bg);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  color: rgb(var(--gray-dark));
+  font-size: 20px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 0.5rem 0;
+  color: rgb(var(--black));
+  line-height: 1.2;
+}
+h1 { font-size: 3.052em; }
+h2 { font-size: 2.441em; }
+h3 { font-size: 1.953em; }
+h4 { font-size: 1.563em; }
+h5 { font-size: 1.25em; }
+
+strong, b { font-weight: 700; }
+
+a       { color: var(--accent); }
+a:hover { color: var(--accent-dark); }
+
+p { margin-bottom: 1em; }
+
+textarea { width: 100%; font-size: 16px; }
+input    { font-size: 16px; }
+table    { width: 100%; }
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+code {
+  padding: 2px 5px;
+  background-color: rgb(var(--theme-background));
+  border-radius: 2px;
+}
+
+pre          { padding: 1.5em; border-radius: 8px; }
+pre > code   { all: unset; }
+
+blockquote {
+  border-left: 4px solid var(--accent);
+  padding: 0 0 0 20px;
+  margin: 0;
+  font-size: 1.333em;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgb(var(--gray-light));
+}
+
+@media (max-width: 720px) {
+  body { font-size: 18px; }
 }
 
 /* Dark mode base element overrides */
-html.dark body {
-  color: rgb(var(--gray-dark));
-}
+html.dark body       { color: rgb(var(--gray-dark)); }
+html.dark a          { color: var(--accent); }
+html.dark a:hover    { color: var(--accent-dark); }
+html.dark hr         { border-top-color: rgb(var(--gray-light)); }
+html.dark code       { background-color: var(--bg-code); }
+html.dark blockquote { border-left-color: var(--accent); }
 
-html.dark a {
-  color: var(--accent);
-}
 
-html.dark a:hover {
-  color: var(--accent-dark);
-}
+/* ==========================================================================
+   § 5  PROSE / TYPOGRAPHY OVERRIDES
+   ========================================================================== */
 
-html.dark hr {
-  border-top-color: rgb(var(--gray-light));
-}
+.prose p { margin-bottom: 2em; }
 
-html.dark code {
-  background-color: #1e2426;
-}
-
-html.dark blockquote {
-  border-left-color: var(--accent);
-}
-
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-regular.woff") format("woff");
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
-}
-@font-face {
-	font-family: "Atkinson";
-	src: url("/fonts/atkinson-bold.woff") format("woff");
-	font-weight: 700;
-	font-style: normal;
-	font-display: swap;
-}
-@font-face {
-	font-family: "ArkPixel";
-	src: url("/fonts/ark-pixel-12px-monospaced-zh_cn.ttf") format("truetype");
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
-}
-body {
-	font-family: "ArkPixel", "Atkinson", sans-serif;
-	margin: 0;
-	padding: 0;
-	text-align: left;
-	background: var(--neu-bg);
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	color: rgb(var(--gray-dark));
-	font-size: 20px;
-	line-height: 1.7;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-main {
-	box-sizing: border-box;
-	width: 100%;
-	max-width: 100%;
-	margin: auto;
-}
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	margin: 0 0 0.5rem 0;
-	color: rgb(var(--black));
-	line-height: 1.2;
-}
-h1 {
-	font-size: 3.052em;
-}
-h2 {
-	font-size: 2.441em;
-}
-h3 {
-	font-size: 1.953em;
-}
-h4 {
-	font-size: 1.563em;
-}
-h5 {
-	font-size: 1.25em;
-}
-strong,
-b {
-	font-weight: 700;
-}
-a {
-	color: var(--accent);
-}
-a:hover {
-	color: var(--accent-dark);
-}
-p {
-	margin-bottom: 1em;
-}
-.prose .expressive-code figure,
-.prose .expressive-code {
-  border: 1px solid #e2e8f0 !important;
-  border-radius: 0.5rem !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
-}
-textarea {
-	width: 100%;
-	font-size: 16px;
-}
-input {
-	font-size: 16px;
-}
-table {
-	width: 100%;
-}
-img {
-	max-width: 100%;
-	height: auto;
-	border-radius: 8px;
-}
-code {
-	padding: 2px 5px;
-	background-color: rgb(var(--theme-background));
-	border-radius: 2px;
-}
-pre {
-	padding: 1.5em;
-	border-radius: 8px;
-}
-pre > code {
-	all: unset;
-}
-blockquote {
-	border-left: 4px solid var(--accent);
-	padding: 0 0 0 20px;
-	margin: 0px;
-	font-size: 1.333em;
-}
-hr {
-	border: none;
-	border-top: 1px solid rgb(var(--gray-light));
-}
-@media (max-width: 720px) {
-	body {
-		font-size: 18px;
-	}
-}
-
-.sr-only {
-	border: 0;
-	padding: 0;
-	margin: 0;
-	position: absolute !important;
-	height: 1px;
-	width: 1px;
-	overflow: hidden;
-	/* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
-	clip: rect(1px 1px 1px 1px);
-	/* maybe deprecated but we need to support legacy browsers */
-	clip: rect(1px, 1px, 1px, 1px);
-	/* modern browsers, clip-path works inwards from each corner */
-	clip-path: inset(50%);
-	/* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
-	white-space: nowrap;
-}
-
-.prose p {
-  margin-bottom: 2em;
-}
-
-/* Restore border and shadow for standalone code blocks inside article prose */
 .prose .expressive-code,
 .prose .expressive-code figure {
-  border: 1px solid #e2e8f0 !important;
+  border: 1px solid var(--border-divider) !important;
   border-radius: 0.5rem !important;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
 }
 
-/* Dark mode prose overrides */
 html.dark .prose .expressive-code,
 html.dark .prose .expressive-code figure {
   border-color: #3a4245 !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
-html.dark .prose blockquote {
-  border-left-color: var(--accent);
-}
+html.dark .prose blockquote { border-left-color: var(--accent); }
+html.dark .prose hr         { border-top-color: rgb(var(--gray-light)); }
+html.dark .prose code       { background-color: var(--bg-code); }
 
-html.dark .prose hr {
-  border-top-color: rgb(var(--gray-light));
-}
 
-html.dark .prose code {
-  background-color: #1e2426;
-}
+/* ==========================================================================
+   § 6  SCROLLBAR
+   ========================================================================== */
 
-/* Neumorphism design system */
+::-webkit-scrollbar       { width: 8px; }
+::-webkit-scrollbar-track { background: var(--neu-bg); }
+::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
 
-/* Custom scrollbar for sleek look */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--neu-bg);
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
-}
+html.dark ::-webkit-scrollbar-track       { background: var(--neu-bg); }
+html.dark ::-webkit-scrollbar-thumb        { background: #4a5568; }
+html.dark ::-webkit-scrollbar-thumb:hover  { background: #718096; }
 
-/* Dark mode scrollbar */
-html.dark ::-webkit-scrollbar-track {
-  background: var(--neu-bg);
-}
 
-html.dark ::-webkit-scrollbar-thumb {
-  background: #4a5568;
-}
-
-html.dark ::-webkit-scrollbar-thumb:hover {
-  background: #718096;
-}
+/* ==========================================================================
+   § 7  NEUMORPHISM COMPONENT CLASSES
+   ========================================================================== */
 
 /* Theme switch transition */
 html:not(.no-transitions) body,
 html:not(.no-transitions) .neu-card,
 html:not(.no-transitions) .neu-btn,
 html:not(.no-transitions) .neu-inset {
-  transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease, transform 300ms ease;
+  transition: background-color 300ms ease, color 300ms ease,
+              box-shadow 300ms ease, transform 300ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -359,60 +306,78 @@ html:not(.no-transitions) .neu-inset {
   background: var(--neu-bg) !important;
 }
 
+/* Raised card */
 .neu-card {
   background: var(--neu-bg);
-  box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light);
+  box-shadow: 9px 9px 16px var(--neu-shadow-dark),
+             -9px -9px 16px var(--neu-shadow-light);
   border: none;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
+/* Warm-tinted card */
 .neu-card-warm {
   background: linear-gradient(135deg, #f0e6d6, #ece2d4);
   box-shadow: 6px 6px 12px #c8c0b4, -6px -6px 12px #fff8ee;
   border: none;
 }
-
 html.dark .neu-card-warm {
   background: linear-gradient(135deg, #3a3530, #35302b);
-  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark),
+             -6px -6px 12px var(--neu-shadow-light);
 }
 
+/* Pressable button */
 .neu-btn {
   background: var(--neu-bg);
-  box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
+  box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+             -5px -5px 10px var(--neu-shadow-light);
   border: none;
   transition: box-shadow 0.2s ease;
 }
 .neu-btn:hover {
-  box-shadow: 2px 2px 5px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light);
+  box-shadow: 2px 2px 5px var(--neu-shadow-dark),
+             -2px -2px 5px var(--neu-shadow-light);
 }
 .neu-btn:active {
-  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong);
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong),
+              inset -3px -3px 6px var(--neu-shadow-light-strong);
 }
 
+/* Inset / pressed surface */
 .neu-inset {
   background: var(--neu-bg);
-  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong),
+              inset -6px -6px 10px var(--neu-shadow-light-strong);
   border: none;
 }
 
+/* Avatar ring */
 .neu-avatar-ring {
   background: var(--neu-bg);
-  box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
+  box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+             -5px -5px 10px var(--neu-shadow-light);
   padding: 4px;
 }
 
 /* Responsive: smaller shadows on small screens */
 @media (max-width: 400px) {
   .neu-card {
-    box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
+    box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+               -5px -5px 10px var(--neu-shadow-light);
   }
   .neu-btn {
-    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark),
+               -3px -3px 6px var(--neu-shadow-light);
   }
 }
 
-/* Scroll-triggered fade-in + slide-up animation */
+
+/* ==========================================================================
+   § 8  ANIMATION SYSTEM
+   ========================================================================== */
+
+/* Scroll-triggered fade-in + slide-up */
 .anim-fade {
   opacity: 0;
   transform: translateY(24px);
@@ -428,7 +393,7 @@ html.dark .neu-card-warm {
   transition-delay: 0s;
 }
 
-/* Zoom-in entrance animation */
+/* Zoom-in entrance */
 .anim-zoom {
   opacity: 0;
   transform: scale(0.7);
@@ -439,7 +404,6 @@ html.dark .neu-card-warm {
   transform: scale(1);
 }
 
-/* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .anim-fade, .anim-zoom {
     opacity: 1;
@@ -448,11 +412,16 @@ html.dark .neu-card-warm {
   }
 }
 
-/* Mermaid diagram neumorphism styling */
+
+/* ==========================================================================
+   § 9  MERMAID DIAGRAM — neumorphism skin
+   ========================================================================== */
+
 pre.mermaid {
   background: var(--neu-bg) !important;
   border-radius: 1rem !important;
-  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong),
+              inset -6px -6px 10px var(--neu-shadow-light-strong);
   padding: 1.5rem !important;
   margin: 2rem 0 !important;
   border: none !important;
@@ -460,7 +429,8 @@ pre.mermaid {
 
 pre.mermaid[data-processed] {
   background: var(--neu-bg) !important;
-  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong),
+              inset -6px -6px 10px var(--neu-shadow-light-strong);
   border-radius: 1rem !important;
 }
 
@@ -468,80 +438,59 @@ pre.mermaid:not([data-processed]) {
   background: linear-gradient(90deg, #dce0e5 25%, #d4d8dd 50%, #dce0e5 75%) !important;
   background-size: 200% 100% !important;
 }
+html.dark pre.mermaid:not([data-processed]) {
+  background: linear-gradient(90deg, #2a2f31 25%, #262b2d 50%, #2a2f31 75%) !important;
+  background-size: 200% 100% !important;
+}
 
-/* Mermaid node neumorphism */
+/* Nodes */
 pre.mermaid .node rect,
 pre.mermaid .node circle,
 pre.mermaid .node polygon {
   fill: var(--neu-bg) !important;
   stroke: none !important;
   stroke-width: 0 !important;
-  filter: drop-shadow(3px 3px 4px var(--neu-shadow-dark)) drop-shadow(-3px -3px 4px var(--neu-shadow-light));
+  filter: drop-shadow(3px 3px 4px var(--neu-shadow-dark))
+          drop-shadow(-3px -3px 4px var(--neu-shadow-light));
   rx: 8;
   ry: 8;
 }
 
 pre.mermaid .node .label {
-  color: #334155 !important;
-  fill: #334155 !important;
+  color: var(--text-primary) !important;
+  fill: var(--text-primary) !important;
 }
 
-/* Dark mode Mermaid node overrides */
-html.dark pre.mermaid:not([data-processed]) {
-  background: linear-gradient(90deg, #2a2f31 25%, #262b2d 50%, #2a2f31 75%) !important;
-  background-size: 200% 100% !important;
-}
-
-html.dark pre.mermaid .node .label {
-  color: #e2e8f0 !important;
-  fill: #e2e8f0 !important;
-}
-
-/* Mermaid cluster (subgraph) neumorphism */
+/* Clusters (subgraphs) */
 pre.mermaid .cluster rect {
   fill: var(--neu-cluster-bg) !important;
   stroke: none !important;
   stroke-width: 0 !important;
   rx: 12 !important;
   ry: 12 !important;
-  filter: drop-shadow(4px 4px 6px var(--neu-shadow-dark-strong)) drop-shadow(-3px -3px 5px var(--neu-shadow-light));
+  filter: drop-shadow(4px 4px 6px var(--neu-shadow-dark-strong))
+          drop-shadow(-3px -3px 5px var(--neu-shadow-light));
 }
 
 pre.mermaid .cluster .nodeLabel {
-  color: #475569 !important;
-  fill: #475569 !important;
+  color: var(--text-secondary) !important;
+  fill: var(--text-secondary) !important;
 }
 
-/* Dark mode Mermaid cluster overrides */
-html.dark pre.mermaid .cluster rect {
-  fill: var(--neu-cluster-bg) !important;
-}
-
-html.dark pre.mermaid .cluster .nodeLabel {
-  color: #94a3b8 !important;
-  fill: #94a3b8 !important;
-}
-
-/* Mermaid edges */
+/* Edges */
 pre.mermaid .edgePath .path {
-  stroke: #94a3af !important;
+  stroke: var(--text-muted) !important;
   stroke-width: 1.5px !important;
 }
-
 pre.mermaid .edgePath marker path {
-  fill: #94a3af !important;
+  fill: var(--text-muted) !important;
 }
 
-/* Dark mode Mermaid edge overrides */
-html.dark pre.mermaid .edgePath .path {
-  stroke: #94a3b8 !important;
-}
 
-html.dark pre.mermaid .edgePath marker path {
-  fill: #94a3b8 !important;
-}
+/* ==========================================================================
+   § 10  STICKER SYSTEM
+   ========================================================================== */
 
-/* Sticker system */
 .sticker-inline {
   display: inline-block;
   height: 1.5em;
@@ -557,7 +506,6 @@ html.dark pre.mermaid .edgePath marker path {
   justify-content: center;
   padding: 0.5rem 0;
 }
-
 .sticker-block img {
   max-width: 200px;
   max-height: 200px;
@@ -567,30 +515,56 @@ html.dark pre.mermaid .edgePath marker path {
   box-shadow: none !important;
 }
 
-/* Giscus comment container — raised card */
+
+/* ==========================================================================
+   § 11  GISCUS COMMENT CONTAINER
+   ========================================================================== */
+
 .giscus {
   background: var(--neu-bg);
   border-radius: 1.5rem;
-  box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light);
+  box-shadow: 9px 9px 16px var(--neu-shadow-dark),
+             -9px -9px 16px var(--neu-shadow-light);
   padding: 1.25rem;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
-
 .giscus:hover {
-  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark),
+             -6px -6px 12px var(--neu-shadow-light);
   transform: translateY(-2px);
 }
 
 .giscus-frame {
   border: none !important;
   border-radius: 1rem;
-  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong),
+              inset -6px -6px 10px var(--neu-shadow-light-strong);
 }
 
 @media (max-width: 400px) {
   .giscus {
-    box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);
+    box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+               -5px -5px 10px var(--neu-shadow-light);
     padding: 0.75rem;
     border-radius: 1rem;
   }
+}
+
+
+/* ==========================================================================
+   § 12  UTILITIES
+   ========================================================================== */
+
+.sr-only {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
