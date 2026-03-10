@@ -76,6 +76,14 @@ export default function editorDevIntegration(): AstroIntegration {
           entrypoint: './src/lib/editor-routes/stickers/index.ts',
         });
         injectRoute({
+          pattern: '/api/editor/stickers/meta',
+          entrypoint: './src/lib/editor-routes/stickers/meta.ts',
+        });
+        injectRoute({
+          pattern: '/api/editor/stickers/recognize',
+          entrypoint: './src/lib/editor-routes/stickers/recognize.ts',
+        });
+        injectRoute({
           pattern: '/api/editor/stickers/[name]',
           entrypoint: './src/lib/editor-routes/stickers/[name].ts',
         });

@@ -8,7 +8,7 @@ import type { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 
 interface AssetInfo { name: string; size: number; ext: string; }
-interface StickerInfo { name: string; size: number; }
+interface StickerInfo { name: string; size: number; meta?: { aiName?: string; description?: string; tags?: string[] } }
 
 const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.ico']);
 

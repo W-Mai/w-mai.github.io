@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 
+interface StickerMeta {
+  filename: string;
+  aiName?: string;
+  description?: string;
+  tags?: string[];
+}
+
 interface StickerInfo {
   name: string;
   size: number;
+  meta?: StickerMeta;
 }
 
 interface StickerPickerProps {
@@ -46,7 +54,15 @@ const StickerPicker: FC<StickerPickerProps> = ({ position, onSelect, onClose }) 
   }, [onClose]);
 
   const filtered = filter
-    ? stickers.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()))
+    ? stickers.filter(s => {
+        const q = filter.toLowerCase();
+        if (s.name.toLowerCase().includes(q)) return true;
+        if (!s.meta) return false;
+        if (s.meta.aiName?.toLowerCase().includes(q)) return true;
+        if (s.meta.description?.toLowerCase().includes(q)) return true;
+        if (s.meta.tags?.some(t => t.toLowerCase().includes(q))) return true;
+        return false;
+      })
     : stickers;
 
   // Clamp position so panel stays within viewport
@@ -126,7 +142,7 @@ const StickerPicker: FC<StickerPickerProps> = ({ position, onSelect, onClose }) 
                   whiteSpace: 'nowrap', width: '100%', textAlign: 'center',
                   marginTop: '2px',
                 }}>
-                  {s.name.replace(/\.[^.]+$/, '')}
+                  {s.meta?.aiName || s.name.replace(/\.[^.]+$/, '')}
                 </span>
               </button>
             ))}
