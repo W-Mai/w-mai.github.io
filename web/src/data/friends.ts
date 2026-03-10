@@ -20,7 +20,7 @@ export const FRIENDS: readonly FriendLink[] = [
     name: 'Wcowin',
     url: 'https://wcowin.work',
     avatar: 'https://avatars.githubusercontent.com/Wcowin',
-    description: '技术博客作者，OneClip 和 MaterialX 开发者，MkDocs 主题爱好者。',
+    description: '循此苦旅，以达星辰。技术博客作者，OneClip 开发者，MkDocs 主题爱好者。',
     tags: ['博客', '开源', 'OneClip'],
   },
   {
