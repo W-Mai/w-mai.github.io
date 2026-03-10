@@ -2,6 +2,9 @@
 @tailwind utilities;
 @plugin "@tailwindcss/typography";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --color-accent-board: #6b7280;
     --color-accent-board-light: #f3f4f6;
