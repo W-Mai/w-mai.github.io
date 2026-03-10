@@ -16,13 +16,13 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
         <ProfileSidebar profile={profile} />
     </Fragment>
 
-    <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">🧩 怼点项目</h1>
-    <p class="text-lg text-[var(--text-secondary)] mb-8 anim-fade" style="--delay:1">俺搁 GitHub 上怼嘞项目，都搁这儿了</p>
+    <h1 class="page-title anim-fade" style="--delay:0">🧩 怼点项目</h1>
+    <p class="page-subtitle anim-fade" style="--delay:1">俺搁 GitHub 上怼嘞项目，都搁这儿了</p>
 
-    <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:2">
-        <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
+    <section class="board-container neu-board anim-fade" style="--delay:2">
+        <h2 class="neu-section-title mb-6">
             📌 置顶项目
-            <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+            <span class="neu-section-divider"></span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -42,10 +42,10 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
             ))}
         </div>
 
-        <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
+        <h2 class="neu-section-title mb-6">
             全部项目
             <span class="text-sm font-normal text-[var(--text-muted)] ml-1">{allRepos.length} 个</span>
-            <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+            <span class="neu-section-divider"></span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

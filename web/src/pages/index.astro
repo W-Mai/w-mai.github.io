@@ -16,9 +16,9 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
         <ProfileSidebar profile={profile} showBio />
     </Fragment>
 
-    <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">👋 恁好，吃了冇</h1>
+    <h1 class="page-title anim-fade" style="--delay:0">👋 恁好，吃了冇</h1>
 
-    <p class="text-lg text-[var(--text-secondary)] mb-8 anim-fade" style="--delay:1">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
+    <p class="page-subtitle anim-fade" style="--delay:1">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 anim-fade" style="--delay:2">
         <a href="/blog" class="group flex items-center gap-2 rounded-xl neu-btn
@@ -49,10 +49,10 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
         </div>
     </div>
 
-    <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:3">
-        <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
+    <section class="board-container neu-board anim-fade" style="--delay:3">
+        <h2 class="neu-section-title mb-6">
             📌 置顶项目
-            <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+            <span class="neu-section-divider"></span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -72,10 +72,10 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
             ))}
         </div>
 
-        <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
+        <h2 class="neu-section-title mb-6">
             开源项目
             <a href="/projects" class="text-sm font-normal text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">瞅瞅 →</a>
-            <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+            <span class="neu-section-divider"></span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

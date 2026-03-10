@@ -72,17 +72,17 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     <section class="neu-card rounded-2xl px-6 py-5 max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12 anim-fade about-stats-bar" style="--delay:1">
         <div class="flex justify-around">
             <div class="text-center">
-                <span class="block text-xl sm:text-2xl font-bold text-[var(--text-heading)]">{profile.public_repos}</span>
+                <span class="stat-value">{profile.public_repos}</span>
                 <span class="text-[11px] sm:text-sm text-[var(--text-muted)]">Repos</span>
             </div>
             <div class="w-px bg-[var(--border-subtle)]"></div>
             <div class="text-center">
-                <span class="block text-xl sm:text-2xl font-bold text-[var(--text-heading)]">{profile.followers}</span>
+                <span class="stat-value">{profile.followers}</span>
                 <span class="text-[11px] sm:text-sm text-[var(--text-muted)]">Followers</span>
             </div>
             <div class="w-px bg-[var(--border-subtle)]"></div>
             <div class="text-center">
-                <span class="block text-xl sm:text-2xl font-bold text-[var(--text-heading)]">{profile.following}</span>
+                <span class="stat-value">{profile.following}</span>
                 <span class="text-[11px] sm:text-sm text-[var(--text-muted)]">Following</span>
             </div>
         </div>
