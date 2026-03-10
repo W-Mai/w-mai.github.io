@@ -24,11 +24,11 @@ export const FRIENDS: readonly FriendLink[] = [
     tags: ['博客', '开源', 'OneClip'],
   },
   {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
+    name: 'Mickey',
+    url: 'https://blog.mickeymiao.cn',
+    avatar: 'https://avatars.githubusercontent.com/WangSimiao2000',
+    description: 'Leeds 图形学硕士，热爱 Minecraft 和图形渲染，擅长 C++/OpenGL 体素引擎与光线追踪。',
+    tags: ['图形学', '渲染', 'C++', 'Minecraft'],
   },
   {
     name: '虚位以待',
