@@ -48,8 +48,8 @@ const { profile, showBio = false } = Astro.props
   <div class="flex flex-col text-center py-2 gap-y-2 px-4 md:px-2">
     {
       SOCIALS.map((social) => (
-        <a class="neu-btn flex no-underline h-9 items-center rounded-xl px-3 gap-2
-                  text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all duration-200
+        <a class="neu-btn neu-link-btn gap-2 h-9
+                  text-[var(--text-secondary)] hover:text-[var(--text-primary)]
                   hover:bg-gradient-to-r hover:from-[var(--bg-surface)]/30 hover:to-transparent" href={social.url} target="_blank">
           <span class="sr-only">{social.description}</span>
           <img class="size-4 rounded-none invert-[var(--icon-invert)]" src={social.icon} alt={social.description}/>

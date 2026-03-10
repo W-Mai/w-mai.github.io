@@ -59,8 +59,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
         <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 sm:mt-5">
             {SOCIALS.map((social) => (
                 <a href={social.url} target="_blank" rel="noopener noreferrer"
-                   class="neu-btn flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl
-                          text-xs sm:text-sm no-underline text-[var(--text-link)] hover:text-[var(--text-link-hover)] transition-all">
+                   class="neu-btn neu-link-btn gap-1.5 text-[var(--text-link)] hover:text-[var(--text-link-hover)]">
                     <img class="size-4 rounded-none invert-[var(--icon-invert)]" src={social.icon} alt={social.name} />
                     <span class="hidden sm:inline">{social.name}</span>
                 </a>

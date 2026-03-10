@@ -196,3 +196,20 @@ html:not(.no-transitions) .neu-inset {
   text-align: center;
   transition: all 0.2s ease;
 }
+
+/* Link button: compact raised button for navigation/social links */
+.neu-link-btn {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+@media (min-width: 640px) {
+  .neu-link-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
