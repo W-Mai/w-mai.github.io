@@ -304,7 +304,7 @@ html:not(.no-transitions) body,
 html:not(.no-transitions) .neu-card,
 html:not(.no-transitions) .neu-btn,
 html:not(.no-transitions) .neu-inset {
-  transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
+  transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease, transform 300ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
