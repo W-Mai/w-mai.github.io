@@ -52,7 +52,7 @@ const { profile, showBio = false } = Astro.props
                   text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all duration-200
                   hover:bg-gradient-to-r hover:from-[var(--bg-surface)]/30 hover:to-transparent" href={social.url} target="_blank">
           <span class="sr-only">{social.description}</span>
-          <img class="size-4 rounded-none dark:invert-[0.8]" src={social.icon} alt={social.description}/>
+          <img class="size-4 rounded-none invert-[var(--icon-invert)]" src={social.icon} alt={social.description}/>
           <h6 class="text-[var(--text-secondary)] m-0 text-xs">@{social.name}</h6>
         </a>
       ))

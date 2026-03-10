@@ -143,7 +143,7 @@ for (const domain of skillTreeData.domains) {
                   class="skill-edge"
                   data-edge-source={edge.source}
                   data-edge-target={edge.target}
-                  stroke="#b0b8c4"
+                  stroke="var(--skill-edge-default)"
                   stroke-width="1.5"
                   fill="none"
                   opacity="0.5"
@@ -404,7 +404,7 @@ function initSkillTree() {
         area.querySelectorAll<SVGPathElement>('.skill-edge').forEach(edge => {
           if (edge.dataset.edgeSource === nodeId || edge.dataset.edgeTarget === nodeId) {
             edge.setAttribute('opacity', '1')
-            edge.setAttribute('stroke', '#6366f1')
+            edge.setAttribute('stroke', 'var(--skill-highlight)')
             edge.setAttribute('stroke-width', '2.5')
           }
         })
@@ -426,7 +426,7 @@ function initSkillTree() {
       if (area) {
         area.querySelectorAll<SVGPathElement>('.skill-edge').forEach(edge => {
           edge.setAttribute('opacity', '0.5')
-          edge.setAttribute('stroke', '#b0b8c4')
+          edge.setAttribute('stroke', 'var(--skill-edge-default)')
           edge.setAttribute('stroke-width', '1.5')
         })
       }
@@ -464,7 +464,7 @@ document.addEventListener('astro:page-load', initSkillTree)
     transform: none !important;
   }
   .skill-node:focus-visible {
-    outline: 2px solid #6366f1;
+    outline: 2px solid var(--skill-highlight);
     outline-offset: 2px;
   }
 
@@ -472,7 +472,7 @@ document.addEventListener('astro:page-load', initSkillTree)
   .skill-node-learning {
     position: relative;
     background: var(--neu-bg) !important;
-    outline: 2px solid #6366f1;
+    outline: 2px solid var(--skill-highlight);
     outline-offset: 0px;
   }
   .skill-node-learning::before {
@@ -480,7 +480,7 @@ document.addEventListener('astro:page-load', initSkillTree)
     position: absolute;
     inset: -4px;
     border-radius: 16px;
-    border: 2px solid #a78bfa;
+    border: 2px solid var(--skill-highlight-pulse);
     opacity: 0;
     animation: skill-pulse 2s ease-in-out infinite;
     pointer-events: none;

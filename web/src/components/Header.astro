@@ -117,11 +117,11 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		white-space: nowrap;
 		border: none;
 		background: var(--neu-bg);
-		box-shadow: 3px 3px 6px rgb(163 177 198 / 0.5), -3px -3px 6px rgb(255 255 255 / 0.4);
+		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
 	}
 	.tab-bar :global(a:hover) {
 		color: rgb(var(--gray-dark));
-		box-shadow: 1px 1px 3px rgb(163 177 198 / 0.4), -1px -1px 3px rgb(255 255 255 / 0.3);
+		box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
 	}
 	/* Active tab — pressed inset effect */
 	.tab-bar :global(a.active) {
@@ -129,7 +129,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		font-weight: 700;
 		text-decoration: none;
 		background: var(--neu-bg);
-		box-shadow: inset 2px 2px 5px rgb(163 177 198 / 0.6), inset -2px -2px 5px rgb(255 255 255 / 0.7);
+		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);
 	}
 
 	/* Social links */
@@ -150,7 +150,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		border: none;
 	}
 	.social-links :global(a:hover) {
-		background: rgba(255, 255, 255, 0.3);
+		background: var(--hover-bg);
 	}
 	.social-links :global(img) {
 		width: 1em;
@@ -180,11 +180,11 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		line-height: inherit;
 		transition: all 0.2s ease;
 		white-space: nowrap;
-		box-shadow: 3px 3px 6px rgb(163 177 198 / 0.5), -3px -3px 6px rgb(255 255 255 / 0.4);
+		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
 	}
 	.more-btn:hover {
 		color: rgb(var(--gray-dark));
-		box-shadow: 1px 1px 3px rgb(163 177 198 / 0.4), -1px -1px 3px rgb(255 255 255 / 0.3);
+		box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
 	}
 	.more-arrow {
 		font-size: 0.7em;
@@ -195,7 +195,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	}
 	.more-btn[aria-expanded="true"] {
 		background: var(--neu-bg);
-		box-shadow: inset 2px 2px 5px rgb(163 177 198 / 0.6), inset -2px -2px 5px rgb(255 255 255 / 0.7);
+		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);
 	}
 	.more-dropdown {
 		display: none;
@@ -224,8 +224,8 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		transition: all 0.15s ease;
 	}
 	.more-dropdown a:hover {
-		background: rgba(255, 255, 255, 0.35);
-		box-shadow: inset 1px 1px 3px rgb(163 177 198 / 0.3), inset -1px -1px 3px rgb(255 255 255 / 0.4);
+		background: var(--hover-bg);
+		box-shadow: inset 1px 1px 3px var(--neu-shadow-dark), inset -1px -1px 3px var(--neu-shadow-light);
 	}
 
 	@media (max-width: 720px) {
@@ -270,32 +270,10 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	:global(html.dark) header::after {
 		background: radial-gradient(ellipse at top center, rgba(0,0,0,0.3) 0%, transparent 70%);
 	}
-	:global(html.dark) .tab-bar :global(a) {
-		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-	}
-	:global(html.dark) .tab-bar :global(a:hover) {
-		box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
-	}
-	:global(html.dark) .tab-bar :global(a.active) {
-		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);
-	}
-	:global(html.dark) .more-btn {
-		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-	}
-	:global(html.dark) .more-btn:hover {
-		box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
-	}
-	:global(html.dark) .more-btn[aria-expanded="true"] {
-		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);
-	}
 	:global(html.dark) .more-dropdown a:hover {
-		background: rgba(0, 0, 0, 0.15);
 		box-shadow: inset 1px 1px 3px var(--neu-shadow-dark), inset -1px -1px 3px var(--neu-shadow-light);
 	}
-	:global(html.dark) .social-links :global(a:hover) {
-		background: rgba(0, 0, 0, 0.2);
-	}
 	:global(html.dark) .social-links :global(img) {
-		filter: invert(0.8);
+		filter: invert(var(--icon-invert));
 	}
 </style>

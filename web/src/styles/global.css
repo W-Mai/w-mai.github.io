@@ -78,6 +78,50 @@
   --overlay-bg:     rgba(255, 255, 255, 0.9);
   --overlay-border: rgba(255, 255, 255, 0.5);
 
+  /* ---- Scrollbar ---- */
+  --scrollbar-thumb:       #cbd5e0;
+  --scrollbar-thumb-hover: #a0aec0;
+
+  /* ---- Mermaid skeleton gradient ---- */
+  --mermaid-skeleton-from: #dce0e5;
+  --mermaid-skeleton-mid:  #d4d8dd;
+
+  /* ---- Warm card ---- */
+  --warm-card-from:         #f0e6d6;
+  --warm-card-to:           #ece2d4;
+  --warm-card-shadow-dark:  #c8c0b4;
+  --warm-card-shadow-light: #fff8ee;
+
+  /* ---- Prose / code block ---- */
+  --bg-pre:            #1e293b;
+  --border-code-block: #e2e8f0;
+
+  /* ---- Icon filter ---- */
+  --icon-invert: 0;
+
+  /* ---- Accent colors ---- */
+  --accent-star:           #f59e0b;
+  --btn-demo-bg:           #475569;
+  --btn-demo-bg-hover:     #334155;
+  --btn-demo-text:         #ffffff;
+  --skill-highlight:       #6366f1;
+  --skill-highlight-pulse: #a78bfa;
+  --skill-edge-default:    #b0b8c4;
+
+  /* ---- MultitabPreview tabs ---- */
+  --tab-bg:            #f8fafc;
+  --tab-border:        #e2e8f0;
+  --tab-text:          #94a3b8;
+  --tab-text-hover:    #475569;
+  --tab-text-active:   #1e293b;
+  --tab-active-border: #475569;
+
+  /* ---- Interactive surface ---- */
+  --hover-bg: rgba(255, 255, 255, 0.3);
+
+  /* ---- Easter egg found ---- */
+  --easter-egg-found: #ef4444;
+
   /* ---- Legacy / third-party ---- */
   --theme-background: #f6f8fa;
   --theme-accent:     #1a7f37;
@@ -166,6 +210,50 @@ html.dark {
   /* ---- Overlay ---- */
   --overlay-bg:     rgba(0, 0, 0, 0.5);
   --overlay-border: rgba(255, 255, 255, 0.1);
+
+  /* ---- Scrollbar ---- */
+  --scrollbar-thumb:       #4a5568;
+  --scrollbar-thumb-hover: #718096;
+
+  /* ---- Mermaid skeleton gradient ---- */
+  --mermaid-skeleton-from: #2a2f31;
+  --mermaid-skeleton-mid:  #262b2d;
+
+  /* ---- Warm card ---- */
+  --warm-card-from:         #3a3530;
+  --warm-card-to:           #35302b;
+  --warm-card-shadow-dark:  var(--neu-shadow-dark);
+  --warm-card-shadow-light: var(--neu-shadow-light);
+
+  /* ---- Prose / code block ---- */
+  --bg-pre:            #1e293b;
+  --border-code-block: #3a4245;
+
+  /* ---- Icon filter ---- */
+  --icon-invert: 0.8;
+
+  /* ---- Accent colors ---- */
+  --accent-star:           #fbbf24;
+  --btn-demo-bg:           #64748b;
+  --btn-demo-bg-hover:     #475569;
+  --btn-demo-text:         #f1f5f9;
+  --skill-highlight:       #818cf8;
+  --skill-highlight-pulse: #c4b5fd;
+  --skill-edge-default:    #64748b;
+
+  /* ---- MultitabPreview tabs ---- */
+  --tab-bg:            #2a2f31;
+  --tab-border:        #3a4245;
+  --tab-text:          #64748b;
+  --tab-text-hover:    #94a3b8;
+  --tab-text-active:   #e2e8f0;
+  --tab-active-border: #94a3b8;
+
+  /* ---- Interactive surface ---- */
+  --hover-bg: rgba(0, 0, 0, 0.15);
+
+  /* ---- Easter egg found ---- */
+  --easter-egg-found: #f87171;
 
   /* ---- Legacy / third-party ---- */
   --theme-background: #2d3436;
@@ -302,7 +390,7 @@ html.dark blockquote { border-left-color: var(--accent); }
 
 .prose .expressive-code,
 .prose .expressive-code figure {
-  border: 1px solid var(--border-divider) !important;
+  border: 1px solid var(--border-code-block) !important;
   border-radius: 0.5rem !important;
   overflow: hidden;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
@@ -310,7 +398,6 @@ html.dark blockquote { border-left-color: var(--accent); }
 
 html.dark .prose .expressive-code,
 html.dark .prose .expressive-code figure {
-  border-color: #3a4245 !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
@@ -325,12 +412,8 @@ html.dark .prose code       { background-color: var(--bg-code); }
 
 ::-webkit-scrollbar       { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--neu-bg); }
-::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
-
-html.dark ::-webkit-scrollbar-track       { background: var(--neu-bg); }
-html.dark ::-webkit-scrollbar-thumb        { background: #4a5568; }
-html.dark ::-webkit-scrollbar-thumb:hover  { background: #718096; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 
 /* ==========================================================================
@@ -365,14 +448,9 @@ html:not(.no-transitions) .neu-inset {
 
 /* Warm-tinted card */
 .neu-card-warm {
-  background: linear-gradient(135deg, #f0e6d6, #ece2d4);
-  box-shadow: 6px 6px 12px #c8c0b4, -6px -6px 12px #fff8ee;
+  background: linear-gradient(135deg, var(--warm-card-from), var(--warm-card-to));
+  box-shadow: 6px 6px 12px var(--warm-card-shadow-dark), -6px -6px 12px var(--warm-card-shadow-light);
   border: none;
-}
-html.dark .neu-card-warm {
-  background: linear-gradient(135deg, #3a3530, #35302b);
-  box-shadow: 6px 6px 12px var(--neu-shadow-dark),
-             -6px -6px 12px var(--neu-shadow-light);
 }
 
 /* Pressable button */
@@ -483,11 +561,7 @@ pre.mermaid[data-processed] {
 }
 
 pre.mermaid:not([data-processed]) {
-  background: linear-gradient(90deg, #dce0e5 25%, #d4d8dd 50%, #dce0e5 75%) !important;
-  background-size: 200% 100% !important;
-}
-html.dark pre.mermaid:not([data-processed]) {
-  background: linear-gradient(90deg, #2a2f31 25%, #262b2d 50%, #2a2f31 75%) !important;
+  background: linear-gradient(90deg, var(--mermaid-skeleton-from) 25%, var(--mermaid-skeleton-mid) 50%, var(--mermaid-skeleton-from) 75%) !important;
   background-size: 200% 100% !important;
 }
 
