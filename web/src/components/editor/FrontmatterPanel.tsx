@@ -1,4 +1,4 @@
-import { type FC, useState, useEffect, useCallback } from 'react';
+import { type FC, useState, useEffect, useCallback, useRef } from 'react';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import TagChipEditor from './TagChipEditor';
 import type { FrontmatterData } from '../../lib/frontmatter-utils';
@@ -46,16 +46,41 @@ const clearBtnStyle: React.CSSProperties = {
   transition: `color ${T.transitionFast}`,
 };
 
+const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif']);
+
 const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
-  // Internal state so edits are reflected immediately without waiting for
-  // the CM6 decoration rebuild cycle (which is intentionally skipped during
-  // widget-initiated dispatches to avoid input focus loss).
   const [local, setLocal] = useState<FrontmatterData>(data);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [assets, setAssets] = useState<{ name: string; ext: string }[]>([]);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   // Sync from external prop when the document changes (e.g. page switch)
   useEffect(() => {
     setLocal(data);
   }, [data]);
+
+  // Fetch image assets when picker opens
+  useEffect(() => {
+    if (!showImagePicker) return;
+    fetch('/api/editor/assets')
+      .then((r) => r.json())
+      .then((list: { name: string; ext: string }[]) => {
+        setAssets(list.filter((a) => IMAGE_EXTS.has(a.ext)));
+      })
+      .catch(() => {});
+  }, [showImagePicker]);
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!showImagePicker) return;
+    const handler = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowImagePicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showImagePicker]);
 
   const handleChange = useCallback(
     (field: keyof FrontmatterData, value: FrontmatterData[keyof FrontmatterData]) => {
@@ -151,26 +176,115 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
         </div>
       </div>
 
-      {/* heroImage — optional with clear button */}
-      <div>
+      {/* heroImage — visual picker */}
+      <div style={{ position: 'relative' }} ref={pickerRef}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>Hero Image</label>
           {local.heroImage && (
             <button
-              onClick={() => handleChange('heroImage', undefined)}
+              onClick={() => { handleChange('heroImage', undefined); setShowImagePicker(false); }}
               aria-label="Clear hero image"
               style={clearBtnStyle}
             >×</button>
           )}
         </div>
         <div style={{ marginTop: T.spacingXs }}>
-          <input
-            type="text"
-            value={local.heroImage ?? ''}
-            onChange={(e) => handleChange('heroImage', e.target.value || undefined)}
-            placeholder="Optional — e.g. ./assets/hero.png"
-            style={inputBaseStyle}
-          />
+          <button
+            type="button"
+            onClick={() => setShowImagePicker((v) => !v)}
+            style={{
+              ...inputBaseStyle,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: T.spacingSm,
+              textAlign: 'left',
+              color: local.heroImage ? T.colorText : T.colorTextMuted,
+            }}
+          >
+            {local.heroImage ? (
+              <>
+                <img
+                  src={`/api/editor/assets/${encodeURIComponent(local.heroImage.replace('./assets/', ''))}`}
+                  alt=""
+                  style={{ width: '24px', height: '24px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0 }}
+                />
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {local.heroImage.replace('./assets/', '')}
+                </span>
+              </>
+            ) : (
+              <span>Select image…</span>
+            )}
+          </button>
+
+          {/* Image picker dropdown */}
+          {showImagePicker && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              zIndex: 100,
+              marginTop: '4px',
+              background: T.colorBg,
+              border: `1px solid ${T.colorBorder}`,
+              borderRadius: T.radiusMd,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+              maxHeight: '240px',
+              overflow: 'auto',
+              padding: T.spacingSm,
+            }}>
+              {assets.length === 0 ? (
+                <div style={{ padding: T.spacingMd, color: T.colorTextMuted, fontSize: T.fontSizeSm, textAlign: 'center' }}>
+                  No images found
+                </div>
+              ) : (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
+                  gap: '6px',
+                }}>
+                  {assets.map((a) => {
+                    const isSelected = local.heroImage === `./assets/${a.name}`;
+                    return (
+                      <button
+                        key={a.name}
+                        type="button"
+                        onClick={() => {
+                          handleChange('heroImage', `./assets/${a.name}`);
+                          setShowImagePicker(false);
+                        }}
+                        title={a.name}
+                        style={{
+                          padding: '3px',
+                          border: isSelected ? `2px solid ${T.colorAccent}` : `1px solid ${T.colorBorderLight}`,
+                          borderRadius: T.radiusSm,
+                          background: isSelected ? T.colorBgSecondary : 'transparent',
+                          cursor: 'pointer',
+                          overflow: 'hidden',
+                          aspectRatio: '1',
+                        }}
+                      >
+                        <img
+                          src={`/api/editor/assets/${encodeURIComponent(a.name)}`}
+                          alt={a.name}
+                          loading="lazy"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: '2px',
+                            display: 'block',
+                          }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
