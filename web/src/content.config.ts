@@ -13,6 +13,15 @@ const blog = defineCollection({
 			pubDate: z.coerce.date(),
 			updatedDate: z.coerce.date().optional(),
 			heroImage: image().optional(),
+			// Tag list, defaults to empty array, rejects duplicates at build time
+			tags: z
+				.array(z.string())
+				.default([])
+				.refine((tags) => new Set(tags).size === tags.length, {
+					message: 'Duplicate tags are not allowed',
+				}),
+			// Optional category for coarse-grained classification
+			category: z.string().optional(),
 		}),
 });
 

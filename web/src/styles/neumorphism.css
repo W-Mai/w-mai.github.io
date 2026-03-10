@@ -6,7 +6,8 @@
 html:not(.no-transitions) body,
 html:not(.no-transitions) .neu-card,
 html:not(.no-transitions) .neu-btn,
-html:not(.no-transitions) .neu-inset {
+html:not(.no-transitions) .neu-inset,
+html:not(.no-transitions) .neu-tag-chip {
   transition: background-color 300ms ease, color 300ms ease,
               box-shadow 300ms ease, transform 300ms ease;
 }
@@ -212,4 +213,31 @@ html:not(.no-transitions) .neu-inset {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
   }
+}
+
+
+/* Tag chip: compact raised chip for blog tags, lower visual hierarchy than buttons */
+.neu-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--neu-bg);
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+             -2px -2px 4px var(--neu-shadow-light);
+  transition: all 0.2s ease;
+}
+a.neu-tag-chip:hover {
+  box-shadow: 1px 1px 2px var(--neu-shadow-dark),
+             -1px -1px 2px var(--neu-shadow-light);
+  transform: translateY(-1px);
+}
+a.neu-tag-chip:active {
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+  transform: translateY(0);
 }

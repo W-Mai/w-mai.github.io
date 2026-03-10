@@ -1,0 +1,121 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import BlogHeroFallback from '../../../components/BlogHeroFallback.astro';
+import Footer from '../../../components/Footer.astro';
+import FormattedDate from '../../../components/FormattedDate.astro';
+import Header from '../../../components/Header.astro';
+import { SITE_TITLE } from '../../../consts';
+import { extractFirstBodyImage } from '../../../lib/blog-hero';
+import { getAllTags, getPostsByTag } from '../../../lib/blog-tags';
+import { estimateReadingTime, stripMarkdown, countWords } from '../../../lib/reading-stats';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	const tags = getAllTags(posts);
+	return tags.map(({ tag }) => ({
+		params: { tag },
+		props: { posts: getPostsByTag(posts, tag) },
+	}));
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+
+// Glob-import all post assets for body image fallback
+const assetImages = import.meta.glob<{ default: ImageMetadata }>(
+	'../../../../posts/assets/*.{png,jpg,jpeg,gif,webp,svg}',
+	{ eager: true },
+);
+
+/** Resolve a body image path like ./assets/foo.png to an ImageMetadata object */
+function resolveBodyImage(path: string): ImageMetadata | null {
+	const name = path.replace(/^\.\/assets\//, '');
+	const key = Object.keys(assetImages).find((k) => k.endsWith(`/${name}`));
+	return key ? assetImages[key].default : null;
+}
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`${tag} (${posts.length}) | ${SITE_TITLE}`} description={`Posts tagged with "${tag}"`} />
+	</head>
+	<body class="neu-bg">
+		<Header />
+		<main class="max-w-4xl mx-auto px-4 py-10">
+			<a href="/blog/tags/" class="neu-link-btn gap-1 mb-6 text-[var(--text-link)] text-sm">
+				← 所有标签
+			</a>
+
+			<h1 class="text-[var(--text-heading)] text-4xl md:text-5xl font-bold mb-2 anim-fade" style="--delay:0">
+				🏷️ {tag}
+			</h1>
+			<p class="text-[var(--text-secondary)] mb-10 text-lg anim-fade" style="--delay:1">
+				共 {posts.length} 篇文章
+			</p>
+
+			{posts.length > 0 ? (
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-7 anim-fade" style="--delay:2">
+					{posts.map((post) => {
+						const bodyImg = !post.data.heroImage ? extractFirstBodyImage(post.body) : null;
+						const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
+						const readMin = estimateReadingTime(post.body ?? '');
+						const wc = countWords(stripMarkdown(post.body ?? '')).total;
+						return (
+							<a href={`/blog/${post.id}/`}
+							   class="blog-post-card group block rounded-2xl overflow-hidden neu-card
+							          transition-all duration-300 ease-out
+							          no-underline">
+								<div class="overflow-hidden h-44">
+									{post.data.heroImage ? (
+										<Image
+											width={720} height={360}
+											src={post.data.heroImage}
+											alt=""
+											class="card-cover-img"
+										/>
+									) : bodyImgMeta ? (
+										<Image
+											width={720} height={360}
+											src={bodyImgMeta}
+											alt=""
+											class="card-cover-img"
+										/>
+									) : (
+										<BlogHeroFallback title={post.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
+									)}
+								</div>
+								<div class="p-5">
+									<p class="text-[var(--text-muted)] text-xs mb-1">
+										<FormattedDate date={post.data.pubDate} />
+										<span class="mx-1">·</span>
+										<span>{readMin} 分钟</span>
+										<span class="mx-1">·</span>
+										<span>{wc} 字</span>
+									</p>
+									<h3 class="text-[var(--text-heading)] text-base font-bold transition-colors m-0 line-clamp-2
+									           group-hover:text-[var(--text-heading)]">
+										{post.data.title}
+									</h3>
+								</div>
+							</a>
+						);
+					})}
+				</div>
+			) : (
+				<p class="text-[var(--text-muted)] text-center py-10">该标签下暂无文章</p>
+			)}
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+  /* Neumorphism hover for post cards */
+  .blog-post-card:hover {
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+    transform: translateY(-2px);
+  }
+</style>

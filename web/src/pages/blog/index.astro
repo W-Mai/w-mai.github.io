@@ -6,8 +6,10 @@ import BlogHeroFallback from '../../components/BlogHeroFallback.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
+import TagChip from '../../components/TagChip.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 import { extractFirstBodyImage } from '../../lib/blog-hero';
+import { truncateTags } from '../../lib/blog-tags';
 import { estimateReadingTime, stripMarkdown, countWords } from '../../lib/reading-stats';
 
 // Glob-import all post assets for body image fallback
@@ -45,11 +47,14 @@ const [featured, ...rest] = posts;
 			const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
 			const featuredReadMin = estimateReadingTime(featured.body ?? '');
 			const featuredWordCount = countWords(stripMarkdown(featured.body ?? '')).total;
+			const featuredHref = `/blog/${featured.id}/`;
 			return (
-				<a href={`/blog/${featured.id}/`}
-				   class="blog-featured group block rounded-3xl overflow-hidden neu-card
-				          transition-all duration-300 ease-out
-				          no-underline mb-10">
+				<div class="blog-featured group block rounded-3xl overflow-hidden neu-card
+				            transition-all duration-300 ease-out
+				            mb-10 cursor-pointer"
+				     onclick={`window.location.href='${featuredHref}'`}
+				     role="link" tabindex="0"
+				     onkeydown={`if(event.key==='Enter')window.location.href='${featuredHref}'`}>
 					<div class="overflow-hidden h-64 md:h-80">
 						{featured.data.heroImage ? (
 							<Image
@@ -83,8 +88,21 @@ const [featured, ...rest] = posts;
 						{featured.data.description && (
 							<p class="mt-2 text-[var(--text-secondary)] line-clamp-2">{featured.data.description}</p>
 						)}
+						{featured.data.tags.length > 0 && (() => {
+							const { visible, remaining } = truncateTags(featured.data.tags);
+							return (
+								<div class="flex flex-wrap gap-1.5 mt-2" onclick="event.stopPropagation()">
+									{visible.map((tag) => (
+										<TagChip tag={tag} />
+									))}
+									{remaining > 0 && (
+										<span class="text-[var(--text-muted)] text-xs self-center">+{remaining}</span>
+									)}
+								</div>
+							);
+						})()}
 					</div>
-				</a>
+				</div>
 			);
 		})()}
 
@@ -95,11 +113,14 @@ const [featured, ...rest] = posts;
 						const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
 						const readMin = estimateReadingTime(post.body ?? '');
 						const wc = countWords(stripMarkdown(post.body ?? '')).total;
+						const postHref = `/blog/${post.id}/`;
 						return (
-							<a href={`/blog/${post.id}/`}
-							   class="blog-post-card group block rounded-2xl overflow-hidden neu-card
-							          transition-all duration-300 ease-out
-							          no-underline">
+							<div class="blog-post-card group block rounded-2xl overflow-hidden neu-card
+							            transition-all duration-300 ease-out
+							            cursor-pointer"
+							     onclick={`window.location.href='${postHref}'`}
+							     role="link" tabindex="0"
+							     onkeydown={`if(event.key==='Enter')window.location.href='${postHref}'`}>
 								<div class="overflow-hidden h-44">
 									{post.data.heroImage ? (
 										<Image
@@ -130,8 +151,21 @@ const [featured, ...rest] = posts;
 									<h3 class="text-base font-bold text-[var(--text-heading)] group-hover:text-[var(--text-heading)] transition-colors m-0 line-clamp-2">
 										{post.data.title}
 									</h3>
+									{post.data.tags.length > 0 && (() => {
+										const { visible, remaining } = truncateTags(post.data.tags);
+										return (
+											<div class="flex flex-wrap gap-1.5 mt-2" onclick="event.stopPropagation()">
+												{visible.map((tag) => (
+													<TagChip tag={tag} />
+												))}
+												{remaining > 0 && (
+													<span class="text-[var(--text-muted)] text-xs self-center">+{remaining}</span>
+												)}
+											</div>
+										);
+									})()}
 								</div>
-							</a>
+							</div>
 						);
 					})}
 				</div>

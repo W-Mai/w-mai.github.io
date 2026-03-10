@@ -8,6 +8,7 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Giscus from '../components/Giscus.astro';
 import Header from '../components/Header.astro';
+import TagChip from '../components/TagChip.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	bodyHeroImage?: ImageMetadata | null;
@@ -15,7 +16,7 @@ type Props = CollectionEntry<'blog'>['data'] & {
 	wordCount?: number;
 };
 
-const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount, tags = [], category } = Astro.props;
 ---
 
 <html lang="en">
@@ -164,6 +165,18 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, read
 					</h1>
 					{description && (
 						<p class="text-lg text-[var(--text-secondary)] leading-relaxed m-0">{description}</p>
+					)}
+					{tags.length > 0 && (
+						<div class="flex flex-wrap gap-1.5 mt-3">
+							{tags.map((tag) => (
+								<TagChip tag={tag} />
+							))}
+						</div>
+					)}
+					{category && (
+						<p class="text-[var(--text-secondary)] text-sm mt-2 m-0">
+							📂 <a href={`/blog/categories/${category}/`} class="text-[var(--text-link)] hover:text-[var(--text-link-hover)]">{category}</a>
+						</p>
 					)}
 					<hr class="mt-6 border-[var(--border-divider)]" />
 				</header>

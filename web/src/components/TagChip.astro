@@ -1,0 +1,16 @@
+---
+// Reusable tag chip component with optional link behavior
+interface Props {
+  tag: string;
+  interactive?: boolean;
+}
+
+const { tag, interactive = true } = Astro.props;
+const href = `/blog/tags/${tag}/`;
+---
+
+{interactive ? (
+  <a href={href} class="neu-tag-chip">{tag}</a>
+) : (
+  <span class="neu-tag-chip">{tag}</span>
+)}

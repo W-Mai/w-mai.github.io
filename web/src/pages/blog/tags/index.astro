@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import Header from '../../../components/Header.astro';
+import TagChip from '../../../components/TagChip.astro';
+import { SITE_TITLE } from '../../../consts';
+import { getAllTags } from '../../../lib/blog-tags';
+
+const posts = await getCollection('blog');
+const tags = getAllTags(posts);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`标签 | ${SITE_TITLE}`} description="Browse all blog tags" />
+	</head>
+	<body class="neu-bg">
+		<Header />
+		<main class="max-w-4xl mx-auto px-4 py-10">
+			<h1 class="text-[var(--text-heading)] text-4xl md:text-5xl font-bold mb-2 anim-fade" style="--delay:0">🏷️ 标签</h1>
+			<p class="text-[var(--text-secondary)] mb-10 text-lg anim-fade" style="--delay:1">
+				共 {tags.length} 个标签
+			</p>
+
+			{tags.length > 0 ? (
+				<div class="flex flex-wrap gap-3 anim-fade" style="--delay:2">
+					{tags.map(({ tag, count }) => (
+						<div class="inline-flex items-center gap-1.5">
+							<TagChip tag={tag} interactive={true} />
+							<span class="text-[var(--text-muted)] text-xs font-medium">{count}</span>
+						</div>
+					))}
+				</div>
+			) : (
+				<p class="text-[var(--text-muted)] text-center py-10">暂无标签</p>
+			)}
+		</main>
+		<Footer />
+	</body>
+</html>
