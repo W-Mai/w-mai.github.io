@@ -28,14 +28,16 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		</div>
 		<div class="social-links">
 			<ThemeToggle />
-            {
-                SOCIALS.map((social) => (
-                    <a href={social.url} target="_blank" class="social-icon neu-btn">
-                        <span class="sr-only">{social.description}</span>
-                        <img src={social.icon} alt={social.description} />
-                    </a>
-                ))
-            }
+			<div class="social-capsule neu-btn">
+				{
+					SOCIALS.map((social) => (
+						<a href={social.url} target="_blank" class="social-icon">
+							<span class="sr-only">{social.description}</span>
+							<img src={social.icon} alt={social.description} />
+						</a>
+					))
+				}
+			</div>
 		</div>
 	</nav>
 </header>
@@ -138,16 +140,27 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		align-items: center;
 		gap: 0.25em;
 	}
-	.social-links :global(a) {
+	/* Social capsule: pill container for all social icons */
+	.social-capsule {
+		display: flex;
+		align-items: center;
+		gap: 0.15em;
+		padding: 0.3em 0.5em;
+		border-radius: 9999px;
+	}
+	.social-capsule .social-icon {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 2.2em;
-		height: 2.2em;
-		border-radius: 0.6em;
-		padding: 0;
+		width: 1.8em;
+		height: 1.8em;
+		border-radius: 50%;
+		transition: background 0.2s ease;
 	}
-	.social-links :global(img) {
+	.social-capsule .social-icon:hover {
+		background: var(--hover-bg);
+	}
+	.social-capsule :global(img) {
 		width: 1em;
 		height: 1em;
 		border-radius: 0;
@@ -238,7 +251,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 			justify-content: center;
 			width: 100%;
 		}
-		.social-links .social-icon {
+		.social-links .social-capsule {
 			display: none;
 		}
 		.social-links {
@@ -268,7 +281,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	:global(html.dark) .more-dropdown a:hover {
 		box-shadow: inset 1px 1px 3px var(--neu-shadow-dark), inset -1px -1px 3px var(--neu-shadow-light);
 	}
-	.social-links :global(img) {
+	.social-capsule :global(img) {
 		filter: invert(var(--icon-invert));
 	}
 </style>
