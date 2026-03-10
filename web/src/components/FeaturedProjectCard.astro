@@ -87,8 +87,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
     {stars > 0 && (
       <div class="absolute top-3 right-3 z-10">
         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full
-                      bg-white/90 backdrop-blur-md text-slate-700 text-xs font-semibold
-                      shadow-sm border border-white/50">
+                      bg-white/90 dark:bg-black/50 backdrop-blur-md text-slate-700 dark:text-slate-200 text-xs font-semibold
+                      shadow-sm border border-white/50 dark:border-white/10">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"
                class="size-3 text-amber-500">
             <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z" />
@@ -121,8 +121,8 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
 
       {/* Title + Owner */}
       <div class:list={["min-w-0 flex-1", { "pt-3": !hasLogo, "pt-1": hasLogo }]}>
-        <h3 class="featured-title m-0 font-bold truncate text-slate-800
-                    group-hover:text-slate-900 transition-colors duration-300">
+        <h3 class="featured-title m-0 font-bold truncate text-slate-800 dark:text-slate-100
+                    group-hover:text-slate-900 dark:group-hover:text-slate-50 transition-colors duration-300">
           {name}
         </h3>
         <div class="flex items-center gap-1.5 mt-0.5">
@@ -132,13 +132,13 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
             class="size-3.5 rounded-full opacity-60"
             loading="lazy"
           />
-          <span class="text-[11px] text-slate-400 font-medium">{owner}</span>
+          <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{owner}</span>
         </div>
       </div>
     </div>
 
     {/* Description */}
-    <p class="mt-2.5 mb-0 text-[13px] text-slate-500 line-clamp-2 leading-relaxed">
+    <p class="mt-2.5 mb-0 text-[13px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
       {description ?? 'No description provided'}
     </p>
 
@@ -152,9 +152,9 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
     )}
 
     {/* Footer: language + homepage */}
-    <div class="mt-3 pt-3 border-t border-slate-100/80 flex items-center justify-between gap-2">
+    <div class="mt-3 pt-3 border-t border-slate-100/80 dark:border-slate-600/40 flex items-center justify-between gap-2">
       {language ? (
-        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
           <span class="size-2.5 rounded-full shrink-0" style={`background-color: ${languageColor}`} />
           {language}
         </span>
@@ -193,5 +193,13 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
   .featured-title {
     font-size: 1.5rem !important;
     line-height: 2rem !important;
+  }
+
+  /* Dark mode text color overrides */
+  :global(html.dark) .featured-card {
+    color: rgb(226 232 240) !important;
+  }
+  :global(html.dark) .featured-card:hover {
+    color: rgb(226 232 240) !important;
   }
 </style>

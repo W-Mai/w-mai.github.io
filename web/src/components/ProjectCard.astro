@@ -18,17 +18,17 @@ const languageColor = getLanguageColor(language)
   target="_blank"
   rel="noopener noreferrer"
   class="project-card neu-card block rounded-2xl p-3.5
-         no-underline text-slate-800
+         no-underline text-slate-800 dark:text-slate-200
          transition-all duration-300 ease-out
          focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
 >
-  <h3 class="m-0 text-sm font-bold truncate text-slate-800">{name}</h3>
+  <h3 class="m-0 text-sm font-bold truncate text-slate-800 dark:text-slate-100">{name}</h3>
 
-  <p class="mt-1 mb-2 text-xs text-slate-500 line-clamp-2">
+  <p class="mt-1 mb-2 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
     {description ?? 'No description provided'}
   </p>
 
-  <div class="flex items-center gap-4 text-xs text-slate-500">
+  <div class="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
     {language && (
       <span class="flex items-center gap-1">
         <span
@@ -62,6 +62,14 @@ const languageColor = getLanguageColor(language)
     color: rgb(30 41 59) !important;
     box-shadow: 2px 2px 5px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light);
     transform: translateY(-2px);
+  }
+
+  /* Dark mode text color overrides */
+  :global(html.dark) .project-card {
+    color: rgb(226 232 240) !important;
+  }
+  :global(html.dark) .project-card:hover {
+    color: rgb(226 232 240) !important;
   }
   .project-card:active {
     box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);

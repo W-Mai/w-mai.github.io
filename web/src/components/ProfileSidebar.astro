@@ -12,12 +12,12 @@ const { profile, showBio = false } = Astro.props
 ---
 
 <aside class="neu-card rounded-[2rem] p-8
-  flex flex-col gap-y-5 md:text-sm text-2xl text-slate-800"
-  style="background: linear-gradient(145deg, #e3e8ef, #dde2e9)">
+  flex flex-col gap-y-5 md:text-sm text-2xl text-slate-800 dark:text-slate-200
+  bg-gradient-to-br from-[#e3e8ef] to-[#dde2e9] dark:from-[#2d3436] dark:to-[#262b2d]">
 
   <div class="flex flex-col items-center">
     <div class="neu-avatar-ring rounded-full p-1 aspect-square inline-flex"
-         style="box-shadow: 8px 8px 16px rgb(163 177 198 / 0.6), -8px -8px 16px rgb(255 255 255 / 0.5)">
+         style="box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)">>
       <Image
         class="size-36 rounded-full aspect-square object-cover"
         src={profile.avatar_url}
@@ -26,22 +26,22 @@ const { profile, showBio = false } = Astro.props
         height={144}
       />
     </div>
-    <h4 class="mt-4 font-bold">{NICK_NAME}</h4>
-    <h5 class="m-2 text-slate-500">@{USER_NAME}</h5>
+    <h4 class="mt-4 font-bold dark:text-slate-100">{NICK_NAME}</h4>
+    <h5 class="m-2 text-slate-500 dark:text-slate-400">@{USER_NAME}</h5>
     {showBio && (
-      <h6 class="m-1.5 text-center text-slate-600">{profile.bio ?? 'Overflow Stack Developer.'}</h6>
+      <h6 class="m-1.5 text-center text-slate-600 dark:text-slate-400">{profile.bio ?? 'Overflow Stack Developer.'}</h6>
     )}
   </div>
 
   <div class="neu-inset rounded-2xl px-6 py-4 flex justify-around text-center">
     <div>
-      <span class="font-bold block">{profile.followers}</span>
-      <span class="text-xs text-slate-500">followers</span>
+      <span class="font-bold block dark:text-slate-200">{profile.followers}</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400">followers</span>
     </div>
-    <div class="w-px bg-slate-300/40"></div>
+    <div class="w-px bg-slate-300/40 dark:bg-slate-600/40"></div>
     <div>
-      <span class="font-bold block">{profile.following}</span>
-      <span class="text-xs text-slate-500">following</span>
+      <span class="font-bold block dark:text-slate-200">{profile.following}</span>
+      <span class="text-xs text-slate-500 dark:text-slate-400">following</span>
     </div>
   </div>
 
@@ -49,11 +49,11 @@ const { profile, showBio = false } = Astro.props
     {
       SOCIALS.map((social) => (
         <a class="neu-btn flex no-underline h-9 items-center rounded-xl px-3 gap-2
-                  text-slate-500 hover:text-slate-700 transition-all duration-200
-                  hover:bg-gradient-to-r hover:from-slate-100/40 hover:to-transparent" href={social.url} target="_blank">
+                  text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-all duration-200
+                  hover:bg-gradient-to-r hover:from-slate-100/40 hover:to-transparent dark:hover:from-slate-700/30" href={social.url} target="_blank">
           <span class="sr-only">{social.description}</span>
-          <img class="size-4 rounded-none" src={social.icon} alt={social.description}/>
-          <h6 class="text-slate-500 m-0 text-xs">@{social.name}</h6>
+          <img class="size-4 rounded-none dark:invert-[0.8]" src={social.icon} alt={social.description}/>
+          <h6 class="text-slate-500 dark:text-slate-400 m-0 text-xs">@{social.name}</h6>
         </a>
       ))
     }

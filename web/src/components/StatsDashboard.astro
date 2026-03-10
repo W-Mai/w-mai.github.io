@@ -13,54 +13,54 @@ const { totalPosts, totalWords, averageWords, earliestDate, latestDate } = Astro
 ---
 
 <section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:3.5">
-  <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
+  <h2 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-6 flex items-center gap-2">
     📊 写作统计
-    <span class="h-0.5 flex-1 bg-slate-200/60 rounded-full"></span>
+    <span class="h-0.5 flex-1 bg-slate-200/60 dark:bg-slate-600/40 rounded-full"></span>
   </h2>
 
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
     <!-- Total posts -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
-      <span class="block text-xl sm:text-2xl font-bold text-slate-800">{totalPosts}</span>
-      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">怼了 {totalPosts} 篇文章</span>
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">{totalPosts}</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 block">怼了 {totalPosts} 篇文章</span>
     </div>
 
     <!-- Total words -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
-      <span class="block text-xl sm:text-2xl font-bold text-slate-800">
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">
         {totalWords >= 10000 ? `${(totalWords / 10000).toFixed(1)}万` : totalWords.toLocaleString()}
       </span>
-      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">共 {totalWords.toLocaleString()} 字</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 block">共 {totalWords.toLocaleString()} 字</span>
     </div>
 
     <!-- Average words -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
-      <span class="block text-xl sm:text-2xl font-bold text-slate-800">{averageWords.toLocaleString()}</span>
-      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">平均每篇 {averageWords.toLocaleString()} 字</span>
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">{averageWords.toLocaleString()}</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 block">平均每篇 {averageWords.toLocaleString()} 字</span>
     </div>
 
     <!-- Site PV (busuanzi) -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
-      <span class="block text-xl sm:text-2xl font-bold text-slate-800 busuanzi-stats-value" id="stats_site_pv">-</span>
-      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">被怼了多少下儿</span>
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 busuanzi-stats-value" id="stats_site_pv">-</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 block">被怼了多少下儿</span>
     </div>
 
     <!-- Site UV (busuanzi) -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center">
-      <span class="block text-xl sm:text-2xl font-bold text-slate-800 busuanzi-stats-value" id="stats_site_uv">-</span>
-      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">多少老铁来过</span>
+      <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 busuanzi-stats-value" id="stats_site_uv">-</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 block">多少老铁来过</span>
     </div>
 
     <!-- Date range (spans 2 cols on mobile) -->
     <div class="neu-inset rounded-xl px-3 sm:px-4 py-3 sm:py-4 text-center col-span-2 sm:col-span-1 md:col-span-2">
-      <span class="block text-sm sm:text-base font-bold text-slate-800">
+      <span class="block text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
         <FormattedDate date={earliestDate} />
       </span>
-      <span class="block text-[10px] sm:text-xs text-slate-400">~</span>
-      <span class="block text-sm sm:text-base font-bold text-slate-800">
+      <span class="block text-[10px] sm:text-xs text-slate-400 dark:text-slate-500">~</span>
+      <span class="block text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
         <FormattedDate date={latestDate} />
       </span>
-      <span class="text-[11px] sm:text-xs text-slate-400 mt-1 block">创作时间跨度</span>
+      <span class="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1 block">创作时间跨度</span>
     </div>
   </div>
 </section>

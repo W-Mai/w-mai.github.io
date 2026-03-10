@@ -1,0 +1,449 @@
+/*! Neumorphism DARK theme for giscus — based on light version */
+
+@font-face {
+  font-family: "ArkPixel";
+  src: url("https://benign.host/fonts/ark-pixel-12px-monospaced-zh_cn.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+main {
+  /* Primary accent color (RGB triplet) — lighter slate for dark bg */
+  --primary-default: 148, 163, 184;
+  /* Background color (RGB triplet) — dark neumorphism base */
+  --bg-default: 45, 52, 54;
+
+  /* Neumorphism shadow tokens — dark mode */
+  --sd: rgb(30 32 34 / 0.7);
+  --sl: rgb(55 59 61 / 0.5);
+  --sd-s: rgb(25 27 29 / 0.8);
+  --sl-s: rgb(60 64 66 / 0.6);
+  --r: 16px;
+  --r-sm: 10px;
+
+  /* Primer syntax highlighting — dark variant */
+  --color-prettylights-syntax-comment: #8b949e;
+  --color-prettylights-syntax-constant: #79c0ff;
+  --color-prettylights-syntax-entity: #d2a8ff;
+  --color-prettylights-syntax-storage-modifier-import: #c9d1d9;
+  --color-prettylights-syntax-entity-tag: #7ee787;
+  --color-prettylights-syntax-keyword: #ff7b72;
+  --color-prettylights-syntax-string: #a5d6ff;
+  --color-prettylights-syntax-variable: #ffa657;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #f85149;
+  --color-prettylights-syntax-invalid-illegal-text: #f0f6fc;
+  --color-prettylights-syntax-invalid-illegal-bg: #8e1519;
+  --color-prettylights-syntax-carriage-return-text: #f0f6fc;
+  --color-prettylights-syntax-carriage-return-bg: #b62324;
+  --color-prettylights-syntax-string-regexp: #7ee787;
+  --color-prettylights-syntax-markup-list: #f2cc60;
+  --color-prettylights-syntax-markup-heading: #79c0ff;
+  --color-prettylights-syntax-markup-italic: #c9d1d9;
+  --color-prettylights-syntax-markup-bold: #c9d1d9;
+  --color-prettylights-syntax-markup-deleted-text: #ffdcd7;
+  --color-prettylights-syntax-markup-deleted-bg: #67060c;
+  --color-prettylights-syntax-markup-inserted-text: #aff5b4;
+  --color-prettylights-syntax-markup-inserted-bg: #033a16;
+  --color-prettylights-syntax-markup-changed-text: #ffdfb6;
+  --color-prettylights-syntax-markup-changed-bg: #5a1e02;
+  --color-prettylights-syntax-markup-ignored-text: #c9d1d9;
+  --color-prettylights-syntax-markup-ignored-bg: #1158c7;
+  --color-prettylights-syntax-meta-diff-range: #d2a8ff;
+  --color-prettylights-syntax-brackethighlighter-angle: #8b949e;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #484f58;
+  --color-prettylights-syntax-constant-other-reference-link: #a5d6ff;
+
+  /* Button colors — borders match dark background */
+  --color-btn-text: #e2e8f0;
+  --color-btn-bg: rgba(var(--bg-default), 1);
+  --color-btn-border: rgba(var(--bg-default), 1);
+  --color-btn-shadow: 0 0 0 rgba(var(--bg-default), 1);
+  --color-btn-inset-shadow: inset 0 0 0 rgba(var(--bg-default), 1);
+  --color-btn-hover-bg: rgba(var(--bg-default), 0.5);
+  --color-btn-hover-border: rgba(var(--bg-default), 0.5);
+  --color-btn-active-bg: rgba(var(--primary-default), 0.2);
+  --color-btn-active-border: rgba(var(--bg-default), 1);
+  --color-btn-selected-bg: rgba(var(--primary-default), 0.15);
+  --color-btn-primary-text: #e2e8f0;
+  --color-btn-primary-bg: rgba(var(--bg-default), 1);
+  --color-btn-primary-border: rgba(var(--bg-default), 1);
+  --color-btn-primary-shadow: 0 0 0 transparent;
+  --color-btn-primary-inset-shadow: inset 0 0 0 transparent;
+  --color-btn-primary-hover-bg: rgba(var(--bg-default), 0.9);
+  --color-btn-primary-hover-border: rgba(var(--bg-default), 0.9);
+  --color-btn-primary-selected-bg: rgba(var(--bg-default), 1);
+  --color-btn-primary-selected-shadow: inset 0 0 0 transparent;
+  --color-btn-primary-disabled-text: #64748b;
+  --color-btn-primary-disabled-bg: rgba(var(--bg-default), 0.5);
+  --color-btn-primary-disabled-border: rgba(var(--bg-default), 0.5);
+
+  /* Action list */
+  --color-action-list-item-default-hover-bg: rgba(var(--bg-default), 0.5);
+
+  /* Segmented control — hide borders */
+  --color-segmented-control-bg: rgba(var(--bg-default), 1);
+  --color-segmented-control-button-bg: rgba(var(--bg-default), 1);
+  --color-segmented-control-button-selected-border: rgba(var(--bg-default), 1);
+
+  /* Foreground — light text on dark bg */
+  --color-fg-default: #e2e8f0;
+  --color-fg-muted: #94a3b8;
+  --color-fg-subtle: #64748b;
+
+  /* Canvas — all surfaces use dark neu background */
+  --color-canvas-default: rgba(var(--bg-default), 1);
+  --color-canvas-overlay: rgba(var(--bg-default), 1);
+  --color-canvas-inset: rgba(var(--bg-default), 0.85);
+  --color-canvas-subtle: rgba(var(--bg-default), 1);
+
+  /* Borders — match dark background so they disappear */
+  --color-border-default: rgba(var(--bg-default), 1);
+  --color-border-muted: rgba(var(--bg-default), 1);
+  --color-neutral-muted: rgba(var(--bg-default), 0.3);
+
+  /* Accent — hide focus borders by matching dark background */
+  --color-accent-fg: rgba(var(--bg-default), 1);
+  --color-accent-emphasis: #e2e8f0;
+  --color-accent-muted: #64748b;
+  --color-accent-subtle: rgba(var(--bg-default), 0.5);
+
+  /* Status colors — slightly brighter for dark bg */
+  --color-success-fg: #3fb950;
+  --color-attention-fg: #d29922;
+  --color-attention-muted: #bb800966;
+  --color-attention-subtle: #2d1d00;
+  --color-danger-fg: #f85149;
+  --color-danger-muted: #f8514966;
+  --color-danger-subtle: #490202;
+
+  /* Inset shadow — match dark background */
+  --color-primer-shadow-inset: 0 0 0 rgba(var(--bg-default), 1), inset 0 0 0 rgba(var(--bg-default), 1);
+  --color-primer-shadow-focus: 0 0 0 3px transparent;
+  --color-primer-shadow-highlight: inset 0 0 0 transparent;
+  --color-scale-gray-1: rgba(var(--bg-default), 0.8);
+  --color-scale-blue-1: rgba(var(--primary-default), 0.15);
+
+  /* Link text color — lighter slate for dark bg */
+  --color-text-link: #94a3b8;
+
+  /* Social reaction */
+  --color-social-reaction-bg-hover: var(--color-scale-gray-1);
+  --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-1);
+}
+
+/* Loading indicators */
+main .pagination-loader-container {
+  background-image: url(https://github.com/images/modules/pulls/progressive-disclosure-line.svg);
+}
+main .gsc-loading-image {
+  background-image: url(https://github.githubassets.com/images/mona-loading-default.gif);
+}
+
+/* Remove reply box border-radius override from noborder base */
+.gsc-comment:not(.gsc-reply-box) .gsc-replies {
+  border-radius: unset;
+}
+
+/* ── Global background & padding ── */
+body, main, .gsc-main {
+  background: rgba(var(--bg-default), 1) !important;
+  color: #e2e8f0 !important;
+  font-family: "ArkPixel", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
+}
+
+/* Give main breathing room so shadows are not clipped */
+main {
+  padding: 0.75rem !important;
+  overflow: visible !important;
+}
+
+/* ── Nuclear border kill — all states including focus ── */
+*, *::before, *::after,
+*:focus, *:focus-visible, *:focus-within {
+  border-color: rgba(var(--bg-default), 1) !important;
+  outline: none !important;
+}
+
+/* Force zero border on form controls */
+.form-control.input-contrast.gsc-comment-box-textarea,
+.form-control.input-contrast.gsc-comment-box-textarea:focus,
+.form-control.input-contrast.gsc-comment-box-textarea-extras,
+.form-control.input-contrast.gsc-comment-box-textarea-extras:focus,
+.gsc-comment-box-write:focus-within .form-control,
+.gsc-comment-box-main:focus-within .form-control {
+  border: 0 !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+.gsc-comment-box-write,
+.gsc-comment-box-write:focus-within,
+.gsc-comment-box-main,
+.gsc-comment-box-main:focus-within {
+  border: 0 !important;
+  border-width: 0 !important;
+  outline: none !important;
+}
+
+/* ── Raised comment cards ── */
+.gsc-comment {
+  background: rgba(var(--bg-default), 1) !important;
+  border-radius: var(--r) !important;
+  box-shadow: 8px 8px 16px var(--sd), -8px -8px 16px var(--sl) !important;
+  padding: 1.25rem !important;
+  margin: 0.75rem 0.5rem !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+  overflow: visible !important;
+}
+.gsc-comment:hover {
+  box-shadow: 6px 6px 12px var(--sd), -6px -6px 12px var(--sl) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── Inset comment box ── */
+.gsc-comment-box {
+  background: rgba(var(--bg-default), 1) !important;
+  border-radius: var(--r) !important;
+  box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
+  padding: 1rem !important;
+  margin: 0.5rem !important;
+}
+
+/* ── Comment box bottom bar — kill border ── */
+.gsc-comment-box-bottom,
+.gsc-comment-box-textarea-extras,
+.gsc-comment-box-separator {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Tabs (Write/Preview) ── */
+.gsc-comment-box-tabs {
+  background: rgba(var(--bg-default), 1) !important;
+  border: none !important;
+}
+.gsc-comment-box-tabs button,
+.gsc-comment-box-tabs [role="tab"] {
+  background: rgba(var(--bg-default), 1) !important;
+  color: #94a3b8 !important;
+  border: none !important;
+  border-radius: var(--r-sm) var(--r-sm) 0 0 !important;
+  box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
+  transition: box-shadow 0.3s ease, color 0.3s ease !important;
+}
+.gsc-comment-box-tabs button[aria-selected="true"],
+.gsc-comment-box-tabs button.selected,
+.gsc-comment-box-tabs [role="tab"][aria-selected="true"] {
+  color: #e2e8f0 !important;
+  font-weight: 600 !important;
+  box-shadow: inset 3px 3px 6px var(--sd-s), inset -3px -3px 6px var(--sl-s) !important;
+}
+
+/* ── Textarea ── */
+textarea, .form-control {
+  background: rgba(var(--bg-default), 1) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: inset 4px 4px 8px var(--sd-s), inset -4px -4px 8px var(--sl-s) !important;
+  color: #e2e8f0 !important;
+  padding: 0.75rem !important;
+  transition: box-shadow 0.3s ease !important;
+}
+textarea:focus, .form-control:focus,
+.gsc-comment-box-textarea:focus,
+.form-control.input-contrast.gsc-comment-box-textarea:focus {
+  box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
+  border-color: transparent !important;
+}
+
+/* Markdown hint extras bar */
+.gsc-comment-box-textarea-extras {
+  background: rgba(var(--bg-default), 1) !important;
+  box-shadow: none !important;
+}
+
+/* ── Focus states ── */
+input {
+  transition: box-shadow 0.3s ease !important;
+}
+textarea:focus, textarea:focus-visible,
+input:focus, input:focus-visible {
+  box-shadow: inset 6px 6px 12px var(--sd-s), inset -6px -6px 12px var(--sl-s) !important;
+}
+
+button:focus, button:focus-visible,
+.btn:focus, .btn:focus-visible,
+.btn-primary:focus, .btn-primary:focus-visible {
+  box-shadow: 5px 5px 10px var(--sd), -5px -5px 10px var(--sl) !important;
+}
+
+/* ── Segmented control (Oldest/Newest) ── */
+.SelectMenu,
+[class*="segmented"],
+[class*="Segmented"] {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Raised primary buttons ── */
+.btn-primary, button.btn-primary,
+.gsc-comment-box .btn-primary,
+.gsc-reply-box .btn-primary {
+  background: rgba(var(--bg-default), 1) !important;
+  border: none !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 5px 5px 10px var(--sd), -5px -5px 10px var(--sl) !important;
+  color: #e2e8f0 !important;
+  font-weight: 600 !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+}
+.btn-primary:hover, button.btn-primary:hover {
+  box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
+  transform: translateY(-1px) !important;
+}
+.btn-primary:active, button.btn-primary:active {
+  box-shadow: inset 3px 3px 6px var(--sd-s), inset -3px -3px 6px var(--sl-s) !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Secondary buttons ── */
+.btn, button.btn {
+  background: rgba(var(--bg-default), 1) !important;
+  border: none !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl) !important;
+  color: #94a3b8 !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, color 0.3s ease !important;
+}
+.btn:hover, button.btn:hover {
+  box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl) !important;
+  transform: translateY(-1px) !important;
+  color: #e2e8f0 !important;
+}
+.btn:active, button.btn:active {
+  box-shadow: inset 2px 2px 4px var(--sd-s), inset -2px -2px 4px var(--sl-s) !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Raised reaction buttons ── */
+.gsc-reactions {
+  background: transparent !important;
+  padding: 0 0.5rem !important;
+}
+.gsc-reactions-button,
+.gsc-direct-reaction-button,
+.gsc-social-reaction-summary-item {
+  background: rgba(var(--bg-default), 1) !important;
+  border: none !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 4px 4px 8px var(--sd), -4px -4px 8px var(--sl) !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+}
+.gsc-reactions-button:hover,
+.gsc-direct-reaction-button:hover,
+.gsc-social-reaction-summary-item:hover {
+  box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl) !important;
+  transform: translateY(-1px) !important;
+}
+.gsc-reactions-button.has-reacted,
+.gsc-direct-reaction-button.has-reacted,
+.gsc-social-reaction-summary-item.has-reacted {
+  box-shadow: inset 3px 3px 6px var(--sd-s), inset -3px -3px 6px var(--sl-s) !important;
+  color: #e2e8f0 !important;
+}
+
+/* ── Avatar ── */
+img.avatar, .avatar {
+  border-radius: 50% !important;
+  box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
+  padding: 2px !important;
+  background: rgba(var(--bg-default), 1) !important;
+  transition: box-shadow 0.3s ease !important;
+}
+
+/* ── Inset replies ── */
+.gsc-replies {
+  padding-left: 1rem !important;
+  border: none !important;
+}
+.gsc-reply {
+  background: rgba(var(--bg-default), 1) !important;
+  border: none !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: inset 4px 4px 8px var(--sd-s), inset -4px -4px 8px var(--sl-s) !important;
+  padding: 0.75rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* ── Header ── */
+.gsc-header {
+  background: transparent !important;
+  padding: 0 0.5rem !important;
+}
+
+/* ── Footer / powered-by area ── */
+.gsc-footer,
+.gsc-main > :last-child {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Links — lighter slate for dark bg ── */
+a {
+  color: #94a3b8 !important;
+  text-decoration: none !important;
+}
+a:hover {
+  color: #e2e8f0 !important;
+  text-decoration: underline !important;
+}
+
+/* ── Upvote / direct reaction buttons ── */
+.gsc-direct-reaction-button,
+.gsc-social-reaction-summary-item {
+  padding: 4px 12px !important;
+  min-width: 48px !important;
+  gap: 6px !important;
+}
+
+/* ── "Write a reply" link ── */
+.gsc-reply-box [href$="app"],
+.gsc-replies > a,
+a.color-text-link,
+.gsc-comment a[href*="giscus.app"] {
+  cursor: pointer !important;
+  background: rgba(var(--bg-default), 1) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: 3px 3px 6px var(--sd), -3px -3px 6px var(--sl) !important;
+  padding: 4px 14px !important;
+  display: inline-block !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
+  text-decoration: none !important;
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+}
+.gsc-reply-box [href$="app"]:hover,
+.gsc-replies > a:hover,
+a.color-text-link:hover,
+.gsc-comment a[href*="giscus.app"]:hover {
+  box-shadow: 2px 2px 4px var(--sd), -2px -2px 4px var(--sl) !important;
+  transform: translateY(-1px) !important;
+  text-decoration: none !important;
+  color: #e2e8f0 !important;
+}
+.gsc-reply-box [href$="app"]:active,
+.gsc-replies > a:active,
+a.color-text-link:active,
+.gsc-comment a[href*="giscus.app"]:active {
+  box-shadow: inset 2px 2px 4px var(--sd-s), inset -2px -2px 4px var(--sl-s) !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Scrollbar — dark variant ── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(var(--bg-default), 1); }
+::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #64748b; }

@@ -39,6 +39,78 @@ const ogImageUrl = isBlogPost
 />
 <meta name="generator" content={Astro.generator} />
 
+<!-- Theme initialization — runs before first paint to prevent FOUC -->
+<script is:inline>
+(function () {
+  var doc = document.documentElement;
+
+  // Read stored theme preference from localStorage
+  function getStoredTheme() {
+    try {
+      return localStorage.getItem('theme');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Detect system color scheme preference
+  function getSystemTheme() {
+    if (typeof window.matchMedia === 'function') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  }
+
+  // Apply theme by toggling html.dark class
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      doc.classList.add('dark');
+    } else {
+      doc.classList.remove('dark');
+    }
+  }
+
+  // Resolve active theme: user preference > system preference
+  function resolveTheme() {
+    var stored = getStoredTheme();
+    return stored === 'dark' || stored === 'light' ? stored : getSystemTheme();
+  }
+
+  // Initialize theme before first paint
+  applyTheme(resolveTheme());
+
+  // Global toggle function for ThemeToggle component
+  window.__toggleTheme = function () {
+    var isDark = doc.classList.contains('dark');
+    var newTheme = isDark ? 'light' : 'dark';
+    applyTheme(newTheme);
+    try {
+      localStorage.setItem('theme', newTheme);
+    } catch (e) {}
+    window.dispatchEvent(
+      new CustomEvent('theme-change', { detail: { theme: newTheme } })
+    );
+  };
+
+  // Watch system preference changes — only apply when no explicit user preference
+  if (typeof window.matchMedia === 'function') {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+      var stored = getStoredTheme();
+      if (stored === 'dark' || stored === 'light') return;
+      applyTheme(e.matches ? 'dark' : 'light');
+      window.dispatchEvent(
+        new CustomEvent('theme-change', { detail: { theme: e.matches ? 'dark' : 'light' } })
+      );
+    });
+  }
+
+  // Re-apply theme after View Transitions page swap (prevent flicker)
+  document.addEventListener('astro:after-swap', function () {
+    applyTheme(resolveTheme());
+  });
+})();
+</script>
+
 <!-- Font preloads -->
 <link rel="preload" href="/fonts/ark-pixel-12px-monospaced-zh_cn.ttf" as="font" type="font/ttf" crossorigin />
 <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin />
@@ -98,14 +170,15 @@ const ogImageUrl = isBlogPost
 	document.addEventListener('astro:page-load', initAnimations)
 </script>
 
-<!-- Re-initialize mermaid diagrams after View Transitions -->
+<!-- Re-initialize mermaid diagrams after View Transitions and theme changes -->
 <script>
 	async function reinitMermaid() {
 		const diagrams = document.querySelectorAll('pre.mermaid:not([data-processed])');
 		if (diagrams.length === 0) return;
 		try {
+			const isDark = document.documentElement.classList.contains('dark');
 			const { default: mermaid } = await import('mermaid');
-			mermaid.initialize({ startOnLoad: false, theme: 'default' });
+			mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default' });
 			for (const el of diagrams) {
 				if (!el.getAttribute('data-diagram')) {
 					el.setAttribute('data-diagram', el.textContent || '');
@@ -118,7 +191,17 @@ const ogImageUrl = isBlogPost
 			}
 		} catch {}
 	}
+
+	async function rerenderMermaid() {
+		// Reset all processed diagrams so reinitMermaid picks them up again
+		document.querySelectorAll('pre.mermaid[data-processed]').forEach((el) => {
+			el.removeAttribute('data-processed');
+		});
+		await reinitMermaid();
+	}
+
 	document.addEventListener('astro:page-load', reinitMermaid);
+	window.addEventListener('theme-change', rerenderMermaid);
 </script>
 
 {/* GA4 tracking script — production only */}

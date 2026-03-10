@@ -43,6 +43,51 @@
     }
 }
 
+/* Dark mode Neumorphism design tokens */
+html.dark {
+  --neu-bg: #2d3436;
+  --neu-shadow-dark: rgb(30 32 34 / 0.7);
+  --neu-shadow-light: rgb(55 59 61 / 0.5);
+  --neu-shadow-dark-strong: rgb(25 27 29 / 0.8);
+  --neu-shadow-light-strong: rgb(60 64 66 / 0.6);
+  --neu-cluster-bg: #262b2d;
+
+  --black: 226, 232, 240;
+  --gray: 148, 163, 184;
+  --gray-light: 51, 65, 85;
+  --gray-dark: 226, 232, 240;
+  --accent: #94a3b8;
+  --accent-dark: #cbd5e1;
+
+  --theme-background: #2d3436;
+  --theme-accent: #3fb950;
+}
+
+/* Dark mode base element overrides */
+html.dark body {
+  color: rgb(var(--gray-dark));
+}
+
+html.dark a {
+  color: var(--accent);
+}
+
+html.dark a:hover {
+  color: var(--accent-dark);
+}
+
+html.dark hr {
+  border-top-color: rgb(var(--gray-light));
+}
+
+html.dark code {
+  background-color: #1e2426;
+}
+
+html.dark blockquote {
+  border-left-color: var(--accent);
+}
+
 @font-face {
 	font-family: "Atkinson";
 	src: url("/fonts/atkinson-regular.woff") format("woff");
@@ -202,6 +247,25 @@ hr {
   box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
 }
 
+/* Dark mode prose overrides */
+html.dark .prose .expressive-code,
+html.dark .prose .expressive-code figure {
+  border-color: #3a4245 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2) !important;
+}
+
+html.dark .prose blockquote {
+  border-left-color: var(--accent);
+}
+
+html.dark .prose hr {
+  border-top-color: rgb(var(--gray-light));
+}
+
+html.dark .prose code {
+  background-color: #1e2426;
+}
+
 /* Neumorphism design system */
 
 /* Custom scrollbar for sleek look */
@@ -217,6 +281,31 @@ hr {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
+}
+
+/* Dark mode scrollbar */
+html.dark ::-webkit-scrollbar-track {
+  background: var(--neu-bg);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #4a5568;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Theme switch transition */
+html:not(.no-transitions) body,
+html:not(.no-transitions) .neu-card,
+html:not(.no-transitions) .neu-btn,
+html:not(.no-transitions) .neu-inset {
+  transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
 }
 
 .neu-bg {
@@ -345,6 +434,17 @@ pre.mermaid .node .label {
   fill: #334155 !important;
 }
 
+/* Dark mode Mermaid node overrides */
+html.dark pre.mermaid:not([data-processed]) {
+  background: linear-gradient(90deg, #2a2f31 25%, #262b2d 50%, #2a2f31 75%) !important;
+  background-size: 200% 100% !important;
+}
+
+html.dark pre.mermaid .node .label {
+  color: #e2e8f0 !important;
+  fill: #e2e8f0 !important;
+}
+
 /* Mermaid cluster (subgraph) neumorphism */
 pre.mermaid .cluster rect {
   fill: var(--neu-cluster-bg) !important;
@@ -360,6 +460,16 @@ pre.mermaid .cluster .nodeLabel {
   fill: #475569 !important;
 }
 
+/* Dark mode Mermaid cluster overrides */
+html.dark pre.mermaid .cluster rect {
+  fill: var(--neu-cluster-bg) !important;
+}
+
+html.dark pre.mermaid .cluster .nodeLabel {
+  color: #94a3b8 !important;
+  fill: #94a3b8 !important;
+}
+
 /* Mermaid edges */
 pre.mermaid .edgePath .path {
   stroke: #94a3af !important;
@@ -368,6 +478,15 @@ pre.mermaid .edgePath .path {
 
 pre.mermaid .edgePath marker path {
   fill: #94a3af !important;
+}
+
+/* Dark mode Mermaid edge overrides */
+html.dark pre.mermaid .edgePath .path {
+  stroke: #94a3b8 !important;
+}
+
+html.dark pre.mermaid .edgePath marker path {
+  fill: #94a3b8 !important;
 }
 
 /* Sticker system */

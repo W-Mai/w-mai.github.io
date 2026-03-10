@@ -64,4 +64,16 @@ import BusuanziFooter from './BusuanziFooter.astro';
 	.game-link:hover {
 		opacity: 0.8;
 	}
+
+	/* Dark mode overrides */
+	:global(html.dark) footer {
+		background: rgba(45, 52, 54, 0.85);
+		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.2);
+	}
+	:global(html.dark) footer::before {
+		background: radial-gradient(ellipse at bottom center, rgba(0,0,0,0.3) 0%, transparent 70%);
+	}
+	:global(html.dark) .social-links a img {
+		filter: invert(0.8);
+	}
 </style>
