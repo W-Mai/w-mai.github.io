@@ -24,7 +24,7 @@ export const FRIENDS: readonly FriendLink[] = [
     tags: ['博客', '开源', 'OneClip'],
   },
   {
-    name: 'Mickey',
+    name: 'MickeyMiao',
     url: 'https://blog.mickeymiao.cn',
     avatar: 'https://avatars.githubusercontent.com/WangSimiao2000',
     description: 'Leeds 图形学硕士，热爱 Minecraft 和图形渲染，擅长 C++/OpenGL 体素引擎与光线追踪。',
