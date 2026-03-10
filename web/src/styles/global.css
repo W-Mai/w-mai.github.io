@@ -328,6 +328,11 @@ html:not(.no-transitions) .neu-inset {
   border: none;
 }
 
+html.dark .neu-card-warm {
+  background: linear-gradient(135deg, #3a3530, #35302b);
+  box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
+}
+
 .neu-btn {
   background: var(--neu-bg);
   box-shadow: 5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light);

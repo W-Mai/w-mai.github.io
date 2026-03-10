@@ -40,8 +40,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 
     <!-- Hero section -->
     <section class="flex flex-col items-center text-center mb-8 sm:mb-12 anim-fade" style="--delay:0">
-        <div class="neu-avatar-ring rounded-full anim-zoom inline-flex aspect-square"
-             style="box-shadow: 8px 8px 16px rgb(163 177 198 / 0.6), -8px -8px 16px rgb(255 255 255 / 0.5)">
+        <div class="neu-avatar-ring rounded-full anim-zoom inline-flex aspect-square">
             <Image
                 class="size-24 sm:size-32 md:size-40 rounded-full aspect-square object-cover"
                 src={profile.avatar_url}
@@ -50,10 +49,10 @@ const afterCount = Math.floor(Math.random() * 60) + 20
                 height={160}
             />
         </div>
-        <h1 class="mt-4 sm:mt-6 text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800">{profile.name ?? NICK_NAME}</h1>
-        <p class="mt-1 text-base sm:text-lg text-slate-400">@{USER_NAME}</p>
+        <h1 class="mt-4 sm:mt-6 text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100">{profile.name ?? NICK_NAME}</h1>
+        <p class="mt-1 text-base sm:text-lg text-slate-400 dark:text-slate-500">@{USER_NAME}</p>
         {profile.bio && (
-            <p class="mt-2 sm:mt-3 text-sm sm:text-base md:text-lg text-slate-500 max-w-md px-2">{profile.bio}</p>
+            <p class="mt-2 sm:mt-3 text-sm sm:text-base md:text-lg text-slate-500 dark:text-slate-400 max-w-md px-2">{profile.bio}</p>
         )}
 
         <!-- Social links -->
@@ -61,8 +60,8 @@ const afterCount = Math.floor(Math.random() * 60) + 20
             {SOCIALS.map((social) => (
                 <a href={social.url} target="_blank" rel="noopener noreferrer"
                    class="neu-btn flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl
-                          text-xs sm:text-sm no-underline text-slate-600 hover:text-slate-800 transition-all">
-                    <img class="size-4 rounded-none" src={social.icon} alt={social.name} />
+                          text-xs sm:text-sm no-underline text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 transition-all">
+                    <img class="size-4 rounded-none dark:invert-[0.8]" src={social.icon} alt={social.name} />
                     <span class="hidden sm:inline">{social.name}</span>
                 </a>
             ))}
@@ -70,21 +69,21 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     </section>
 
     <!-- Stats bar -->
-    <section class="neu-card rounded-2xl px-6 py-5 max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12 anim-fade" style="--delay:1; background: linear-gradient(135deg, #e3e8ef, #dde2e9)">
+    <section class="neu-card rounded-2xl px-6 py-5 max-w-xs sm:max-w-sm mx-auto mb-8 sm:mb-12 anim-fade about-stats-bar" style="--delay:1">
         <div class="flex justify-around">
             <div class="text-center">
-                <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.public_repos}</span>
-                <span class="text-[11px] sm:text-sm text-slate-400">Repos</span>
+                <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">{profile.public_repos}</span>
+                <span class="text-[11px] sm:text-sm text-slate-400 dark:text-slate-500">Repos</span>
             </div>
-            <div class="w-px bg-slate-200/60"></div>
+            <div class="w-px bg-slate-200/60 dark:bg-slate-600/40"></div>
             <div class="text-center">
-                <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.followers}</span>
-                <span class="text-[11px] sm:text-sm text-slate-400">Followers</span>
+                <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">{profile.followers}</span>
+                <span class="text-[11px] sm:text-sm text-slate-400 dark:text-slate-500">Followers</span>
             </div>
-            <div class="w-px bg-slate-200/60"></div>
+            <div class="w-px bg-slate-200/60 dark:bg-slate-600/40"></div>
             <div class="text-center">
-                <span class="block text-xl sm:text-2xl font-bold text-slate-800">{profile.following}</span>
-                <span class="text-[11px] sm:text-sm text-slate-400">Following</span>
+                <span class="block text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">{profile.following}</span>
+                <span class="text-[11px] sm:text-sm text-slate-400 dark:text-slate-500">Following</span>
             </div>
         </div>
     </section>
@@ -95,8 +94,8 @@ const afterCount = Math.floor(Math.random() * 60) + 20
             <div class="neu-card flex items-center gap-2.5 sm:gap-3 rounded-xl px-3.5 sm:px-5 py-3 sm:py-4">
                 <span class="text-lg sm:text-xl">📍</span>
                 <div class="min-w-0">
-                    <p class="text-xs text-slate-400 m-0">Location</p>
-                    <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 truncate">{profile.location}</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 m-0">Location</p>
+                    <p class="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 m-0 truncate">{profile.location}</p>
                 </div>
             </div>
         )}
@@ -104,8 +103,8 @@ const afterCount = Math.floor(Math.random() * 60) + 20
             <div class="neu-card flex items-center gap-2.5 sm:gap-3 rounded-xl px-3.5 sm:px-5 py-3 sm:py-4">
                 <span class="text-lg sm:text-xl">🏢</span>
                 <div class="min-w-0">
-                    <p class="text-xs text-slate-400 m-0">Company</p>
-                    <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 truncate">{profile.company}</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 m-0">Company</p>
+                    <p class="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 m-0 truncate">{profile.company}</p>
                 </div>
             </div>
         )}
@@ -115,8 +114,8 @@ const afterCount = Math.floor(Math.random() * 60) + 20
                       no-underline transition-all">
                 <span class="text-lg sm:text-xl">🔗</span>
                 <div class="min-w-0">
-                    <p class="text-xs text-slate-400 m-0">Blog</p>
-                    <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 truncate">{profile.blog}</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 m-0">Blog</p>
+                    <p class="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 m-0 truncate">{profile.blog}</p>
                 </div>
             </a>
         )}
@@ -124,9 +123,9 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 
     <!-- GitHub Activity -->
     <section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:3">
-        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-6 flex items-center gap-2">
             🟩 GitHub 活动
-            <span class="h-0.5 flex-1 bg-slate-200/60 rounded-full"></span>
+            <span class="h-0.5 flex-1 bg-slate-200/60 dark:bg-slate-600/40 rounded-full"></span>
         </h2>
         <div class="overflow-x-auto -mx-1">
             <GitHubActivityCalendar username={USER_NAME} />
@@ -147,12 +146,12 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 
     <!-- Easter egg: 找恁 -->
     <section class="neu-card-warm rounded-2xl p-4 sm:p-6 md:p-8 anim-fade" style="--delay:5">
-        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4 flex items-center gap-2">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 mb-3 sm:mb-4 flex items-center gap-2">
             🔍 找恁
-            <span class="h-0.5 flex-1 bg-amber-200/60 rounded-full"></span>
+            <span class="h-0.5 flex-1 bg-amber-200/60 dark:bg-amber-700/30 rounded-full"></span>
         </h2>
-        <p class="text-xs sm:text-sm text-slate-500 mb-3 sm:mb-4">从俺里边儿，找着恁搁哪儿嘞？</p>
-        <div id="find-ren" class="text-xs sm:text-sm leading-relaxed text-amber-800/60 select-none break-all">
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-3 sm:mb-4">从俺里边儿，找着恁搁哪儿嘞？</p>
+        <div id="find-ren" class="text-xs sm:text-sm leading-relaxed text-amber-800/60 dark:text-amber-400/50 select-none break-all">
             {Array.from({ length: beforeCount }).map(() => (
                 <span data-c="俺">俺 </span>
             ))}
@@ -195,6 +194,12 @@ const afterCount = Math.floor(Math.random() * 60) + 20
                 color: #ef4444;
                 font-weight: bold;
                 font-size: 1.5em;
+            }
+            .about-stats-bar {
+                background: linear-gradient(135deg, #e3e8ef, #dde2e9);
+            }
+            :global(html.dark) .about-stats-bar {
+                background: linear-gradient(135deg, #353a3c, #2f3436);
             }
         </style>
     </section>
