@@ -26,8 +26,8 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 				</div>
 			</div>
 		</div>
-		<ThemeToggle />
 		<div class="social-links">
+			<ThemeToggle />
             {
                 SOCIALS.map((social) => (
                     <a href={social.url} target="_blank" class="social-icon">
@@ -135,6 +135,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	/* Social links */
 	.social-links {
 		display: flex;
+		align-items: center;
 		gap: 0.25em;
 	}
 	.social-links :global(a) {
@@ -242,6 +243,9 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 			width: 100%;
 		}
 		.social-links {
+			justify-content: center;
+		}
+		.social-links .social-icon {
 			display: none;
 		}
 	}
