@@ -30,7 +30,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 			<ThemeToggle />
             {
                 SOCIALS.map((social) => (
-                    <a href={social.url} target="_blank" class="social-icon">
+                    <a href={social.url} target="_blank" class="social-icon neu-btn">
                         <span class="sr-only">{social.description}</span>
                         <img src={social.icon} alt={social.description} />
                     </a>
@@ -145,12 +145,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		width: 2.2em;
 		height: 2.2em;
 		border-radius: 0.6em;
-		transition: all 0.2s ease;
 		padding: 0;
-		border: none;
-	}
-	.social-links :global(a:hover) {
-		background: var(--hover-bg);
 	}
 	.social-links :global(img) {
 		width: 1em;
@@ -273,7 +268,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	:global(html.dark) .more-dropdown a:hover {
 		box-shadow: inset 1px 1px 3px var(--neu-shadow-dark), inset -1px -1px 3px var(--neu-shadow-light);
 	}
-	:global(html.dark) .social-links :global(img) {
+	.social-links :global(img) {
 		filter: invert(var(--icon-invert));
 	}
 </style>
