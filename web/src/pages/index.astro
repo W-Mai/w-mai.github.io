@@ -18,11 +18,11 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
 
     <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">👋 恁好，吃了冇</h1>
 
-    <p class="text-lg text-slate-500 mb-8 anim-fade" style="--delay:1">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
+    <p class="text-lg text-[var(--text-secondary)] mb-8 anim-fade" style="--delay:1">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 anim-fade" style="--delay:2">
         <a href="/blog" class="group flex items-center gap-2 rounded-xl neu-btn
-                                px-4 py-3 no-underline text-slate-700 dark:text-slate-200 transition-all duration-300
+                                px-4 py-3 no-underline text-[var(--text-primary)] transition-all duration-300
                                 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent
                                 dark:hover:from-blue-500/10 dark:hover:to-transparent">
             <span class="text-base">🚀</span>
@@ -30,13 +30,13 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
             <span class="ml-auto text-blue-300 dark:text-blue-400/60 text-xs group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">›</span>
         </a>
         <div class="flex items-center gap-2 rounded-xl neu-inset opacity-50
-                    px-4 py-3 text-slate-400 dark:text-slate-500 cursor-default">
+                    px-4 py-3 text-[var(--text-muted)] cursor-default">
             <span class="text-base grayscale-[30%]">⭐</span>
             <span class="text-xs font-medium truncate">怼点想法</span>
-            <span class="ml-auto text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">soon</span>
+            <span class="ml-auto text-[9px] text-[var(--text-muted)] whitespace-nowrap">soon</span>
         </div>
         <a href="/projects" class="group flex items-center gap-2 rounded-xl neu-btn
-                    px-4 py-3 no-underline text-slate-700 dark:text-slate-200 transition-all duration-300
+                    px-4 py-3 no-underline text-[var(--text-primary)] transition-all duration-300
                     hover:bg-gradient-to-r hover:from-emerald-50/50 hover:to-transparent
                     dark:hover:from-emerald-500/10 dark:hover:to-transparent">
             <span class="text-base">🧩</span>
@@ -44,17 +44,17 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
             <span class="ml-auto text-emerald-300 dark:text-emerald-400/60 text-xs group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">›</span>
         </a>
         <div class="flex items-center gap-2 rounded-xl neu-inset opacity-50
-                    px-4 py-3 text-slate-400 dark:text-slate-500 cursor-default">
+                    px-4 py-3 text-[var(--text-muted)] cursor-default">
             <span class="text-base grayscale-[30%]">✅</span>
             <span class="text-xs font-medium truncate">怼点想怼嘞</span>
-            <span class="ml-auto text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">soon</span>
+            <span class="ml-auto text-[9px] text-[var(--text-muted)] whitespace-nowrap">soon</span>
         </div>
     </div>
 
     <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:3">
-        <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 dark:text-slate-100 flex items-center gap-2">
+        <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
             📌 置顶项目
-            <span class="h-0.5 flex-1 bg-slate-200/60 dark:bg-slate-600/40 rounded-full"></span>
+            <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -74,10 +74,10 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
             ))}
         </div>
 
-        <h2 class="text-xl md:text-2xl font-bold mb-6 text-slate-800 dark:text-slate-100 flex items-center gap-2">
+        <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
             开源项目
-            <a href="/projects" class="text-sm font-normal text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 no-underline transition-colors">瞅瞅 →</a>
-            <span class="h-0.5 flex-1 bg-slate-200/60 dark:bg-slate-600/40 rounded-full"></span>
+            <a href="/projects" class="text-sm font-normal text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">瞅瞅 →</a>
+            <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -93,7 +93,7 @@ const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
         </div>
 
         <div class="mt-6 text-center">
-            <a href="/projects" class="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 no-underline transition-colors">
+            <a href="/projects" class="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">
                 瞅瞅全部项目 →
             </a>
         </div>

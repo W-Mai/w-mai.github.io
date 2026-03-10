@@ -15,7 +15,7 @@ const profile = await fetchGitHubProfile()
     </Fragment>
 
     <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">🤝 怼点友链</h1>
-    <p class="text-lg text-slate-500 mb-8 anim-fade" style="--delay:1">都是俺嘞好伙计，点进去瞅瞅中不中</p>
+    <p class="text-lg text-[var(--text-secondary)] mb-8 anim-fade" style="--delay:1">都是俺嘞好伙计，点进去瞅瞅中不中</p>
 
     <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -32,8 +32,8 @@ const profile = await fetchGitHubProfile()
     </section>
 
     <section class="mt-24 anim-fade" style="--delay:3">
-        <h2 class="text-2xl font-bold mb-2 text-slate-800">📮 交换友链</h2>
-        <p class="text-sm text-slate-500 mb-6">想和俺交换友链？在下面留言，附上你的博客名称、链接和一句话介绍就中～</p>
+        <h2 class="text-2xl font-bold mb-2 text-[var(--text-heading)]">📮 交换友链</h2>
+        <p class="text-sm text-[var(--text-secondary)] mb-6">想和俺交换友链？在下面留言，附上你的博客名称、链接和一句话介绍就中～</p>
         <Giscus />
     </section>
 </WithSidebar>

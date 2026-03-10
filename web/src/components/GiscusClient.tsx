@@ -43,33 +43,8 @@ function getGiscusThemeUrl(baseThemeUrl: string, dark: boolean): string {
   return baseThemeUrl;
 }
 
-/** Dark/light neumorphism color tokens */
-const NEU_TOKENS = {
-  light: {
-    bg: '#e0e5ec',
-    sd: 'rgb(163 177 198 / 0.6)',
-    sl: 'rgb(255 255 255 / 0.5)',
-    fgDefault: '#334155',
-    fgMuted: '#64748b',
-    fgSubtle: '#94a3b8',
-    linkColor: '#475569',
-    glowRgba: 'rgba(51,65,85,0.15)',
-    glowBorderRgba: 'rgba(51,65,85,0.22)',
-    spotRgba: 'rgba(51,65,85,0.28)',
-  },
-  dark: {
-    bg: '#2d3436',
-    sd: 'rgb(30 32 34 / 0.7)',
-    sl: 'rgb(55 59 61 / 0.5)',
-    fgDefault: '#e2e8f0',
-    fgMuted: '#94a3b8',
-    fgSubtle: '#64748b',
-    linkColor: '#94a3b8',
-    glowRgba: 'rgba(200,215,230,0.1)',
-    glowBorderRgba: 'rgba(200,215,230,0.15)',
-    spotRgba: 'rgba(200,215,230,0.18)',
-  },
-} as const;
+/** Dark/light neumorphism color tokens — now read from CSS custom properties */
+const cssVar = (name: string) => `var(${name})`;
 
 const GiscusClient: FC<GiscusClientProps> = ({
   repo, repoId, category, categoryId, mapping, theme,
@@ -258,8 +233,16 @@ const GiscusClient: FC<GiscusClientProps> = ({
     setTimeout(() => setGlowing(false), 1800);
   }, []);
 
-  // Dynamic neumorphism tokens based on current theme
-  const t = dark ? NEU_TOKENS.dark : NEU_TOKENS.light;
+  // CSS variable token references
+  const bg = cssVar('--neu-bg');
+  const sd = cssVar('--neu-shadow-dark');
+  const sl = cssVar('--neu-shadow-light');
+  const fgDefault = cssVar('--text-heading');
+  const fgMuted = cssVar('--text-secondary');
+  const fgSubtle = cssVar('--text-muted');
+  const glowRgba = cssVar('--giscus-glow');
+  const glowBorderRgba = cssVar('--giscus-glow-border');
+  const spotRgba = cssVar('--giscus-spot');
 
   if (!mounted) return null;
 
@@ -272,7 +255,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
       <style>{`
         @keyframes neu-container-glow {
           0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
-          50% { box-shadow: inset 0 0 40px 8px ${t.glowRgba}; }
+          50% { box-shadow: inset 0 0 40px 8px ${glowRgba}; }
         }
         @keyframes neu-spot-pulse {
           0%, 100% { opacity: 0; }
@@ -289,10 +272,10 @@ const GiscusClient: FC<GiscusClientProps> = ({
           onClick={handleReactionClick}
           aria-label="Scroll to reactions"
           style={{
-            background: t.bg, borderRadius: '50%', padding: '8px',
+            background: bg, borderRadius: '50%', padding: '8px',
             boxShadow: pressed
-              ? `inset 4px 4px 8px ${t.sd}, inset -4px -4px 8px ${t.sl}`
-              : `6px 6px 12px ${t.sd}, -6px -6px 12px ${t.sl}`,
+              ? `inset 4px 4px 8px ${sd}, inset -4px -4px 8px ${sl}`
+              : `6px 6px 12px ${sd}, -6px -6px 12px ${sl}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'box-shadow 0.2s ease, transform 0.2s ease',
             transform: pressed ? 'scale(0.92)' : 'scale(1)',
@@ -305,7 +288,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
             style={{ width: '64px', height: '64px', borderRadius: '50%', display: 'block' }}
           />
         </button>
-        <span style={{ fontSize: '1.3rem', fontWeight: 700, color: t.fgDefault }}>
+        <span style={{ fontSize: '1.3rem', fontWeight: 700, color: fgDefault }}>
           {meta?.reactionCount ?? 0}
         </span>
 
@@ -331,8 +314,8 @@ const GiscusClient: FC<GiscusClientProps> = ({
                   alt={r.login}
                   style={{
                     width: '28px', height: '28px', borderRadius: '50%',
-                    border: `2px solid ${t.bg}`,
-                    boxShadow: `2px 2px 4px ${t.sd}, -2px -2px 4px ${t.sl}`,
+                    border: `2px solid ${bg}`,
+                    boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
                   }}
                 />
               </a>
@@ -340,11 +323,11 @@ const GiscusClient: FC<GiscusClientProps> = ({
             {reactors.length > 8 && (
               <span style={{
                 marginLeft: '-6px', width: '28px', height: '28px',
-                borderRadius: '50%', background: t.bg,
-                border: `2px solid ${t.bg}`,
-                boxShadow: `2px 2px 4px ${t.sd}, -2px -2px 4px ${t.sl}`,
+                borderRadius: '50%', background: bg,
+                border: `2px solid ${bg}`,
+                boxShadow: `2px 2px 4px ${sd}, -2px -2px 4px ${sl}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.6rem', color: t.fgMuted, fontWeight: 600,
+                fontSize: '0.6rem', color: fgMuted, fontWeight: 600,
               }}>
                 +{reactors.length - 8}
               </span>
@@ -352,7 +335,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
           </div>
         )}
 
-        <span style={{ fontSize: '0.8rem', color: t.fgSubtle }}>
+        <span style={{ fontSize: '0.8rem', color: fgSubtle }}>
           真诚点赞，手留余香
         </span>
       </div>
@@ -362,13 +345,13 @@ const GiscusClient: FC<GiscusClientProps> = ({
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         marginBottom: '1rem',
       }}>
-        <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: t.fgDefault }}>
+        <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: fgDefault }}>
           💬 评论
         </h3>
         <div style={{
-          background: t.bg, borderRadius: '12px', padding: '6px 14px',
-          boxShadow: `3px 3px 6px ${t.sd}, -3px -3px 6px ${t.sl}`,
-          fontSize: '0.8rem', color: t.fgMuted,
+          background: bg, borderRadius: '12px', padding: '6px 14px',
+          boxShadow: `3px 3px 6px ${sd}, -3px -3px 6px ${sl}`,
+          fontSize: '0.8rem', color: fgMuted,
         }}>
           🗨 {meta ? meta.totalCommentCount + meta.totalReplyCount : 0}
         </div>
@@ -376,11 +359,11 @@ const GiscusClient: FC<GiscusClientProps> = ({
 
       {/* Raised card container */}
       <div style={{
-        background: t.bg,
+        background: bg,
         borderRadius: '1.5rem',
         boxShadow: glowing
-          ? `0 0 0 5px ${t.glowBorderRgba}, 9px 9px 16px ${t.sd}, -9px -9px 16px ${t.sl}`
-          : `9px 9px 16px ${t.sd}, -9px -9px 16px ${t.sl}`,
+          ? `0 0 0 5px ${glowBorderRgba}, 9px 9px 16px ${sd}, -9px -9px 16px ${sl}`
+          : `9px 9px 16px ${sd}, -9px -9px 16px ${sl}`,
         padding: '0.5rem',
         transition: 'box-shadow 0.4s ease',
         overflow: 'hidden',
@@ -404,7 +387,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
             height: '140px', zIndex: 2,
             borderRadius: '1.5rem',
             pointerEvents: 'none',
-            background: `radial-gradient(ellipse 100% 160% at 50% 0%, ${t.spotRgba} 0%, transparent 55%)`,
+            background: `radial-gradient(ellipse 100% 160% at 50% 0%, ${spotRgba} 0%, transparent 55%)`,
             animation: 'neu-spot-pulse 0.6s ease 3',
           }} />
         )}
@@ -412,7 +395,7 @@ const GiscusClient: FC<GiscusClientProps> = ({
           <div style={{
             position: 'absolute', inset: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: t.fgSubtle, fontSize: '0.85rem',
+            color: fgSubtle, fontSize: '0.85rem',
           }}>
             Loading comments...
           </div>

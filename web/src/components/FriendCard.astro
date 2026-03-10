@@ -19,7 +19,7 @@ const fallbackChar = getFallbackChar(name)
   target="_blank"
   rel="noopener noreferrer"
   class="friend-card neu-card block rounded-2xl p-6
-         no-underline text-slate-800 dark:text-slate-200
+         no-underline text-[var(--text-primary)]
          transition-all duration-200 ease-out
          focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
 >
@@ -35,19 +35,19 @@ const fallbackChar = getFallbackChar(name)
       </div>
     ) : (
       <div class="friend-avatar-fallback size-16 rounded-full flex-shrink-0
-                  flex items-center justify-center text-2xl font-bold text-slate-500 dark:text-slate-400">
+                  flex items-center justify-center text-2xl font-bold text-[var(--text-secondary)]">
         {fallbackChar}
       </div>
     )}
     <div class="min-w-0 flex-1">
-      <h3 class="m-0 text-lg font-bold truncate text-slate-800 dark:text-slate-100">{name}</h3>
-      <p class="mt-2 mb-0 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{description}</p>
+      <h3 class="m-0 text-lg font-bold truncate text-[var(--text-heading)]">{name}</h3>
+      <p class="mt-2 mb-0 text-sm text-[var(--text-secondary)] line-clamp-2">{description}</p>
     </div>
   </div>
   {tags && tags.length > 0 && (
     <div class="flex flex-wrap gap-2 mt-4">
       {tags.map((tag) => (
-        <span class="friend-tag neu-inset text-xs px-3 py-1 rounded-lg text-slate-500 dark:text-slate-400">
+        <span class="friend-tag neu-inset text-xs px-3 py-1 rounded-lg text-[var(--text-secondary)]">
           {tag}
         </span>
       ))}
@@ -57,21 +57,13 @@ const fallbackChar = getFallbackChar(name)
 
 <style>
   .friend-card {
-    color: rgb(30 41 59) !important;
+    color: var(--text-primary) !important;
     will-change: transform, box-shadow;
   }
   .friend-card:hover {
-    color: rgb(30 41 59) !important;
+    color: var(--text-primary) !important;
     box-shadow: 2px 2px 5px var(--neu-shadow-dark), -2px -2px 5px var(--neu-shadow-light);
     transform: translateY(-4px);
-  }
-
-  /* Dark mode text color overrides */
-  :global(html.dark) .friend-card {
-    color: rgb(226 232 240) !important;
-  }
-  :global(html.dark) .friend-card:hover {
-    color: rgb(226 232 240) !important;
   }
   .friend-card:active {
     box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);

@@ -22,7 +22,7 @@ import BusuanziFooter from './BusuanziFooter.astro';
 <style>
 	footer {
 		padding: 2em 1em 6em 1em;
-		background: rgba(224, 229, 236, 0.85);
+		background: var(--bg-surface-glass);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.06);
@@ -67,7 +67,6 @@ import BusuanziFooter from './BusuanziFooter.astro';
 
 	/* Dark mode overrides */
 	:global(html.dark) footer {
-		background: rgba(45, 52, 54, 0.85);
 		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.2);
 	}
 	:global(html.dark) footer::before {

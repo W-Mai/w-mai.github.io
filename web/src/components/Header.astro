@@ -63,7 +63,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	header {
 		margin: 0;
 		padding: 1em 2em;
-		background: rgba(224, 229, 236, 0.85);
+		background: var(--bg-surface-glass);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		position: sticky;
@@ -267,9 +267,6 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	}
 
 	/* Dark mode overrides */
-	:global(html.dark) header {
-		background: rgba(45, 52, 54, 0.85);
-	}
 	:global(html.dark) header::after {
 		background: radial-gradient(ellipse at top center, rgba(0,0,0,0.3) 0%, transparent 70%);
 	}

@@ -36,6 +36,28 @@
 
     --sl-color-gray-5: #9ca3af;
     --sl-text-sm: 0.875rem;
+
+    /* Semantic theme tokens */
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --text-heading: #1e293b;
+
+    --bg-surface: #f1f5f9;
+    --bg-surface-glass: rgba(224, 229, 236, 0.85);
+    --bg-surface-gradient-from: #e3e8ef;
+    --bg-surface-gradient-to: #dde2e9;
+    --bg-code: #f1f5f9;
+
+    --border-subtle: rgba(226, 232, 240, 0.6);
+    --border-divider: #e2e8f0;
+
+    --text-link: #475569;
+    --text-link-hover: #1e293b;
+
+    --giscus-glow: rgba(51, 65, 85, 0.15);
+    --giscus-glow-border: rgba(51, 65, 85, 0.22);
+    --giscus-spot: rgba(51, 65, 85, 0.28);
 }
 
 /* For dark mode support */
@@ -64,6 +86,28 @@ html.dark {
 
   --theme-background: #2d3436;
   --theme-accent: #3fb950;
+
+  /* Semantic theme tokens */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-heading: #f1f5f9;
+
+  --bg-surface: rgba(45, 52, 54, 0.3);
+  --bg-surface-glass: rgba(45, 52, 54, 0.85);
+  --bg-surface-gradient-from: #2d3436;
+  --bg-surface-gradient-to: #262b2d;
+  --bg-code: #1e2426;
+
+  --border-subtle: rgba(71, 85, 105, 0.4);
+  --border-divider: #475569;
+
+  --text-link: #94a3b8;
+  --text-link-hover: #e2e8f0;
+
+  --giscus-glow: rgba(200, 215, 230, 0.1);
+  --giscus-glow-border: rgba(200, 215, 230, 0.15);
+  --giscus-spot: rgba(200, 215, 230, 0.18);
 }
 
 /* Dark mode base element overrides */
