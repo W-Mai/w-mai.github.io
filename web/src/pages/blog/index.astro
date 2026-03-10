@@ -37,8 +37,8 @@ const [featured, ...rest] = posts;
 	<body class="neu-bg">
 		<Header />
 		<main class="max-w-4xl mx-auto px-4 py-10">
-			<h1 class="text-4xl md:text-5xl font-bold mb-2 anim-fade" style="--delay:0">🚀 怼点文章</h1>
-			<p class="text-slate-500 mb-10 text-lg anim-fade" style="--delay:1">俺搁这儿写嘞东西</p>
+			<h1 class="text-4xl md:text-5xl font-bold mb-2 anim-fade dark:text-slate-100" style="--delay:0">🚀 怼点文章</h1>
+			<p class="text-slate-500 dark:text-slate-400 mb-10 text-lg anim-fade" style="--delay:1">俺搁这儿写嘞东西</p>
 
 			{featured && (() => {
 			const bodyImg = !featured.data.heroImage ? extractFirstBodyImage(featured.body) : null;
@@ -77,11 +77,11 @@ const [featured, ...rest] = posts;
 							<span class="mx-1">·</span>
 							<span>{featuredWordCount} 字</span>
 						</p>
-						<h2 class="text-2xl md:text-3xl font-bold text-slate-800 group-hover:text-slate-900 transition-colors m-0">
+						<h2 class="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100 group-hover:text-slate-900 dark:group-hover:text-slate-50 transition-colors m-0">
 							{featured.data.title}
 						</h2>
 						{featured.data.description && (
-							<p class="mt-2 text-slate-500 line-clamp-2">{featured.data.description}</p>
+							<p class="mt-2 text-slate-500 dark:text-slate-400 line-clamp-2">{featured.data.description}</p>
 						)}
 					</div>
 				</a>
@@ -127,7 +127,7 @@ const [featured, ...rest] = posts;
 										<span class="mx-1">·</span>
 										<span>{wc} 字</span>
 									</p>
-									<h3 class="text-base font-bold text-slate-800 group-hover:text-slate-900 transition-colors m-0 line-clamp-2">
+									<h3 class="text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-slate-900 dark:group-hover:text-slate-50 transition-colors m-0 line-clamp-2">
 										{post.data.title}
 									</h3>
 								</div>
