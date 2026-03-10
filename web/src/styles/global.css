@@ -54,6 +54,30 @@
   --giscus-glow-border: rgba(51, 65, 85, 0.22);
   --giscus-spot:        rgba(51, 65, 85, 0.28);
 
+  /* ---- Nav quick-link accents ---- */
+  --nav-blog-text:       #93c5fd;   /* blue-300 */
+  --nav-blog-text-hover: #3b82f6;   /* blue-500 */
+  --nav-blog-hover-from: rgba(239, 246, 255, 0.5);  /* blue-50/50 */
+  --nav-blog-group-text: #2563eb;   /* blue-600 */
+  --nav-proj-text:       #6ee7b7;   /* emerald-300 */
+  --nav-proj-text-hover: #10b981;   /* emerald-500 */
+  --nav-proj-hover-from: rgba(236, 253, 245, 0.5);  /* emerald-50/50 */
+  --nav-proj-group-text: #059669;   /* emerald-600 */
+
+  /* ---- Ranking badge accents ---- */
+  --rank-gold-bg:   #fef3c7;   /* amber-100 */
+  --rank-gold-text: #b45309;   /* amber-700 */
+  --rank-bronze-bg:   #ffedd5; /* orange-100 */
+  --rank-bronze-text: #ea580c; /* orange-600 */
+
+  /* ---- Easter egg (warm accent) ---- */
+  --warm-divider:  rgba(253, 230, 138, 0.6);  /* amber-200/60 */
+  --warm-text:     rgba(146, 64, 14, 0.6);    /* amber-800/60 */
+
+  /* ---- Overlay ---- */
+  --overlay-bg:     rgba(255, 255, 255, 0.9);
+  --overlay-border: rgba(255, 255, 255, 0.5);
+
   /* ---- Legacy / third-party ---- */
   --theme-background: #f6f8fa;
   --theme-accent:     #1a7f37;
@@ -118,6 +142,30 @@ html.dark {
   --giscus-glow:        rgba(200, 215, 230, 0.1);
   --giscus-glow-border: rgba(200, 215, 230, 0.15);
   --giscus-spot:        rgba(200, 215, 230, 0.18);
+
+  /* ---- Nav quick-link accents ---- */
+  --nav-blog-text:       rgba(96, 165, 250, 0.6);   /* blue-400/60 */
+  --nav-blog-text-hover: #60a5fa;   /* blue-400 */
+  --nav-blog-hover-from: rgba(59, 130, 246, 0.1);   /* blue-500/10 */
+  --nav-blog-group-text: #60a5fa;   /* blue-400 */
+  --nav-proj-text:       rgba(52, 211, 153, 0.6);   /* emerald-400/60 */
+  --nav-proj-text-hover: #34d399;   /* emerald-400 */
+  --nav-proj-hover-from: rgba(16, 185, 129, 0.1);   /* emerald-500/10 */
+  --nav-proj-group-text: #34d399;   /* emerald-400 */
+
+  /* ---- Ranking badge accents ---- */
+  --rank-gold-bg:   rgba(120, 53, 15, 0.4);   /* amber-900/40 */
+  --rank-gold-text: #fbbf24;   /* amber-400 */
+  --rank-bronze-bg:   rgba(124, 45, 18, 0.4); /* orange-900/40 */
+  --rank-bronze-text: #fb923c; /* orange-400 */
+
+  /* ---- Easter egg (warm accent) ---- */
+  --warm-divider:  rgba(180, 83, 9, 0.3);     /* amber-700/30 */
+  --warm-text:     rgba(251, 191, 36, 0.5);   /* amber-400/50 */
+
+  /* ---- Overlay ---- */
+  --overlay-bg:     rgba(0, 0, 0, 0.5);
+  --overlay-border: rgba(255, 255, 255, 0.1);
 
   /* ---- Legacy / third-party ---- */
   --theme-background: #2d3436;

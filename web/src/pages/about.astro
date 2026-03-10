@@ -148,10 +148,10 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     <section class="neu-card-warm rounded-2xl p-4 sm:p-6 md:p-8 anim-fade" style="--delay:5">
         <h2 class="text-lg sm:text-xl font-bold text-[var(--text-heading)] mb-3 sm:mb-4 flex items-center gap-2">
             🔍 找恁
-            <span class="h-0.5 flex-1 bg-amber-200/60 dark:bg-amber-700/30 rounded-full"></span>
+            <span class="h-0.5 flex-1 bg-[var(--warm-divider)] rounded-full"></span>
         </h2>
         <p class="text-xs sm:text-sm text-[var(--text-secondary)] mb-3 sm:mb-4">从俺里边儿，找着恁搁哪儿嘞？</p>
-        <div id="find-ren" class="text-xs sm:text-sm leading-relaxed text-amber-800/60 dark:text-amber-400/50 select-none break-all">
+        <div id="find-ren" class="text-xs sm:text-sm leading-relaxed text-[var(--warm-text)] select-none break-all">
             {Array.from({ length: beforeCount }).map(() => (
                 <span data-c="俺">俺 </span>
             ))}
