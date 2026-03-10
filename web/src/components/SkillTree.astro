@@ -79,20 +79,20 @@ for (const domain of skillTreeData.domains) {
 ---
 
 <section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:4; contain: layout style; content-visibility: auto; contain-intrinsic-size: auto 600px;" aria-labelledby="skill-tree-heading">
-  <h2 id="skill-tree-heading" class="text-lg sm:text-xl font-bold text-[var(--text-heading)] mb-4 sm:mb-6 flex items-center gap-2">
+  <h2 id="skill-tree-heading" class="neu-section-title mb-4 sm:mb-6">
     🌳 技能树
-    <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+    <span class="neu-section-divider"></span>
   </h2>
 
   <!-- Domain filter -->
   <div class="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4" role="tablist" aria-label="技能分类筛选">
     <button
-      class="skill-filter-btn neu-inset px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+      class="skill-filter-btn neu-inset neu-filter-btn"
       data-domain="all" role="tab" aria-selected="true"
     >🔮 全部</button>
     {skillTreeData.domains.map(domain => (
       <button
-        class="skill-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+        class="skill-filter-btn neu-btn neu-filter-btn"
         data-domain={domain.id} role="tab" aria-selected="false"
       >{domain.icon} {domain.name}</button>
     ))}
@@ -100,13 +100,13 @@ for (const domain of skillTreeData.domains) {
 
   <!-- Category filter -->
   <div id="category-filter" class="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4" role="tablist" aria-label="技能类别筛选">
-    <button class="category-filter-btn neu-inset px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+    <button class="category-filter-btn neu-inset neu-filter-btn"
       data-category="all" role="tab" aria-selected="true">📂 全部类别</button>
     {skillTreeData.categories.map(cat => {
       const domain = skillTreeData.domains.find(d => d.id === cat.domainId)
       return (
         <button
-          class="category-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+          class="category-filter-btn neu-btn neu-filter-btn"
           data-category={cat.id} data-cat-domain={cat.domainId} role="tab" aria-selected="false"
         >{cat.name}</button>
       )
@@ -115,13 +115,13 @@ for (const domain of skillTreeData.domains) {
 
   <!-- Status filter -->
   <div class="flex flex-wrap gap-2 sm:gap-3 mb-5 sm:mb-6" role="tablist" aria-label="技能状态筛选">
-    <button class="status-filter-btn neu-inset px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+    <button class="status-filter-btn neu-inset neu-filter-btn"
       data-status="all" role="tab" aria-selected="true">📋 全部状态</button>
-    <button class="status-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+    <button class="status-filter-btn neu-btn neu-filter-btn"
       data-status="learned" role="tab" aria-selected="false">✅ 已学会</button>
-    <button class="status-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+    <button class="status-filter-btn neu-btn neu-filter-btn"
       data-status="learning" role="tab" aria-selected="false">📖 学习中</button>
-    <button class="status-filter-btn neu-btn px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm text-[var(--text-link)] transition-all"
+    <button class="status-filter-btn neu-btn neu-filter-btn"
       data-status="blocked" role="tab" aria-selected="false">🚫 已禁止</button>
   </div>
 

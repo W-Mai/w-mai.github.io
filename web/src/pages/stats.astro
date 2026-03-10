@@ -59,8 +59,8 @@ const yearlyFrequency = [...yearlyMap.entries()]
     <ProfileSidebar profile={profile} />
   </Fragment>
 
-  <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">📊 怼点统计</h1>
-  <p class="text-lg text-[var(--text-secondary)] mb-8 anim-fade" style="--delay:1">
+  <h1 class="page-title anim-fade" style="--delay:0">📊 怼点统计</h1>
+  <p class="page-subtitle anim-fade" style="--delay:1">
     俺写嘞文章，都搁这儿统计着嘞
     <a href="/blog" class="text-[var(--text-secondary)] hover:text-[var(--text-link)] ml-2 text-sm no-underline neu-btn px-3 py-1 rounded-lg inline-block">
       ← 回去看文章
@@ -79,11 +79,11 @@ const yearlyFrequency = [...yearlyMap.entries()]
   </div>
 
   <!-- Post ranking -->
-  <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 mb-8 anim-fade" style="--delay:3">
-    <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
+  <section class="board-container neu-board mb-8 anim-fade" style="--delay:3">
+    <h2 class="neu-section-title mb-6">
       🏆 文章排行
       <span class="text-sm font-normal text-[var(--text-muted)] ml-1">{postRanking.length} 篇</span>
-      <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+      <span class="neu-section-divider"></span>
     </h2>
 
     <div class="space-y-3">
@@ -117,10 +117,10 @@ const yearlyFrequency = [...yearlyMap.entries()]
   </section>
 
   <!-- Monthly / Yearly frequency -->
-  <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:4">
-    <h2 class="text-xl md:text-2xl font-bold mb-6 text-[var(--text-heading)] flex items-center gap-2">
+  <section class="board-container neu-board anim-fade" style="--delay:4">
+    <h2 class="neu-section-title mb-6">
       📅 发布频率
-      <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+      <span class="neu-section-divider"></span>
     </h2>
 
     <!-- Yearly summary -->

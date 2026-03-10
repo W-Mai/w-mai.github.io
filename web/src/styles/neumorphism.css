@@ -1,0 +1,174 @@
+/* ==========================================================================
+   § 7  NEUMORPHISM COMPONENT CLASSES
+   ========================================================================== */
+
+/* Theme switch transition */
+html:not(.no-transitions) body,
+html:not(.no-transitions) .neu-card,
+html:not(.no-transitions) .neu-btn,
+html:not(.no-transitions) .neu-inset {
+  transition: background-color 300ms ease, color 300ms ease,
+              box-shadow 300ms ease, transform 300ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+.neu-bg {
+  background: var(--neu-bg) !important;
+}
+
+/* Raised card */
+.neu-card {
+  background: var(--neu-bg);
+  box-shadow: 9px 9px 16px var(--neu-shadow-dark),
+             -9px -9px 16px var(--neu-shadow-light);
+  border: none;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Warm-tinted card */
+.neu-card-warm {
+  background: linear-gradient(135deg, var(--warm-card-from), var(--warm-card-to));
+  box-shadow: 6px 6px 12px var(--warm-card-shadow-dark), -6px -6px 12px var(--warm-card-shadow-light);
+  border: none;
+}
+
+/* Pressable button */
+.neu-btn {
+  background: var(--neu-bg);
+  box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+             -5px -5px 10px var(--neu-shadow-light);
+  border: none;
+  transition: box-shadow 0.2s ease;
+}
+.neu-btn:hover {
+  box-shadow: 2px 2px 5px var(--neu-shadow-dark),
+             -2px -2px 5px var(--neu-shadow-light);
+}
+.neu-btn:active {
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong),
+              inset -3px -3px 6px var(--neu-shadow-light-strong);
+}
+
+/* Inset / pressed surface */
+.neu-inset {
+  background: var(--neu-bg);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong),
+              inset -6px -6px 10px var(--neu-shadow-light-strong);
+  border: none;
+}
+
+/* Avatar ring */
+.neu-avatar-ring {
+  background: var(--neu-bg);
+  box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+             -5px -5px 10px var(--neu-shadow-light);
+  padding: 4px;
+}
+
+/* Responsive: smaller shadows on small screens */
+@media (max-width: 400px) {
+  .neu-card {
+    box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+               -5px -5px 10px var(--neu-shadow-light);
+  }
+  .neu-btn {
+    box-shadow: 3px 3px 6px var(--neu-shadow-dark),
+               -3px -3px 6px var(--neu-shadow-light);
+  }
+}
+
+
+/* ==========================================================================
+   SEMANTIC CLASSES — extracted from high-frequency Tailwind patterns
+   ========================================================================== */
+
+/* Section heading: title text + decorative divider */
+.neu-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-size: 1.125rem;
+}
+@media (min-width: 640px) {
+  .neu-section-title { font-size: 1.25rem; }
+}
+
+/* Decorative line after section titles */
+.neu-section-divider {
+  height: 0.125rem;
+  flex: 1 1 0%;
+  background-color: var(--border-subtle);
+  border-radius: 9999px;
+}
+
+/* Stat cell: inset card with centered number + label */
+.neu-stat-cell {
+  background: var(--neu-bg);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong),
+              inset -6px -6px 10px var(--neu-shadow-light-strong);
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  text-align: center;
+}
+@media (min-width: 640px) {
+  .neu-stat-cell { padding: 1rem; }
+}
+
+/* Info card: icon + label + value in a raised card */
+.neu-info-card {
+  background: var(--neu-bg);
+  box-shadow: 9px 9px 16px var(--neu-shadow-dark),
+             -9px -9px 16px var(--neu-shadow-light);
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.875rem;
+}
+@media (min-width: 640px) {
+  .neu-info-card {
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+}
+
+/* Board container: large inset section */
+.neu-board {
+  background: var(--neu-bg);
+  box-shadow: inset 6px 6px 10px var(--neu-shadow-dark-strong),
+              inset -6px -6px 10px var(--neu-shadow-light-strong);
+  border: none;
+  border-radius: 2rem;
+  padding: 1.5rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+@media (min-width: 768px) {
+  .neu-board {
+    padding: 2rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+}
+
+/* Filter button: compact pressable chip */
+.neu-filter-btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-link);
+  transition: all 0.2s ease;
+}
+@media (min-width: 640px) {
+  .neu-filter-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}

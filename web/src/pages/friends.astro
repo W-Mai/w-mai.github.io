@@ -14,10 +14,10 @@ const profile = await fetchGitHubProfile()
         <ProfileSidebar profile={profile} />
     </Fragment>
 
-    <h1 class="text-4xl md:text-6xl font-bold mb-4 anim-fade" style="--delay:0">🤝 怼点友链</h1>
-    <p class="text-lg text-[var(--text-secondary)] mb-8 anim-fade" style="--delay:1">都是俺嘞好伙计，点进去瞅瞅中不中</p>
+    <h1 class="page-title anim-fade" style="--delay:0">🤝 怼点友链</h1>
+    <p class="page-subtitle anim-fade" style="--delay:1">都是俺嘞好伙计，点进去瞅瞅中不中</p>
 
-    <section class="board-container neu-inset rounded-[2rem] p-6 md:p-8 -mx-2 md:-mx-4 anim-fade" style="--delay:2">
+    <section class="board-container neu-board anim-fade" style="--delay:2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {FRIENDS.map((friend) => (
                 <FriendCard

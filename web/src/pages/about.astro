@@ -91,7 +91,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
     <!-- Info cards -->
     <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-8 sm:mb-12 anim-fade" style="--delay:2">
         {profile.location && (
-            <div class="neu-card flex items-center gap-2.5 sm:gap-3 rounded-xl px-3.5 sm:px-5 py-3 sm:py-4">
+            <div class="neu-info-card">
                 <span class="text-lg sm:text-xl">📍</span>
                 <div class="min-w-0">
                     <p class="text-xs text-[var(--text-muted)] m-0">Location</p>
@@ -100,7 +100,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
             </div>
         )}
         {profile.company && (
-            <div class="neu-card flex items-center gap-2.5 sm:gap-3 rounded-xl px-3.5 sm:px-5 py-3 sm:py-4">
+            <div class="neu-info-card">
                 <span class="text-lg sm:text-xl">🏢</span>
                 <div class="min-w-0">
                     <p class="text-xs text-[var(--text-muted)] m-0">Company</p>
@@ -123,9 +123,9 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 
     <!-- GitHub Activity -->
     <section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade" style="--delay:3">
-        <h2 class="text-lg sm:text-xl font-bold text-[var(--text-heading)] mb-4 sm:mb-6 flex items-center gap-2">
+        <h2 class="neu-section-title mb-4 sm:mb-6">
             🟩 GitHub 活动
-            <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+            <span class="neu-section-divider"></span>
         </h2>
         <div class="overflow-x-auto -mx-1">
             <GitHubActivityCalendar username={USER_NAME} />
@@ -146,7 +146,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
 
     <!-- Easter egg: 找恁 -->
     <section class="neu-card-warm rounded-2xl p-4 sm:p-6 md:p-8 anim-fade" style="--delay:5">
-        <h2 class="text-lg sm:text-xl font-bold text-[var(--text-heading)] mb-3 sm:mb-4 flex items-center gap-2">
+        <h2 class="neu-section-title mb-3 sm:mb-4">
             🔍 找恁
             <span class="h-0.5 flex-1 bg-[var(--warm-divider)] rounded-full"></span>
         </h2>

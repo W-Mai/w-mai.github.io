@@ -240,7 +240,7 @@ describe('Feature: dark-mode-neumorphism, Property 2: WCAG AA contrast ratio for
 // --- Unit Tests ---
 
 describe('Unit: CSS variable completeness', () => {
-	const cssContent = fs.readFileSync('src/styles/global.css', 'utf-8');
+	const cssContent = fs.readFileSync('src/styles/tokens.css', 'utf-8');
 
 	// Extract the html.dark block content
 	const darkBlockMatch = cssContent.match(/html\.dark\s*\{([^}]+)\}/);
@@ -290,7 +290,7 @@ describe('Unit: Dark background color range', () => {
 
 describe('Unit: Transition duration', () => {
 	it('theme transition duration is in 200-400ms range', () => {
-		const cssContent = fs.readFileSync('src/styles/global.css', 'utf-8');
+		const cssContent = fs.readFileSync('src/styles/neumorphism.css', 'utf-8');
 
 		// Extract transition duration from the theme switch transition rule
 		const transitionMatch = cssContent.match(
@@ -304,7 +304,7 @@ describe('Unit: Transition duration', () => {
 	});
 
 	it('prefers-reduced-motion disables transitions', () => {
-		const cssContent = fs.readFileSync('src/styles/global.css', 'utf-8');
+		const cssContent = fs.readFileSync('src/styles/neumorphism.css', 'utf-8');
 		expect(cssContent).toContain('prefers-reduced-motion: reduce');
 		expect(cssContent).toContain('transition: none !important');
 	});

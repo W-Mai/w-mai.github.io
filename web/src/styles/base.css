@@ -1,0 +1,147 @@
+/* ==========================================================================
+   § 3  FONTS
+   ========================================================================== */
+
+@font-face {
+  font-family: "Atkinson";
+  src: url("/fonts/atkinson-regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson";
+  src: url("/fonts/atkinson-bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "ArkPixel";
+  src: url("/fonts/ark-pixel-12px-monospaced-zh_cn.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* ==========================================================================
+   § 4  BASE ELEMENT STYLES
+   ========================================================================== */
+
+body {
+  font-family: "ArkPixel", "Atkinson", sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  background: var(--neu-bg);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  color: rgb(var(--gray-dark));
+  font-size: 20px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  margin: auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 0.5rem 0;
+  color: rgb(var(--black));
+  line-height: 1.2;
+}
+h1 { font-size: 3.052em; }
+h2 { font-size: 2.441em; }
+h3 { font-size: 1.953em; }
+h4 { font-size: 1.563em; }
+h5 { font-size: 1.25em; }
+
+strong, b { font-weight: 700; }
+
+a       { color: var(--accent); }
+a:hover { color: var(--accent-dark); }
+
+p { margin-bottom: 1em; }
+
+textarea { width: 100%; font-size: 16px; }
+input    { font-size: 16px; }
+table    { width: 100%; }
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+code {
+  padding: 2px 5px;
+  background-color: rgb(var(--theme-background));
+  border-radius: 2px;
+}
+
+pre          { padding: 1.5em; border-radius: 8px; }
+pre > code   { all: unset; }
+
+blockquote {
+  border-left: 4px solid var(--accent);
+  padding: 0 0 0 20px;
+  margin: 0;
+  font-size: 1.333em;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgb(var(--gray-light));
+}
+
+@media (max-width: 720px) {
+  body { font-size: 18px; }
+}
+
+/* Dark mode base element overrides */
+html.dark body       { color: rgb(var(--gray-dark)); }
+html.dark a          { color: var(--accent); }
+html.dark a:hover    { color: var(--accent-dark); }
+html.dark hr         { border-top-color: rgb(var(--gray-light)); }
+html.dark code       { background-color: var(--bg-code); }
+html.dark blockquote { border-left-color: var(--accent); }
+
+
+/* ==========================================================================
+   § 5  PROSE / TYPOGRAPHY OVERRIDES
+   ========================================================================== */
+
+.prose p { margin-bottom: 2em; }
+
+.prose .expressive-code,
+.prose .expressive-code figure {
+  border: 1px solid var(--border-code-block) !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.dark .prose .expressive-code,
+html.dark .prose .expressive-code figure {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+html.dark .prose blockquote { border-left-color: var(--accent); }
+html.dark .prose hr         { border-top-color: rgb(var(--gray-light)); }
+html.dark .prose code       { background-color: var(--bg-code); }
+
+
+/* ==========================================================================
+   § 6  SCROLLBAR
+   ========================================================================== */
+
+::-webkit-scrollbar       { width: 8px; }
+::-webkit-scrollbar-track { background: var(--neu-bg); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }

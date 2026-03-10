@@ -1,0 +1,250 @@
+/* ==========================================================================
+   § 1  DESIGN TOKENS — Light (default)
+   ========================================================================== */
+
+:root {
+  /* ---- Neumorphism foundation ---- */
+  --neu-bg:                 #e0e5ec;
+  --neu-shadow-dark:        rgb(163 177 198 / 0.6);
+  --neu-shadow-light:       rgb(255 255 255 / 0.5);
+  --neu-shadow-dark-strong: rgb(163 177 198 / 0.7);
+  --neu-shadow-light-strong:rgb(255 255 255 / 0.8);
+  --neu-cluster-bg:         #d5d9e0;
+
+  /* ---- Semantic text ---- */
+  --text-primary:   #1e293b;   /* slate-800 */
+  --text-secondary: #64748b;   /* slate-500 */
+  --text-muted:     #94a3b8;   /* slate-400 */
+  --text-heading:   #1e293b;   /* slate-800 */
+
+  /* ---- Semantic surfaces ---- */
+  --bg-surface:               #f1f5f9;
+  --bg-surface-glass:         rgba(224, 229, 236, 0.85);
+  --bg-surface-gradient-from: #e3e8ef;
+  --bg-surface-gradient-to:   #dde2e9;
+  --bg-code:                  #f1f5f9;
+
+  /* ---- Semantic borders ---- */
+  --border-subtle:  rgba(226, 232, 240, 0.6);
+  --border-divider: #e2e8f0;
+
+  /* ---- Semantic links ---- */
+  --text-link:       #475569;  /* slate-600 */
+  --text-link-hover: #1e293b;  /* slate-800 */
+
+  /* ---- Giscus comment glow ---- */
+  --giscus-glow:        rgba(51, 65, 85, 0.15);
+  --giscus-glow-border: rgba(51, 65, 85, 0.22);
+  --giscus-spot:        rgba(51, 65, 85, 0.28);
+
+  /* ---- Nav quick-link accents ---- */
+  --nav-blog-text:       #93c5fd;   /* blue-300 */
+  --nav-blog-text-hover: #3b82f6;   /* blue-500 */
+  --nav-blog-hover-from: rgba(239, 246, 255, 0.5);  /* blue-50/50 */
+  --nav-blog-group-text: #2563eb;   /* blue-600 */
+  --nav-proj-text:       #6ee7b7;   /* emerald-300 */
+  --nav-proj-text-hover: #10b981;   /* emerald-500 */
+  --nav-proj-hover-from: rgba(236, 253, 245, 0.5);  /* emerald-50/50 */
+  --nav-proj-group-text: #059669;   /* emerald-600 */
+
+  /* ---- Ranking badge accents ---- */
+  --rank-gold-bg:   #fef3c7;   /* amber-100 */
+  --rank-gold-text: #b45309;   /* amber-700 */
+  --rank-bronze-bg:   #ffedd5; /* orange-100 */
+  --rank-bronze-text: #ea580c; /* orange-600 */
+
+  /* ---- Easter egg (warm accent) ---- */
+  --warm-divider:  rgba(253, 230, 138, 0.6);  /* amber-200/60 */
+  --warm-text:     rgba(146, 64, 14, 0.6);    /* amber-800/60 */
+
+  /* ---- Overlay ---- */
+  --overlay-bg:     rgba(255, 255, 255, 0.9);
+  --overlay-border: rgba(255, 255, 255, 0.5);
+
+  /* ---- Scrollbar ---- */
+  --scrollbar-thumb:       #cbd5e0;
+  --scrollbar-thumb-hover: #a0aec0;
+
+  /* ---- Mermaid skeleton gradient ---- */
+  --mermaid-skeleton-from: #dce0e5;
+  --mermaid-skeleton-mid:  #d4d8dd;
+
+  /* ---- Warm card ---- */
+  --warm-card-from:         #f0e6d6;
+  --warm-card-to:           #ece2d4;
+  --warm-card-shadow-dark:  #c8c0b4;
+  --warm-card-shadow-light: #fff8ee;
+
+  /* ---- Prose / code block ---- */
+  --bg-pre:            #1e293b;
+  --border-code-block: #e2e8f0;
+
+  /* ---- Icon filter ---- */
+  --icon-invert: 0;
+
+  /* ---- Accent colors ---- */
+  --accent-star:           #f59e0b;
+  --btn-demo-bg:           #475569;
+  --btn-demo-bg-hover:     #334155;
+  --btn-demo-text:         #ffffff;
+  --skill-highlight:       #6366f1;
+  --skill-highlight-pulse: #a78bfa;
+  --skill-edge-default:    #b0b8c4;
+
+  /* ---- MultitabPreview tabs ---- */
+  --tab-bg:            #f8fafc;
+  --tab-border:        #e2e8f0;
+  --tab-text:          #94a3b8;
+  --tab-text-hover:    #475569;
+  --tab-text-active:   #1e293b;
+  --tab-active-border: #475569;
+
+  /* ---- Interactive surface ---- */
+  --hover-bg: rgba(255, 255, 255, 0.3);
+
+  /* ---- Easter egg found ---- */
+  --easter-egg-found: #ef4444;
+
+  /* ---- Legacy / third-party ---- */
+  --theme-background: #f6f8fa;
+  --theme-accent:     #1a7f37;
+  --accent:           #475569;
+  --accent-dark:      #1e293b;
+  --black:            15, 18, 25;
+  --gray:             96, 115, 159;
+  --gray-light:       229, 233, 240;
+  --gray-dark:        34, 41, 57;
+  --gray-gradient:    rgba(var(--gray-light), 50%), #fff;
+  --box-shadow:
+    0 2px 6px rgba(var(--gray), 25%),
+    0 8px 24px rgba(var(--gray), 33%),
+    0 16px 32px rgba(var(--gray), 33%);
+  --sl-color-gray-5:  #9ca3af;
+  --sl-text-sm:       0.875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --theme-background: #ffffff;
+    --theme-accent:     #3fb950;
+  }
+}
+
+
+/* ==========================================================================
+   § 2  DESIGN TOKENS — Dark
+   ========================================================================== */
+
+html.dark {
+  /* ---- Neumorphism foundation ---- */
+  --neu-bg:                 #2d3436;
+  --neu-shadow-dark:        rgb(30 32 34 / 0.7);
+  --neu-shadow-light:       rgb(55 59 61 / 0.5);
+  --neu-shadow-dark-strong: rgb(25 27 29 / 0.8);
+  --neu-shadow-light-strong:rgb(60 64 66 / 0.6);
+  --neu-cluster-bg:         #262b2d;
+
+  /* ---- Semantic text ---- */
+  --text-primary:   #e2e8f0;   /* slate-200 */
+  --text-secondary: #94a3b8;   /* slate-400 */
+  --text-muted:     #64748b;   /* slate-500 */
+  --text-heading:   #f1f5f9;   /* slate-100 */
+
+  /* ---- Semantic surfaces ---- */
+  --bg-surface:               rgba(45, 52, 54, 0.3);
+  --bg-surface-glass:         rgba(45, 52, 54, 0.85);
+  --bg-surface-gradient-from: #2d3436;
+  --bg-surface-gradient-to:   #262b2d;
+  --bg-code:                  #1e2426;
+
+  /* ---- Semantic borders ---- */
+  --border-subtle:  rgba(71, 85, 105, 0.4);
+  --border-divider: #475569;
+
+  /* ---- Semantic links ---- */
+  --text-link:       #94a3b8;  /* slate-400 */
+  --text-link-hover: #e2e8f0;  /* slate-200 */
+
+  /* ---- Giscus comment glow ---- */
+  --giscus-glow:        rgba(200, 215, 230, 0.1);
+  --giscus-glow-border: rgba(200, 215, 230, 0.15);
+  --giscus-spot:        rgba(200, 215, 230, 0.18);
+
+  /* ---- Nav quick-link accents ---- */
+  --nav-blog-text:       rgba(96, 165, 250, 0.6);   /* blue-400/60 */
+  --nav-blog-text-hover: #60a5fa;   /* blue-400 */
+  --nav-blog-hover-from: rgba(59, 130, 246, 0.1);   /* blue-500/10 */
+  --nav-blog-group-text: #60a5fa;   /* blue-400 */
+  --nav-proj-text:       rgba(52, 211, 153, 0.6);   /* emerald-400/60 */
+  --nav-proj-text-hover: #34d399;   /* emerald-400 */
+  --nav-proj-hover-from: rgba(16, 185, 129, 0.1);   /* emerald-500/10 */
+  --nav-proj-group-text: #34d399;   /* emerald-400 */
+
+  /* ---- Ranking badge accents ---- */
+  --rank-gold-bg:   rgba(120, 53, 15, 0.4);   /* amber-900/40 */
+  --rank-gold-text: #fbbf24;   /* amber-400 */
+  --rank-bronze-bg:   rgba(124, 45, 18, 0.4); /* orange-900/40 */
+  --rank-bronze-text: #fb923c; /* orange-400 */
+
+  /* ---- Easter egg (warm accent) ---- */
+  --warm-divider:  rgba(180, 83, 9, 0.3);     /* amber-700/30 */
+  --warm-text:     rgba(251, 191, 36, 0.5);   /* amber-400/50 */
+
+  /* ---- Overlay ---- */
+  --overlay-bg:     rgba(0, 0, 0, 0.5);
+  --overlay-border: rgba(255, 255, 255, 0.1);
+
+  /* ---- Scrollbar ---- */
+  --scrollbar-thumb:       #4a5568;
+  --scrollbar-thumb-hover: #718096;
+
+  /* ---- Mermaid skeleton gradient ---- */
+  --mermaid-skeleton-from: #2a2f31;
+  --mermaid-skeleton-mid:  #262b2d;
+
+  /* ---- Warm card ---- */
+  --warm-card-from:         #3a3530;
+  --warm-card-to:           #35302b;
+  --warm-card-shadow-dark:  var(--neu-shadow-dark);
+  --warm-card-shadow-light: var(--neu-shadow-light);
+
+  /* ---- Prose / code block ---- */
+  --bg-pre:            #1e293b;
+  --border-code-block: #3a4245;
+
+  /* ---- Icon filter ---- */
+  --icon-invert: 0.8;
+
+  /* ---- Accent colors ---- */
+  --accent-star:           #fbbf24;
+  --btn-demo-bg:           #64748b;
+  --btn-demo-bg-hover:     #475569;
+  --btn-demo-text:         #f1f5f9;
+  --skill-highlight:       #818cf8;
+  --skill-highlight-pulse: #c4b5fd;
+  --skill-edge-default:    #64748b;
+
+  /* ---- MultitabPreview tabs ---- */
+  --tab-bg:            #2a2f31;
+  --tab-border:        #3a4245;
+  --tab-text:          #64748b;
+  --tab-text-hover:    #94a3b8;
+  --tab-text-active:   #e2e8f0;
+  --tab-active-border: #94a3b8;
+
+  /* ---- Interactive surface ---- */
+  --hover-bg: rgba(0, 0, 0, 0.15);
+
+  /* ---- Easter egg found ---- */
+  --easter-egg-found: #f87171;
+
+  /* ---- Legacy / third-party ---- */
+  --theme-background: #2d3436;
+  --theme-accent:     #3fb950;
+  --accent:           #94a3b8;
+  --accent-dark:      #cbd5e1;
+  --black:            226, 232, 240;
+  --gray:             148, 163, 184;
+  --gray-light:       51, 65, 85;
+  --gray-dark:        226, 232, 240;
+}
