@@ -5,7 +5,7 @@ import {
   EditorView,
   type DecorationSet,
 } from '@codemirror/view';
-import { StateField, StateEffect, type Extension, type Transaction } from '@codemirror/state';
+import { StateField, StateEffect, type Extension } from '@codemirror/state';
 import { createRoot, type Root } from 'react-dom/client';
 import { createElement } from 'react';
 
@@ -19,9 +19,6 @@ import {
 } from './frontmatter-utils';
 import FrontmatterPanel from '../components/editor/FrontmatterPanel';
 import { EDITOR_TOKENS as T } from '../components/editor/editor-tokens';
-
-// Module-level flag to prevent re-entrant updates from widget dispatches
-let dispatching = false;
 
 // StateEffect to inject the EditorView reference into the state field
 const setViewEffect = StateEffect.define<EditorView>();
@@ -40,9 +37,10 @@ class FrontmatterWidget extends WidgetType {
     super();
   }
 
-  eq(other: FrontmatterWidget): boolean {
-    return JSON.stringify(this.data) === JSON.stringify(other.data)
-      && this.parseResult.ok === other.parseResult.ok;
+  // Always return false so CM6 calls updateDOM() for in-place React re-render
+  // instead of destroy()+toDOM() which would lose input focus.
+  eq(_other: FrontmatterWidget): boolean {
+    return false;
   }
 
   toDOM(): HTMLElement {
@@ -55,13 +53,15 @@ class FrontmatterWidget extends WidgetType {
     }
 
     this.root = createRoot(container);
-    this.root.render(
-      createElement(FrontmatterPanel, {
-        data: this.data,
-        onChange: this.handleFieldChange,
-      }),
-    );
+    this.renderPanel();
     return container;
+  }
+
+  /** Re-render the React panel with fresh data read from the document */
+  updateDOM(): boolean {
+    if (!this.root || !this.parseResult.ok) return false;
+    this.renderPanel();
+    return true;
   }
 
   destroy(): void {
@@ -70,6 +70,16 @@ class FrontmatterWidget extends WidgetType {
       this.root = null;
       setTimeout(() => { try { root.unmount(); } catch {} }, 0);
     }
+  }
+
+  private renderPanel(): void {
+    if (!this.root) return;
+    this.root.render(
+      createElement(FrontmatterPanel, {
+        data: this.data,
+        onChange: this.handleFieldChange,
+      }),
+    );
   }
 
   private renderError(container: HTMLElement, error: string, rawYaml: string): void {
@@ -124,12 +134,18 @@ class FrontmatterWidget extends WidgetType {
     value: FrontmatterData[keyof FrontmatterData],
   ): void {
     try {
-      const updatedData = { ...this.data, [field]: value };
-      const yaml = serializeFrontmatter(updatedData);
+      // Read current data from the document instead of using stale snapshot
       const currentRange = detectFrontmatterRange(this.view.state.doc);
       if (!currentRange) return;
 
-      dispatching = true;
+      const currentParse = parseFrontmatter(currentRange.yamlText);
+      const baseData = currentParse.ok
+        ? currentParse.data
+        : this.data;
+
+      const updatedData = { ...baseData, [field]: value };
+      const yaml = serializeFrontmatter(updatedData);
+
       this.view.dispatch({
         changes: {
           from: currentRange.from,
@@ -139,17 +155,15 @@ class FrontmatterWidget extends WidgetType {
       });
     } catch (e) {
       console.error('[frontmatter-extension] dispatch failed:', e);
-    } finally {
-      dispatching = false;
     }
   }
 }
 
 // ── StateField for block-level decorations ───────────────────────────
 
-/** Build decorations from document state + view reference */
-function buildDecorations(view: EditorView): DecorationSet {
-  const range = detectFrontmatterRange(view.state.doc);
+/** Build decorations from a document snapshot + view reference for dispatch */
+function buildDecorations(doc: import('@codemirror/state').Text, view: EditorView): DecorationSet {
+  const range = detectFrontmatterRange(doc);
   if (!range) return Decoration.none;
 
   const parseResult = parseFrontmatter(range.yamlText);
@@ -162,7 +176,7 @@ function buildDecorations(view: EditorView): DecorationSet {
   return Decoration.set([deco.range(range.from, range.to)]);
 }
 
-/** Stores the current EditorView reference for decoration building */
+/** Stores the current EditorView reference for dispatch access */
 let activeView: EditorView | null = null;
 
 const frontmatterDecoField = StateField.define<DecorationSet>({
@@ -174,14 +188,13 @@ const frontmatterDecoField = StateField.define<DecorationSet>({
     for (const e of tr.effects) {
       if (e.is(setViewEffect)) {
         activeView = e.value;
-        return buildDecorations(activeView);
+        // Use tr.state.doc (the NEW document after this transaction)
+        return buildDecorations(tr.state.doc, activeView);
       }
     }
-    // Skip re-entrant updates
-    if (dispatching) return decos;
-    // Rebuild on doc changes
+    // Rebuild on any doc change using the NEW document state
     if (tr.docChanged && activeView) {
-      return buildDecorations(activeView);
+      return buildDecorations(tr.state.doc, activeView);
     }
     return decos;
   },
@@ -190,13 +203,18 @@ const frontmatterDecoField = StateField.define<DecorationSet>({
   },
 });
 
-// ViewPlugin that injects the EditorView reference on creation
+// ViewPlugin that injects the EditorView reference and cleans up on destroy
 const viewRefPlugin = ViewPlugin.define((view) => {
-  // Dispatch the view reference so the StateField can build decorations
   queueMicrotask(() => {
     view.dispatch({ effects: setViewEffect.of(view) });
   });
-  return { update() {} };
+  return {
+    update() {},
+    destroy() {
+      // Clear stale reference when the editor is destroyed
+      if (activeView === view) activeView = null;
+    },
+  };
 });
 
 /**

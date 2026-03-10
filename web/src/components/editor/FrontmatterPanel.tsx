@@ -1,4 +1,4 @@
-import { type FC, useCallback } from 'react';
+import { type FC, useState, useEffect, useCallback } from 'react';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import TagChipEditor from './TagChipEditor';
 import type { FrontmatterData } from '../../lib/frontmatter-utils';
@@ -47,14 +47,40 @@ const clearBtnStyle: React.CSSProperties = {
 };
 
 const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
+  // Internal state so edits are reflected immediately without waiting for
+  // the CM6 decoration rebuild cycle (which is intentionally skipped during
+  // widget-initiated dispatches to avoid input focus loss).
+  const [local, setLocal] = useState<FrontmatterData>(data);
+
+  // Sync from external prop when the document changes (e.g. page switch)
+  useEffect(() => {
+    setLocal(data);
+  }, [data]);
+
+  const handleChange = useCallback(
+    (field: keyof FrontmatterData, value: FrontmatterData[keyof FrontmatterData]) => {
+      setLocal((prev) => ({ ...prev, [field]: value } as FrontmatterData));
+      onChange(field, value);
+    },
+    [onChange],
+  );
+
   const handleTagAdd = useCallback(
-    (tag: string) => onChange('tags', [...data.tags, tag]),
-    [data.tags, onChange],
+    (tag: string) => {
+      const next = [...local.tags, tag];
+      setLocal((prev) => ({ ...prev, tags: next }));
+      onChange('tags', next);
+    },
+    [local.tags, onChange],
   );
 
   const handleTagRemove = useCallback(
-    (index: number) => onChange('tags', data.tags.filter((_, i) => i !== index)),
-    [data.tags, onChange],
+    (index: number) => {
+      const next = local.tags.filter((_, i) => i !== index);
+      setLocal((prev) => ({ ...prev, tags: next }));
+      onChange('tags', next);
+    },
+    [local.tags, onChange],
   );
 
   return (
@@ -71,8 +97,8 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
         <label style={labelStyle}>Title</label>
         <input
           type="text"
-          value={data.title}
-          onChange={(e) => onChange('title', e.target.value)}
+          value={local.title}
+          onChange={(e) => handleChange('title', e.target.value)}
           placeholder="Post title"
           style={inputBaseStyle}
         />
@@ -82,8 +108,8 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
       <div style={{ gridColumn: '1 / -1' }}>
         <label style={labelStyle}>Description</label>
         <textarea
-          value={data.description}
-          onChange={(e) => onChange('description', e.target.value)}
+          value={local.description}
+          onChange={(e) => handleChange('description', e.target.value)}
           placeholder="Post description"
           rows={3}
           style={{ ...inputBaseStyle, resize: 'vertical' }}
@@ -95,8 +121,8 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
         <label style={labelStyle}>Publish Date</label>
         <input
           type="date"
-          value={data.pubDate}
-          onChange={(e) => onChange('pubDate', e.target.value)}
+          value={local.pubDate}
+          onChange={(e) => handleChange('pubDate', e.target.value)}
           style={inputBaseStyle}
         />
       </div>
@@ -105,9 +131,9 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>Updated Date</label>
-          {data.updatedDate && (
+          {local.updatedDate && (
             <button
-              onClick={() => onChange('updatedDate', undefined)}
+              onClick={() => handleChange('updatedDate', undefined)}
               aria-label="Clear updated date"
               style={clearBtnStyle}
             >×</button>
@@ -116,8 +142,8 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
         <div style={{ marginTop: T.spacingXs }}>
           <input
             type="date"
-            value={data.updatedDate ?? ''}
-            onChange={(e) => onChange('updatedDate', e.target.value || undefined)}
+            value={local.updatedDate ?? ''}
+            onChange={(e) => handleChange('updatedDate', e.target.value || undefined)}
             placeholder="Optional"
             style={inputBaseStyle}
           />
@@ -128,9 +154,9 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>Hero Image</label>
-          {data.heroImage && (
+          {local.heroImage && (
             <button
-              onClick={() => onChange('heroImage', undefined)}
+              onClick={() => handleChange('heroImage', undefined)}
               aria-label="Clear hero image"
               style={clearBtnStyle}
             >×</button>
@@ -139,8 +165,8 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
         <div style={{ marginTop: T.spacingXs }}>
           <input
             type="text"
-            value={data.heroImage ?? ''}
-            onChange={(e) => onChange('heroImage', e.target.value || undefined)}
+            value={local.heroImage ?? ''}
+            onChange={(e) => handleChange('heroImage', e.target.value || undefined)}
             placeholder="Optional — e.g. ./assets/hero.png"
             style={inputBaseStyle}
           />
@@ -151,9 +177,9 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>Category</label>
-          {data.category && (
+          {local.category && (
             <button
-              onClick={() => onChange('category', undefined)}
+              onClick={() => handleChange('category', undefined)}
               aria-label="Clear category"
               style={clearBtnStyle}
             >×</button>
@@ -162,8 +188,8 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
         <div style={{ marginTop: T.spacingXs }}>
           <input
             type="text"
-            value={data.category ?? ''}
-            onChange={(e) => onChange('category', e.target.value || undefined)}
+            value={local.category ?? ''}
+            onChange={(e) => handleChange('category', e.target.value || undefined)}
             placeholder="Optional"
             style={inputBaseStyle}
           />
@@ -174,7 +200,7 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
       <div style={{ gridColumn: '1 / -1' }}>
         <label style={labelStyle}>Tags</label>
         <TagChipEditor
-          tags={data.tags}
+          tags={local.tags}
           onAdd={handleTagAdd}
           onRemove={handleTagRemove}
         />
