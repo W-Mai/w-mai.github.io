@@ -48,15 +48,20 @@
     "satori": "^0.25.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.1.12",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "yaml": "^2.8.2"
   },
   "overrides": {
     "astro-expressive-code": "latest"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "fast-check": "^4.5.3",
+    "jsdom": "^28.1.0",
     "remark-html": "^16.0.1",
     "vitest": "^4.0.18"
   }

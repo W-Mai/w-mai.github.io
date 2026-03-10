@@ -9,6 +9,7 @@ import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@cod
 import { editorKeymap } from '../../lib/editor-shortcuts';
 import { detectActiveFormats } from '../../lib/editor-formatting';
 import { editorAutocomplete } from '../../lib/editor-autocomplete';
+import { frontmatterExtension } from '../../lib/frontmatter-extension';
 
 export interface MdxEditorHandle {
   getView: () => EditorView | null;
@@ -153,6 +154,7 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
           stickerShortcut,
           dropPasteHandler,
           contextMenuHandler,
+          frontmatterExtension(),
         ],
       });
 
