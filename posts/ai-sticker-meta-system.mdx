@@ -1,0 +1,145 @@
+---
+title: '给 82 个表情包请了个 AI 管家'
+description: '用豆包视觉大模型给博客表情包自动命名分类，从 getimgdata-1.jpg 到 tired-panda-stare'
+pubDate: '2026/03/11'
+tags: ["ai", "tooling", "editor"]
+category: 'Programming'
+---
+
+### 问题
+
+我的博客有个表情包系统，写文章的时候可以用 `:sticker[文件名]:` 插入表情包。
+
+挺好用的，就是有个致命问题：**文件名全是乱码。**
+
+::sticker[getimgdata-1.jpg]::
+
+你看看这些名字：
+
+- `getimgdata-1.jpg`
+- `getimgdata-2.gif`
+- `v2_15f69528-c9fb-4749-aca6-a74f840d4bdl.gif`
+- `5f6b65fb-4d23-40bd-9664-c69cfc2591fl.png`
+
+82 个表情包，没有一个名字能让你知道它是什么。
+
+写文章的时候想插个"无语"的表情，得一个一个点开看。
+
+搜索？搜什么？搜 `getimgdata-5`？
+
+::sticker[getimgdata-5.jpg]::
+
+更要命的是，AI 帮我写文章的时候也没法用这些表情包，因为它根本不知道哪个文件对应什么表情。
+
+### 方案选择
+
+最直觉的想法是重命名文件。把 `getimgdata-1.jpg` 改成 `tired-panda-stare.jpg`。
+
+但这有个问题：已经发布的文章里引用了这些文件名，改名就得全局替换。而且表情包的 URL 可能被外部缓存了，改名会导致 404。
+
+所以换个思路：**文件名不动，加一层 meta 信息。**
+
+在 `posts/stickers/` 目录下放一个 `_meta.json`，记录每个表情包的语义信息：
+
+```json
+{
+  "getimgdata-1.jpg": {
+    "filename": "getimgdata-1.jpg",
+    "aiName": "tired-panda-stare",
+    "description": "熊猫头疲惫眼神表情包",
+    "tags": ["熊猫头", "疲惫", "无语", "盯"]
+  }
+}
+```
+
+这样搜索的时候用 meta 里的信息匹配，文件名保持不变，零破坏性。
+
+### 用 AI 自动识别
+
+82 个表情包，手动写 meta？写死我吧 :sticker[v2_8daef0b9-6876-4ea5-9363-9f7eec248e5l.gif]:
+
+正好手头有字节跳动火山引擎的 API，用豆包的视觉大模型 `doubao-seed-2-0-lite` 来识别。
+
+后端很简单：把图片转 base64，发给模型，让它返回命名、描述和标签：
+
+```typescript
+const SYSTEM_PROMPT = `You are a sticker/emoji naming assistant. Given a sticker image, provide:
+1. A short English kebab-case name (e.g. "tired-panda-stare")
+2. A brief Chinese description
+3. 3-5 searchable tags in Chinese
+
+Return ONLY valid JSON:
+{"aiName": "kebab-case-name", "description": "中文描述", "tags": ["标签1", "标签2"]}`;
+```
+
+图片读取用 base64 编码塞进 `image_url`：
+
+```typescript
+const data = readFileSync(resolve(stickersDir, name));
+const base64 = data.toString('base64');
+const dataUrl = `data:${mimeType};base64,${base64}`;
+
+// Send to vision model
+const res = await fetch(`${config.baseUrl}/chat/completions`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${config.apiKey}`,
+  },
+  body: JSON.stringify({
+    model: 'doubao-seed-2-0-lite-260215',
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      {
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: dataUrl } },
+          { type: 'text', text: '请识别这个表情包/贴纸，给出命名和描述。' },
+        ],
+      },
+    ],
+  }),
+});
+```
+
+识别结果直接写入 `_meta.json`，下次打开面板就能看到语义化的名字了。
+
+::sticker[getimgdata-9.jpg]::
+
+### 编辑器集成
+
+在 Sticker Panel 里加了几个东西：
+
+1. 每个表情包旁边多了个 🤖 按钮，点一下就调 AI 识别
+2. 顶部有个批量识别按钮，显示未识别数量，一键全部识别（可以中途停止）
+3. 已识别的表情包右上角有个绿点标记
+4. 搜索框现在能匹配 AI 命名、中文描述和标签
+
+比如搜"熊猫"，就能找到所有熊猫头表情包，不用再记 `getimgdata-几` 了。
+
+
+### 架构思考
+
+这个需求有个有意思的设计决策：**meta 和文件分离。**
+
+一开始想的是重命名文件，但这是个破坏性操作。换成 meta 层之后：
+
+- 文件名是稳定的标识符，永远不变
+- 语义信息是可变的附加层，随时可以重新识别
+- 搜索走 meta，展示走 meta，引用走文件名
+- 即使 `_meta.json` 丢了，系统照常工作，只是搜索退化到文件名匹配
+
+这其实就是**数据和元数据分离**的经典模式。文件系统负责存储，meta 负责语义，两者通过文件名关联。
+
+::sticker[getimgdata-16.jpg]::
+
+### 总结
+
+给表情包加 AI 识别这件事本身不复杂，但它解决了一个实际的效率问题：**让无意义的文件名变得可搜索、可理解。**
+
+核心就三个文件：
+- `_meta.json` — 存储语义信息
+- `recognize.ts` — 调用视觉模型
+- `StickerPanel.tsx` — UI 集成
+
+以后写文章想插表情包，搜个中文关键词就行。AI 写文章的时候也能根据 meta 信息选合适的表情包了。
