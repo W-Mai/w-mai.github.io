@@ -47,6 +47,7 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    envDir: new URL('..', import.meta.url).pathname,
     resolve: {
       alias: {
         '~': new URL('./src', import.meta.url).pathname,

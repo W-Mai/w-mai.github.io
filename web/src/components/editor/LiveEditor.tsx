@@ -15,6 +15,7 @@ import { EDITOR_TOKENS as T } from './editor-tokens';
 import { persistEditorState, restoreEditorState } from '../../lib/editor-utils';
 import { setStickerPickerCallback } from '../../lib/editor-autocomplete';
 import StickerPicker from './StickerPicker';
+import EnvConfigPanel from './EnvConfigPanel';
 
 interface PostInfo {
   slug: string;
@@ -73,6 +74,7 @@ const LiveEditor: FC = () => {
   const [gitCommitting, setGitCommitting] = useState(false);
   const [showGitModal, setShowGitModal] = useState(false);
   const [showStickerPanel, setShowStickerPanel] = useState(false);
+  const [showEnvConfig, setShowEnvConfig] = useState(false);
   const [stickerPicker, setStickerPicker] = useState<{
     pos: { x: number; y: number }; isBlock: boolean;
   } | null>(null);
@@ -653,6 +655,19 @@ const LiveEditor: FC = () => {
           >
             {gitCommitting ? '⏳ Committing...' : `📦 Commit${gitPending.length > 0 ? ` ${gitPending.length} post${gitPending.length > 1 ? 's' : ''}` : ''}`}
           </button>
+          <button
+            onClick={() => setShowEnvConfig(true)}
+            title="Environment variables"
+            style={{
+              padding: `0.35rem ${T.spacingSm}`,
+              background: 'none', border: `1px solid ${T.colorBorder}`,
+              borderRadius: T.radiusMd, cursor: 'pointer',
+              fontSize: T.fontSizeMd, color: T.colorTextSecondary,
+              transition: `all ${T.transitionFast}`,
+            }}
+          >
+            ⚙️
+          </button>
         </div>
 
         {/* Error banner */}
@@ -780,6 +795,9 @@ const LiveEditor: FC = () => {
           onClose={() => setStickerPicker(null)}
         />
       )}
+
+      {/* Env Config Panel */}
+      <EnvConfigPanel isOpen={showEnvConfig} onClose={() => setShowEnvConfig(false)} />
     </div>
   );
 };
