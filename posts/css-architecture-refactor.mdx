@@ -1,0 +1,218 @@
+---
+title: '把 500 行 CSS 拆成 6 个文件：一次拟态风格博客的样式架构改造'
+description: '从一坨 global.css 到 design token + 语义化 class 的架构演进，以及为什么好的架构比测试更重要'
+pubDate: '2026/03/11'
+tags: ["css", "architecture", "neumorphism", "tailwind"]
+category: 'Programming'
+---
+
+### 背景
+
+我的博客用的是拟态（Neumorphism）设计风格，就是那种看起来像从背景里凸出来或凹下去的 UI。
+
+效果挺好看的，但代价是 CSS 很重。每个卡片都需要精心调配的阴影值，每个按钮都有 hover、active 两套阴影状态。这些东西全堆在一个 `global.css` 里，大概 500 行，12 个 section。
+
+::sticker[v2_cf77560f-c19f-41ae-84e9-9e580bf131dl.gif]::
+
+一开始还好，但随着页面越来越多，问题开始暴露：
+
+1. 同样的 Tailwind class 组合在不同组件里重复出现（比如 section 标题的样式在 4 个页面里复制了 4 遍）
+2. 改一个阴影值要在 `global.css` 里翻半天找对应的 section
+3. 暗色模式的 token 和亮色模式的 token 混在一起，改主题色得上下反复跳
+4. 新人（包括 AI）看到 500 行 CSS 直接懵了 :sticker[getimgdata-10.jpg]:
+
+### 拆分策略
+
+最直觉的想法是按组件拆 —— 每个 `.astro` 文件配一个 `.css`。但拟态风格不适合这么干，因为阴影系统是全局的，`neu-card` 在哪个组件里都长一样。
+
+所以按**职责**拆：
+
+```
+web/src/styles/
+├── global.css          # 入口：只有 Tailwind 指令 + @import
+├── tokens.css          # 设计 token（亮色 + 暗色）
+├── base.css            # 字体、基础元素、排版、滚动条
+├── neumorphism.css     # neu-* 组件类 + 语义化布局类
+├── animations.css      # anim-fade, anim-zoom
+├── mermaid.css          # Mermaid 图表皮肤
+└── components.css      # 贴纸、评论、工具类 + 语义化排版类
+```
+
+`global.css` 变成了一个纯入口文件 :sticker[getimgdata-2.jpg]:：
+
+```css
+@import "tailwindcss/theme";
+@tailwind utilities;
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-accent-board:       #6b7280;
+  --color-accent-board-light: #f3f4f6;
+  --color-accent-board-dark:  #4b5563;
+}
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./neumorphism.css";
+@import "./animations.css";
+@import "./mermaid.css";
+@import "./components.css";
+```
+
+零 CSS 规则声明，只有指令和导入。PostCSS 在构建时把所有 `@import` 内联成一个文件，浏览器看到的和之前完全一样。:sticker[getimgdata-12.gif]:
+
+### 语义化 class 提取
+
+拆文件只是第一步。真正有意思的是提取语义化 class。
+
+举个例子，这是改造前 `StatsDashboard.astro` 里一个 section 标题的写法：
+
+```html
+<h3 class="text-lg sm:text-xl font-bold text-[var(--text-heading)] flex items-center gap-2">
+  📊 统计
+  <span class="h-0.5 flex-1 bg-[var(--border-subtle)] rounded-full"></span>
+</h3>
+```
+
+这串 class 在 4 个不同的页面里出现了 4 次。每次都是一模一样的 `text-lg sm:text-xl font-bold text-[var(--text-heading)] flex items-center gap-2`。
+
+改造后：
+
+```html
+<h3 class="neu-section-title">
+  📊 统计
+  <span class="neu-section-divider"></span>
+</h3>
+```
+
+::sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]::
+
+`neu-section-title` 在 `neumorphism.css` 里定义：
+
+```css
+.neu-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  font-size: 1.125rem;
+}
+@media (min-width: 640px) {
+  .neu-section-title { font-size: 1.25rem; }
+}
+```
+
+关键原则：**布局和间距进 class，颜色走 token。** :sticker[v2_b142fbb3-70dc-46ef-a023-6bf352cfc3cl.gif]:
+
+所有颜色都通过 `var(--*)` 引用 design token，不硬编码任何色值。这意味着加一个新主题 = 定义一组新的 token 值，零组件改动。
+
+### 提取了哪些 class
+
+一共提取了 12 个语义化 class，分两类：
+
+拟态相关的放 `neumorphism.css`：
+
+| Class | 用途 |
+|---|---|
+| `.neu-section-title` | section 标题（flex + bold + heading 色） |
+| `.neu-section-divider` | 标题后的装饰线 |
+| `.neu-stat-cell` | 统计数字卡片（inset + 居中） |
+| `.neu-info-card` | 信息卡片（icon + 文字） |
+| `.neu-board` | 大面板容器（inset + 大圆角） |
+| `.neu-filter-btn` | 筛选按钮 |
+| `.neu-card-section` | 页面 section 卡片 |
+| `.neu-link-btn` | 链接按钮 |
+
+排版相关的放 `components.css`：
+
+| Class | 用途 |
+|---|---|
+| `.page-title` | 页面大标题 |
+| `.page-subtitle` | 页面副标题 |
+| `.stat-value` | 统计数字 |
+| `.stat-label` | 统计标签 |
+
+### 组合模式
+
+语义化 class 负责"它是什么"（表面、阴影、间距），Tailwind 负责"这个实例有什么不同"（特定颜色、边距、动画延迟）。
+
+```html
+<!-- 好：语义 class + Tailwind 覆盖 -->
+<section class="neu-card neu-card-section anim-fade" style="--delay:3">
+
+<!-- 好：链接按钮 + 颜色覆盖 -->
+<a class="neu-btn neu-link-btn gap-1.5 text-[var(--text-link)]">
+
+<!-- 坏：原始 Tailwind 重复语义 class 已有的内容 -->
+<section class="neu-card rounded-2xl p-4 sm:p-6 md:p-8 mb-8 sm:mb-12 anim-fade">
+```
+
+### 架构优先于测试
+
+这次改造有个核心理念：**好的架构让错误写法不可能出现，而不是出现后靠测试兜底。**
+
+::sticker[getimgdata-7.gif]::
+
+具体来说：
+
+1. **Design token 系统**：所有颜色通过 CSS 变量引用。想硬编码一个 `#333`？可以，但它不会跟着主题切换。这个"不方便"本身就是约束。
+
+2. **语义化 class 的颜色规则**：class 定义里只允许 `var(--*)`，不允许硬编码色值。这不是靠 code review 保证的，而是靠一个简单的 property test：
+
+```typescript
+// 扫描所有语义 class 定义，验证颜色属性只用 var()
+test('no hardcoded colors in semantic classes', () => {
+  const colorProps = ['color', 'background-color', 'background', 'border-color'];
+  for (const cls of semanticClasses) {
+    for (const prop of colorProps) {
+      if (cls.has(prop)) {
+        expect(cls.get(prop)).toMatch(/var\(--/);
+      }
+    }
+  }
+});
+```
+
+> `\(--/)` ok fine 这个正则很像一个颜文字表情
+
+3. **Token 引用有效性**：语义 class 里用的每个 `var(--*)` 都必须在 `tokens.css` 里有定义。这也是一个 property test，不是人肉检查。
+
+测试验证的是**架构约束是否成立**（"每个 token 在所有主题下都有定义"），而不是追着每个组件的具体实现写断言。
+
+### 自动化检测
+
+写了两个扫描脚本：
+
+- `scan-class-groups.ts`：检测重复的 class 组合，提示应该提取
+- `scan-semantic-candidates.ts`：检测已知的语义 class 模式没有被替换的地方
+
+这样新加页面的时候，如果有人又写了一串 `text-lg sm:text-xl font-bold text-[var(--text-heading)] flex items-center gap-2`，扫描脚本会告诉你：嘿，这个应该用 `neu-section-title`。
+
+### 结果
+
+改造前后：
+
+- `global.css`：500 行 → 15 行（纯入口）
+- 6 个职责清晰的文件，每个 50-120 行
+- 12 个语义化 class，消除了大量模板里的重复
+- 构建产物完全一致，零视觉变化
+- 加新主题：改一个文件（`tokens.css`），零组件改动
+
+::sticker[v2_291c5510-d0eb-4938-8edf-01113ff9f98l.gif]::
+
+最大的收获不是代码量减少，而是**认知负担降低** :sticker[v2_980e4836-9895-4459-9730-84817921cffl.gif]:。看到 `neu-section-title` 就知道它是什么，不用去解读一串 Tailwind class。AI 写代码的时候也能直接用这些语义化 class，不用每次都猜应该用哪些 utility :sticker[getimgdata-7.jpg]:。
+
+### 总结
+
+CSS 架构改造的核心不是"拆文件"，而是建立约束：
+
+1. **Token 系统**约束颜色，让主题切换成为可能
+2. **语义化 class** 约束模式，让重复不可能出现
+3. **扫描脚本**约束流程，让违规自动被发现
+4. **Property test** 约束架构，让约束本身被验证
+
+好的架构是自我保护的。它不需要你记住规则，因为违反规则的写法本身就不方便。
+
+::sticker[getimgdata-4.jpg]::
