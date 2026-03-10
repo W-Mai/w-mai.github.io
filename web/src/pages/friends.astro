@@ -11,7 +11,7 @@ const profile = await fetchGitHubProfile()
 
 <WithSidebar>
     <Fragment slot="sidebar">
-        <ProfileSidebar profile={profile} />
+        <ProfileSidebar profile={profile} showBio />
     </Fragment>
 
     <h1 class="page-title anim-fade" style="--delay:0">🤝 怼点友链</h1>
