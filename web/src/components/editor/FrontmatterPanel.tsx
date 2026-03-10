@@ -120,9 +120,10 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
       <div>
         <label style={labelStyle}>Publish Date</label>
         <input
-          type="date"
+          type="text"
           value={local.pubDate}
           onChange={(e) => handleChange('pubDate', e.target.value)}
+          placeholder="YYYY/MM/DD"
           style={inputBaseStyle}
         />
       </div>
@@ -141,10 +142,10 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
         </div>
         <div style={{ marginTop: T.spacingXs }}>
           <input
-            type="date"
+            type="text"
             value={local.updatedDate ?? ''}
             onChange={(e) => handleChange('updatedDate', e.target.value || undefined)}
-            placeholder="Optional"
+            placeholder="YYYY/MM/DD"
             style={inputBaseStyle}
           />
         </div>
