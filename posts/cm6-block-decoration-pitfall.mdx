@@ -1,0 +1,218 @@
+---
+title: 'CM6 的 Block Decoration 陷阱：一个白屏引发的血案'
+description: '在 CodeMirror 6 中用 ViewPlugin 做 block decoration 踩的坑，以及为什么你必须用 StateField'
+pubDate: 'Mar 10, 2026'
+heroImage: ./assets/cm6-block-decoration-trap.jpg
+tags: ["codemirror", "react", "debugging"]
+category: 'Programming'
+---
+
+### 事情的起因
+
+我想给博客的 Markdown 编辑器加一个功能：把文章顶部那坨 YAML frontmatter 替换成一个好看的可视化面板。
+
+就是把这种东西：
+
+```yaml
+---
+title: '我的文章'
+description: '一段描述'
+pubDate: 'Mar 10, 2026'
+tags: ["tag1", "tag2"]
+---
+```
+
+变成一个带输入框、标签选择器的 React 面板，直接嵌在编辑器里。
+
+::sticker[v2_15f69528-c9fb-4749-aca6-a74f840d4bdl.gif]::
+
+听起来很合理对吧？CodeMirror 6 有 `Decoration.replace` 可以把一段文本替换成自定义 Widget，完美。
+
+### 第一版实现
+
+思路很直接：
+
+1. 用 `ViewPlugin` 监听文档变化
+2. 检测 frontmatter 的范围（从 `---` 到 `---`）
+3. 用 `Decoration.replace({ widget, block: true })` 把整段替换成 React 面板
+
+代码大概长这样：
+
+```typescript
+const frontmatterPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+    constructor(view: EditorView) {
+      this.decorations = this.buildDecorations(view);
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged) {
+        this.decorations = this.buildDecorations(update.view);
+      }
+    }
+    buildDecorations(view: EditorView) {
+      const range = detectFrontmatterRange(view.state.doc);
+      if (!range) return Decoration.none;
+      const widget = new FrontmatterWidget(data, view);
+      const deco = Decoration.replace({ widget, block: true });
+      return Decoration.set([deco.range(range.from, range.to)]);
+    }
+  },
+  { decorations: (v) => v.decorations }
+);
+```
+
+写完，信心满满，启动。
+
+### 白屏
+
+
+整个编辑器页面，白的。
+
+::sticker[getimgdata-1.jpg]::
+
+啥也没有。控制台？啥也没报。Astro 的开发服务器？一切正常。页面就是白的，像是编辑器组件直接炸了但没人告诉你。
+
+这就很离谱了。你写了个 CM6 插件，页面直接白屏，但是没有任何错误信息。
+
+::sticker[v2_1e30d0ea-0645-401a-a20a-c1777a7221dl.gif]::
+
+### 找到真凶
+
+既然浏览器控制台不给力（Astro 的 error overlay 把错误吞了），那就上 Playwright 无头浏览器，直接监听 `pageerror` 事件：
+
+```typescript
+page.on('pageerror', (err) => {
+  console.error('[PAGE ERROR]', err.message);
+});
+```
+
+跑起来，终于看到了：
+
+```
+Block decorations may not be specified via plugins
+```
+
+哦豁。:sticker[getimgdata-5.jpg]:
+
+原来 CM6 有一条铁律：**`ViewPlugin` 不允许提供 `block: true` 的 decoration。**
+
+好吧，那我把 `block: true` 去掉总行了吧？
+
+```typescript
+const deco = Decoration.replace({ widget }); // no block: true
+```
+
+再跑。
+
+```
+Decorations that replace line breaks may not be specified via plugins
+```
+
+::sticker[v2_ce17e8ff-f185-4f52-907d-01d4df32b6fl.gif]::
+
+又炸了。这次的意思是：`ViewPlugin` 也不允许提供跨越多行的 `Decoration.replace`。
+
+frontmatter 天然就是多行的啊大哥……
+
+### CM6 的 Decoration 规则
+
+翻了半天源码和文档，终于搞明白了 CM6 的 decoration 权限模型：
+
+| Decoration 类型 | ViewPlugin | StateField |
+|---|---|---|
+| `Decoration.mark` (inline) | ✅ | ✅ |
+| `Decoration.replace` (单行内) | ✅ | ✅ |
+| `Decoration.replace` (跨行) | ❌ | ✅ |
+| `Decoration.replace({ block: true })` | ❌ | ✅ |
+| `Decoration.widget({ block: true })` | ❌ | ✅ |
+
+简单来说：**任何涉及 block 级别或跨行的 decoration，必须用 `StateField` 提供，不能用 `ViewPlugin`。**
+
+为什么？因为 `ViewPlugin` 的生命周期和视图绑定，CM6 认为它不够"稳定"来做结构性的 DOM 变更。block decoration 会影响行的布局计算，CM6 需要在更早的阶段（state 层面）就知道这些 decoration 的存在。
+
+这个限制在文档里提了一嘴，但真的很容易忽略。
+
+### 正确的做法
+
+用 `StateField` 来管理 decoration：
+
+```typescript
+const frontmatterDecoField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none;
+  },
+  update(decos, tr) {
+    if (tr.docChanged && activeView) {
+      return buildDecorations(activeView);
+    }
+    return decos;
+  },
+  provide(field) {
+    return EditorView.decorations.from(field);
+  },
+});
+```
+
+但这里有个问题：`StateField` 的 `create` 和 `update` 里拿不到 `EditorView`，而我们的 Widget 需要 `EditorView` 来 dispatch 文档更新。
+
+解决方案是用一个轻量的 `ViewPlugin` 把 `EditorView` 引用通过 `StateEffect` 注入进来：
+
+```typescript
+const setViewEffect = StateEffect.define<EditorView>();
+
+const viewRefPlugin = ViewPlugin.define((view) => {
+  queueMicrotask(() => {
+    view.dispatch({ effects: setViewEffect.of(view) });
+  });
+  return { update() {} };
+});
+```
+
+然后在 `StateField.update` 里捕获这个 effect：
+
+```typescript
+update(decos, tr) {
+  for (const e of tr.effects) {
+    if (e.is(setViewEffect)) {
+      activeView = e.value;
+      return buildDecorations(activeView);
+    }
+  }
+  if (tr.docChanged && activeView) {
+    return buildDecorations(activeView);
+  }
+  return decos;
+}
+```
+
+这样 `StateField` 负责 decoration 的生命周期（CM6 满意了），`ViewPlugin` 只负责传递 view 引用（一个很轻的活）。
+
+### 还有一个坑：React unmount 时序
+
+Widget 的 `destroy()` 方法里直接调 `root.unmount()` 会触发 React 警告，因为 CM6 在做 DOM 同步的时候调用 `destroy()`，这时候 React 再去操作 DOM 就冲突了。
+
+解决方案：`setTimeout` 延迟 unmount。
+
+```typescript
+destroy(): void {
+  const root = this.root;
+  if (root) {
+    this.root = null;
+    setTimeout(() => { try { root.unmount(); } catch {} }, 0);
+  }
+}
+```
+
+### 总结
+
+如果你在 CM6 里做 block-level 的 decoration（比如把一段文本替换成自定义 UI），记住：
+
+1. **用 `StateField`，不要用 `ViewPlugin`** — 这是 CM6 的硬性规则
+2. 需要 `EditorView` 引用？用 `StateEffect` 从 `ViewPlugin` 传过去
+3. React Widget 的 `destroy()` 要用 `setTimeout` 延迟 unmount
+4. 白屏不报错？上 Playwright 抓 `pageerror`，别信框架的 error overlay
+
+这个坑的根本原因是 CM6 的文档对这个限制描述得太轻描淡写了，而报错信息又被框架吞掉了。
+
+::sticker[getimgdata-5.jpg]::
