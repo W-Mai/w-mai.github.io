@@ -16,8 +16,16 @@ const date = new Date(thought.createdAt)
 
 {isEditorMode ? (
   <div class="flex items-center gap-2">
-    <div class="neu-card rounded-[2rem] p-5 sm:p-6 flex-1">
-      <div class="flex items-center justify-between mb-3 gap-2">
+    <div class="neu-card relative rounded-[2rem] p-5 sm:p-6 flex-1">
+      {thought.tags && thought.tags.length > 0 && (
+        <div class="neu-tags-capsule absolute top-[0.875rem] right-[0.875rem]">
+          {thought.tags.map((tag) => (
+            <TagChip tag={tag} interactive={false} />
+          ))}
+        </div>
+      )}
+
+      <div class="flex items-center mb-3 gap-2">
         {thought.mood ? (
           <div class="neu-mood-time">
             <span class="neu-mood-badge">{thought.mood}</span>
@@ -25,14 +33,6 @@ const date = new Date(thought.createdAt)
           </div>
         ) : (
           <span class="neu-time-pill"><FormattedDate date={date} /></span>
-        )}
-
-        {thought.tags && thought.tags.length > 0 && (
-          <div class="neu-tags-capsule">
-            {thought.tags.map((tag) => (
-              <TagChip tag={tag} interactive={false} />
-            ))}
-          </div>
         )}
       </div>
 
@@ -53,8 +53,16 @@ const date = new Date(thought.createdAt)
     </div>
   </div>
 ) : (
-  <div class="neu-card rounded-[2rem] p-5 sm:p-6">
-    <div class="flex items-center justify-between mb-3 gap-2">
+  <div class="neu-card relative rounded-[2rem] p-5 sm:p-6">
+    {thought.tags && thought.tags.length > 0 && (
+      <div class="neu-tags-capsule absolute top-[0.875rem] right-[0.875rem]">
+        {thought.tags.map((tag) => (
+          <TagChip tag={tag} interactive={false} />
+        ))}
+      </div>
+    )}
+
+    <div class="flex items-center mb-3 gap-2">
       {thought.mood ? (
         <div class="neu-mood-time">
           <span class="neu-mood-badge">{thought.mood}</span>
@@ -62,14 +70,6 @@ const date = new Date(thought.createdAt)
         </div>
       ) : (
         <span class="neu-time-pill"><FormattedDate date={date} /></span>
-      )}
-
-      {thought.tags && thought.tags.length > 0 && (
-        <div class="neu-tags-capsule">
-          {thought.tags.map((tag) => (
-            <TagChip tag={tag} interactive={false} />
-          ))}
-        </div>
       )}
     </div>
 
