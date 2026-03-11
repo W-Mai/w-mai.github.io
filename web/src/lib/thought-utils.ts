@@ -32,11 +32,14 @@ export function yamlToThought(yaml: string): ThoughtData | null {
   }
 }
 
-/** Generate a filename-safe ID from a createdAt string */
+/** Generate a filename-safe ID from a createdAt string (YYYY-MM-DDTHH:mm:ss) */
 export function generateThoughtId(createdAt: string): string {
-  const d = new Date(createdAt);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  const m = createdAt.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}-${m[4]}${m[5]}${m[6]}`;
+  // Fallback: date-only format
+  const d = createdAt.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (d) return `${d[1]}-${d[2]}-${d[3]}-000000`;
+  return `${Date.now()}`;
 }
 
 /** Validate raw input for creating/updating a thought */

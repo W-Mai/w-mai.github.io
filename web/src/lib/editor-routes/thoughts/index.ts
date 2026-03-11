@@ -40,7 +40,9 @@ export const POST: APIRoute = async ({ request }) => {
     const validation = validateThought(body);
     if (!validation.valid) return json({ error: validation.error }, 400);
 
-    const now = new Date().toISOString().replace('Z', '').split('.')[0];
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const now = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     const id = generateThoughtId(now);
     const filename = `${id}.yaml`;
     const filePath = resolve(thoughtsDir, filename);
