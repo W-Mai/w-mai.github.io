@@ -1,0 +1,21 @@
+---
+import ThoughtCard from './ThoughtCard.astro'
+import type { Thought } from '../data/thoughts'
+
+interface Props {
+  thoughts: readonly Thought[]
+  delayStart?: number
+}
+
+const { thoughts, delayStart = 3 } = Astro.props
+---
+
+<div class="thought-timeline">
+  {thoughts.map((thought, i) => (
+    <div class="timeline-item anim-fade" style={`--delay:${delayStart + i}`}>
+      <div class="timeline-dot"></div>
+      <div class="timeline-connector"></div>
+      <ThoughtCard thought={thought} />
+    </div>
+  ))}
+</div>

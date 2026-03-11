@@ -1,0 +1,65 @@
+---
+import WithSidebar from '~/layouts/WithSidebar.astro'
+import ProfileSidebar from '../components/ProfileSidebar.astro'
+import ThoughtTimeline from '../components/ThoughtTimeline.astro'
+import { fetchGitHubProfile } from '../lib/github'
+import { THOUGHTS } from '../data/thoughts'
+
+const profile = await fetchGitHubProfile()
+const allTags = [...new Set(THOUGHTS.flatMap((t) => t.tags ?? []))]
+---
+
+<WithSidebar>
+  <Fragment slot="sidebar">
+    <ProfileSidebar profile={profile} showBio />
+  </Fragment>
+
+  <h1 class="page-title anim-fade" style="--delay:0">🧠 怼点想法</h1>
+  <p class="page-subtitle anim-fade" style="--delay:1">脑子里蹦出来的碎碎念，不成文章，但值得记一笔</p>
+
+  {allTags.length > 0 && (
+    <div class="flex flex-wrap gap-2 mb-6 anim-fade" style="--delay:2">
+      {allTags.map((tag) => (
+        <button class="neu-btn neu-filter-btn" data-tag={tag}>{tag}</button>
+      ))}
+    </div>
+  )}
+
+  {THOUGHTS.length > 0 ? (
+    <ThoughtTimeline thoughts={THOUGHTS} />
+  ) : (
+    <p class="text-[var(--text-muted)] text-center py-12 anim-fade" style="--delay:2">
+      还没有想法呢，再等等～
+    </p>
+  )}
+</WithSidebar>
+
+<script>
+  function initThoughtFilter() {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-tag]')
+    const items = document.querySelectorAll<HTMLElement>('.timeline-item')
+    let activeTag: string | null = null
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.tag!
+        if (activeTag === tag) {
+          activeTag = null
+          buttons.forEach((b) => b.classList.remove('neu-filter-active'))
+          items.forEach((item) => item.style.display = '')
+        } else {
+          activeTag = tag
+          buttons.forEach((b) => {
+            b.classList.toggle('neu-filter-active', b.dataset.tag === tag)
+          })
+          items.forEach((item) => {
+            const itemTags = Array.from(item.querySelectorAll('.neu-tag-chip'))
+              .map((el) => el.textContent?.trim() ?? '')
+            item.style.display = itemTags.includes(tag) ? '' : 'none'
+          })
+        }
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initThoughtFilter)
+</script>

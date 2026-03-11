@@ -167,6 +167,12 @@ html:not(.no-transitions) .neu-tag-chip {
   color: var(--text-link);
   transition: all 0.2s ease;
 }
+.neu-filter-btn.neu-filter-active {
+  box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong),
+              inset -3px -3px 6px var(--neu-shadow-light-strong);
+  color: var(--text-primary);
+  font-weight: 600;
+}
 @media (min-width: 640px) {
   .neu-filter-btn {
     padding: 0.5rem 1rem;
@@ -240,4 +246,55 @@ a.neu-tag-chip:active {
   box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
               inset -2px -2px 4px var(--neu-shadow-light-strong);
   transform: translateY(0);
+}
+
+/* Timeline — vertical connector and dot for thoughts page */
+.timeline-item {
+  position: relative;
+  padding-left: 2rem;
+  padding-bottom: 1.5rem;
+}
+.timeline-connector {
+  position: absolute;
+  left: 5px;
+  top: 12px;
+  bottom: -1.5rem;
+  width: 2px;
+  background: var(--border-subtle);
+}
+.timeline-item:last-child .timeline-connector {
+  display: none;
+}
+.timeline-dot {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--neu-bg);
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+             -2px -2px 4px var(--neu-shadow-light);
+}
+
+/* Thought content prose */
+.thought-content a { color: var(--text-link); }
+.thought-content a:hover { color: var(--text-link-hover); }
+.thought-content code {
+  padding: 0.125rem 0.375rem;
+  background: var(--bg-code);
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+@media (max-width: 720px) {
+  .timeline-item { padding-left: 1.5rem; }
+  .timeline-dot { width: 10px; height: 10px; }
+  .timeline-connector { left: 4px; }
+}
+@media (max-width: 400px) {
+  .timeline-dot {
+    box-shadow: 1px 1px 2px var(--neu-shadow-dark),
+               -1px -1px 2px var(--neu-shadow-light);
+  }
 }
