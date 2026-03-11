@@ -1,5 +1,6 @@
 ---
 import TagChip from './TagChip.astro'
+import FormattedDate from './FormattedDate.astro'
 import { renderInlineMarkdown } from '../lib/markdown'
 import type { Thought } from '../data/thoughts'
 
@@ -10,6 +11,7 @@ interface Props {
 
 const { thought, isEditorMode = false } = Astro.props
 const html = renderInlineMarkdown(thought.content)
+const date = new Date(thought.createdAt)
 ---
 
 <div class="neu-card rounded-2xl p-4 sm:p-5">
@@ -18,7 +20,7 @@ const html = renderInlineMarkdown(thought.content)
   <div class="flex items-center justify-between mt-3 gap-2">
     <span class="text-[var(--text-muted)] text-xs">
       {thought.mood && <span class="mr-1">{thought.mood}</span>}
-      {thought.createdAt}
+      <FormattedDate date={date} />
     </span>
 
     <div class="flex items-center gap-1.5">

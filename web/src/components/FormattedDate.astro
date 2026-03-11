@@ -5,14 +5,24 @@ interface Props {
 
 const { date } = Astro.props;
 
+const now = new Date();
 const pad2 = (n: number) => String(n).padStart(2, '0');
-const display = `${date.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+const time = `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+
+const sameYear = date.getFullYear() === now.getFullYear();
+const sameDay = sameYear && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+
+const display = sameDay
+	? time
+	: sameYear
+		? `${date.toLocaleDateString('en-us', { month: 'short', day: 'numeric' })} ${time}`
+		: `${date.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })} ${time}`;
 
 const off = date.getTimezoneOffset();
 const tzSign = off <= 0 ? '+' : '-';
 const tzAbs = Math.abs(off);
 const tz = `UTC${tzSign}${pad2(Math.floor(tzAbs / 60))}:${pad2(tzAbs % 60)}`;
-const full = `${display}:${pad2(date.getSeconds())} ${tz}`;
+const full = `${date.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })} ${time}:${pad2(date.getSeconds())} ${tz}`;
 ---
 
 <time datetime={date.toISOString()} title={full}>
