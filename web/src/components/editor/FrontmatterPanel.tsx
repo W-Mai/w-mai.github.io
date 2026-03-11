@@ -111,10 +111,12 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
 
   return (
     <div style={{
-      padding: `${T.spacingXl} ${T.spacing2xl}`,
-      margin: T.spacingLg,
-      background: T.colorBg,
+      padding: `${T.spacingLg}`,
       fontFamily: T.fontSans,
+    }}>
+    <div style={{
+      padding: `${T.spacingXl} ${T.spacing2xl}`,
+      background: T.colorBg,
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
       gap: T.spacingMd,
@@ -320,6 +322,7 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
           onRemove={handleTagRemove}
         />
       </div>
+    </div>
     </div>
   );
 };
