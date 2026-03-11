@@ -64,7 +64,6 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
         <div style={{
           width: '200px', flexShrink: 0,
           display: 'flex', flexDirection: 'column',
-          borderRight: `1px solid ${T.colorBorderLight}`,
           overflow: 'auto',
           padding: T.spacingXl,
           gap: T.spacingXl,

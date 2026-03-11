@@ -720,7 +720,7 @@ const LiveEditor: FC = () => {
 
         {/* Editor + Preview split */}
         <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-          <div style={{ flex: 1, minWidth: 0, borderRight: `1px solid ${T.colorBorder}`, position: 'relative' }}>
+          <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
             {state.selectedSlug ? (
               <MdxEditor
                 ref={editorRef}

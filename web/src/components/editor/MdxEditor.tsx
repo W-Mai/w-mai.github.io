@@ -40,7 +40,7 @@ const editorTheme = EditorView.theme({
   '.cm-content': { padding: '0.75rem 0' },
   '.cm-gutters': {
     background: 'var(--neu-bg)',
-    borderRight: '1px solid var(--border-divider)',
+    border: 'none',
     color: 'var(--text-muted)',
   },
   '.cm-activeLineGutter': {
