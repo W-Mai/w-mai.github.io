@@ -2,6 +2,7 @@
 import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProfileSidebar from '../components/ProfileSidebar.astro'
 import ThoughtTimeline from '../components/ThoughtTimeline.astro'
+import ThoughtEditor from '../components/editor/ThoughtEditor'
 import { fetchGitHubProfile } from '../lib/github'
 import { loadThoughts } from '../data/thoughts'
 
@@ -20,7 +21,9 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
   <p class="page-subtitle anim-fade" style="--delay:1">脑子里蹦出来的碎碎念，不成文章，但值得记一笔</p>
 
   {isEditorMode && (
-    <div class="mb-6 anim-fade" style="--delay:2" id="thought-editor-root"></div>
+    <div class="mb-6 anim-fade" style="--delay:2">
+      <ThoughtEditor client:load />
+    </div>
   )}
 
   {allTags.length > 0 && (
@@ -40,50 +43,9 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
   )}
 </WithSidebar>
 
-{isEditorMode && (
-  <script>
-    import { createElement } from 'react'
-    import { createRoot } from 'react-dom/client'
-    import ThoughtEditor from '../components/editor/ThoughtEditor'
-
-    function mountEditor() {
-      const container = document.getElementById('thought-editor-root')
-      if (!container || container.dataset.mounted) return
-      container.dataset.mounted = 'true'
-
-      const root = createRoot(container)
-      root.render(createElement(ThoughtEditor, {
-        onSaved: () => window.location.reload(),
-      }))
-
-      // Wire up edit/delete buttons on ThoughtCards
-      document.querySelectorAll<HTMLButtonElement>('[data-thought-edit]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const raw = btn.dataset.thoughtEdit
-          if (!raw) return
-          try {
-            const thought = JSON.parse(raw);
-            (window as any).__thoughtEditor?.startEdit(thought)
-            container.scrollIntoView({ behavior: 'smooth' })
-          } catch {}
-        })
-      })
-
-      document.querySelectorAll<HTMLButtonElement>('[data-thought-delete]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const id = btn.dataset.thoughtDelete
-          if (!id) return
-          ;(window as any).__thoughtEditor?.handleDelete(id)
-        })
-      })
-    }
-
-    document.addEventListener('astro:page-load', mountEditor)
-  </script>
-)}
-
 <script>
-  function initThoughtFilter() {
+  function initThoughtPage() {
+    // Tag filter
     const buttons = document.querySelectorAll<HTMLButtonElement>('[data-tag]')
     const items = document.querySelectorAll<HTMLElement>('.timeline-item')
     let activeTag: string | null = null
@@ -108,6 +70,28 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
         }
       })
     })
+
+    // Editor mode: wire up edit/delete buttons
+    document.querySelectorAll<HTMLButtonElement>('[data-thought-edit]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const raw = btn.dataset.thoughtEdit
+        if (!raw) return
+        try {
+          const thought = JSON.parse(raw)
+          ;(window as any).__thoughtEditor?.startEdit(thought)
+          document.querySelector('.mb-6.anim-fade')?.scrollIntoView({ behavior: 'smooth' })
+        } catch {}
+      })
+    })
+
+    document.querySelectorAll<HTMLButtonElement>('[data-thought-delete]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.thoughtDelete
+        if (!id) return
+        ;(window as any).__thoughtEditor?.handleDelete(id)
+      })
+    })
   }
-  document.addEventListener('astro:page-load', initThoughtFilter)
+
+  document.addEventListener('astro:page-load', initThoughtPage)
 </script>

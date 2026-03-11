@@ -52,7 +52,8 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
       if (!res.ok) throw new Error(data.error || 'Save failed');
 
       resetForm();
-      onSaved?.();
+      if (onSaved) onSaved();
+      else window.location.reload();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -88,7 +89,8 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
     try {
       const res = await fetch(`/api/editor/thoughts/${id}`, { method: 'DELETE' });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Delete failed'); }
-      onSaved?.();
+      if (onSaved) onSaved();
+      else window.location.reload();
     } catch (err: any) {
       setError(err.message);
     }
