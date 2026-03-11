@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, type FC } from 'react';
+import { createPortal } from 'react-dom';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import StickerPanel from './StickerPanel';
 import { renderInlineMarkdown } from '../../lib/markdown';
@@ -216,11 +217,14 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
         >{saving ? 'Saving...' : editingId ? 'Update' : 'Post'}</button>
       </div>
 
-      <StickerPanel
-        isOpen={stickerOpen}
-        onClose={() => setStickerOpen(false)}
-        onInsertInline={(syntax) => insertSticker(syntax)}
-      />
+      {typeof document !== 'undefined' && createPortal(
+        <StickerPanel
+          isOpen={stickerOpen}
+          onClose={() => setStickerOpen(false)}
+          onInsertInline={(syntax) => insertSticker(syntax)}
+        />,
+        document.body,
+      )}
     </div>
   );
 };
