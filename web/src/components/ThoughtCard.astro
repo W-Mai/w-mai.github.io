@@ -15,9 +15,7 @@ const date = new Date(thought.createdAt)
 ---
 
 <div class="neu-card rounded-[2rem] p-5 sm:p-6">
-  <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
-
-  <div class="flex items-center justify-between mt-3 gap-2">
+  <div class="flex items-center justify-between mb-3 gap-2">
     {thought.mood ? (
       <div class="neu-mood-time">
         <span class="neu-mood-badge">{thought.mood}</span>
@@ -29,7 +27,7 @@ const date = new Date(thought.createdAt)
 
     <div class="flex items-center gap-1.5">
       {thought.tags && thought.tags.length > 0 && (
-        <div class="flex flex-wrap gap-1.5">
+        <div class="neu-tags-capsule">
           {thought.tags.map((tag) => (
             <TagChip tag={tag} interactive={false} />
           ))}
@@ -52,4 +50,6 @@ const date = new Date(thought.createdAt)
       )}
     </div>
   </div>
+
+  <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
 </div>

@@ -382,7 +382,32 @@ a.neu-tag-chip:active {
   border-radius: 0;
 }
 
-/* Time pill — subtle raised pill, lower hierarchy than mood badge */
+/* Tags capsule — raised pill container matching mood-time style */
+.neu-tags-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 1.125rem;
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+              -2px -2px 4px var(--neu-shadow-light);
+}
+.neu-tags-capsule .neu-tag-chip {
+  box-shadow: none;
+  background: transparent;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.875rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  transition: box-shadow 200ms ease, background 200ms ease, transform 200ms ease, color 200ms ease;
+}
+.neu-tags-capsule .neu-tag-chip:hover {
+  background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+  box-shadow: 4px 4px 8px var(--neu-shadow-dark),
+              -4px -4px 8px var(--neu-shadow-light);
+  color: var(--text-secondary);
+  transform: translateY(-1px);
+}
 .neu-time-pill {
   display: inline-flex;
   align-items: center;
