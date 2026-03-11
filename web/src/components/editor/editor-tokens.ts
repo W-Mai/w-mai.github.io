@@ -29,6 +29,8 @@ export const EDITOR_TOKENS = {
   spacingMd: '0.5rem',
   spacingLg: '0.75rem',
   spacingXl: '1rem',
+  spacing2xl: '1.25rem',
+  spacing3xl: '1.5rem',
 
   // Typography
   fontSans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -40,9 +42,10 @@ export const EDITOR_TOKENS = {
   fontSizeLg: '1rem',
 
   // Border radius
-  radiusSm: '0.375rem',
-  radiusMd: '0.5rem',
-  radiusLg: '0.75rem',
+  radiusSm: '0.5rem',
+  radiusMd: '0.75rem',
+  radiusLg: '1rem',
+  radiusXl: '1.5rem',
 
   // Transitions
   transitionFast: '150ms ease',

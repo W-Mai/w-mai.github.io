@@ -532,6 +532,8 @@ const LiveEditor: FC = () => {
           box-shadow: ${T.shadowInset} !important;
           transform: translateY(0);
         }
+        .editor-scrollbar-hide::-webkit-scrollbar { display: none; }
+        .editor-scrollbar-hide { scrollbar-width: none; }
       `}</style>
 
       {/* Main area — full width */}
@@ -799,7 +801,7 @@ const LiveEditor: FC = () => {
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '840px', maxWidth: '92vw', height: '70vh',
-              background: T.colorBg, borderRadius: '1rem',
+              background: T.colorBg, borderRadius: T.radiusXl,
               boxShadow: '8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
@@ -808,7 +810,7 @@ const LiveEditor: FC = () => {
             {/* Panel header */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: T.spacingLg,
-              padding: `${T.spacingXl} ${T.spacingXl}`,
+              padding: `${T.spacing2xl} ${T.spacing3xl}`,
             }}>
               {/* Neumorphism tab switcher */}
               <div style={{
@@ -878,10 +880,10 @@ const LiveEditor: FC = () => {
             {/* Panel body */}
             <div style={{
               flex: 1, minHeight: 0, overflow: 'hidden',
-              padding: `0 ${T.spacingXl} ${T.spacingXl}`,
+              padding: `0 ${T.spacing3xl} ${T.spacing3xl}`,
             }}>
               <div style={{
-                background: T.colorBg, borderRadius: T.radiusMd,
+                background: T.colorBg, borderRadius: T.radiusLg,
                 boxShadow: T.shadowInset,
                 overflow: 'hidden', height: '100%',
               }}>

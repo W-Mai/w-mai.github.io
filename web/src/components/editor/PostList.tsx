@@ -62,15 +62,15 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
       {/* Left sidebar — filter panel */}
       {hasFilters && (
         <div style={{
-          width: '180px', flexShrink: 0,
+          width: '200px', flexShrink: 0,
           display: 'flex', flexDirection: 'column',
           borderRight: `1px solid ${T.colorBorderLight}`,
           overflow: 'auto',
-          padding: T.spacingLg,
-          gap: T.spacingLg,
+          padding: T.spacingXl,
+          gap: T.spacingXl,
         }}>
           {/* Sort controls */}
-          <div style={{ display: 'flex', gap: T.spacingSm }}>
+          <div style={{ display: 'flex', gap: T.spacingMd }}>
             <button
               className="editor-btn"
               onClick={cycleSortField}
@@ -121,8 +121,8 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
           {/* Tags */}
           {allTags.length > 0 && (
             <div>
-              <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingSm }}>Tags</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingMd }}>Tags</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: T.spacingMd }}>
                 {allTags.map((tag) => {
                   const active = filter.selectedTags.includes(tag);
                   return (
@@ -132,7 +132,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                       onClick={() => toggleTag(tag)}
                       style={{
                         background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                        padding: '3px 10px', fontSize: T.fontSizeXs, cursor: 'pointer',
+                        padding: '4px 12px', fontSize: T.fontSizeXs, cursor: 'pointer',
                         color: active ? T.colorText : T.colorTextMuted,
                         fontWeight: active ? 600 : 400,
                         boxShadow: active ? T.shadowInset : T.shadowBtn,
@@ -150,8 +150,8 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
           {/* Categories */}
           {allCategories.length > 0 && (
             <div>
-              <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingSm }}>Category</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingMd }}>Category</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: T.spacingMd }}>
                 {allCategories.map((cat) => {
                   const active = filter.selectedCategory === cat;
                   return (
@@ -161,7 +161,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                       onClick={() => setCategory(cat)}
                       style={{
                         background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                        padding: '3px 10px', fontSize: T.fontSizeXs, cursor: 'pointer',
+                        padding: '4px 12px', fontSize: T.fontSizeXs, cursor: 'pointer',
                         color: active ? T.colorText : T.colorTextMuted,
                         fontWeight: active ? 600 : 400,
                         boxShadow: active ? T.shadowInset : T.shadowBtn,
@@ -204,15 +204,15 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
       {/* Right side — search + file list */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Search bar */}
-        <div style={{ padding: `${T.spacingLg} ${T.spacingXl}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingMd }}>
+        <div style={{ padding: `${T.spacingXl} ${T.spacing2xl}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingLg }}>
             <input
               type="text"
               value={filter.searchTerm}
               onChange={(e) => setFilter((f) => ({ ...f, searchTerm: e.target.value }))}
               placeholder="Search posts..."
               style={{
-                flex: 1, padding: `${T.spacingMd} ${T.spacingLg}`,
+                flex: 1, padding: `${T.spacingLg} ${T.spacingXl}`,
                 border: 'none', borderRadius: T.radiusMd,
                 fontSize: T.fontSizeMd, outline: 'none', boxSizing: 'border-box',
                 fontFamily: T.fontSans, color: T.colorText,
@@ -282,7 +282,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
         </div>
 
         {/* File list */}
-        <div style={{ flex: 1, overflow: 'auto', padding: T.spacingLg }}>
+        <div className="editor-scrollbar-hide" style={{ flex: 1, overflow: 'auto', padding: T.spacingXl }}>
           {posts.length === 0 ? (
             <div style={{ padding: T.spacingXl, color: T.colorTextMuted, fontSize: T.fontSizeMd }}>
               No posts found.
@@ -292,7 +292,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
               No matching posts
             </div>
           ) : (
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: T.spacingLg }}>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: T.spacingXl }}>
               {filtered.map((post, idx) => {
                 const label = showTitle ? (post.title || post.slug) : post.slug;
                 const date = formatSmartDate(post.pubDate);
@@ -309,7 +309,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                     title={tooltipParts.join('\n')}
                     style={{
                       display: 'flex', alignItems: 'center',
-                      padding: `${T.spacingMd} ${T.spacingLg}`,
+                      padding: `${T.spacingLg} ${T.spacingXl}`,
                       background: T.colorBg, borderRadius: T.radiusMd,
                       boxShadow: isSelected ? T.shadowInset : T.shadowBtn,
                       cursor: 'pointer',
