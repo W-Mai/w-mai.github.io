@@ -538,8 +538,8 @@ const LiveEditor: FC = () => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top bar */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: T.spacingLg,
-          padding: `${T.spacingLg} ${T.spacingXl}`,
+          display: 'flex', alignItems: 'center', gap: T.spacingXl,
+          padding: `${T.spacingLg} 1.25rem`,
           borderBottom: 'none',
           background: T.colorBg, fontSize: T.fontSizeBase,
           boxShadow: T.shadowRaised,
@@ -551,7 +551,7 @@ const LiveEditor: FC = () => {
             style={{
               background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
               cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
-              padding: `${T.spacingSm} ${T.spacingMd}`,
+              padding: `${T.spacingMd} ${T.spacingLg}`,
               boxShadow: T.shadowBtn,
               transition: `all 0.2s ease`,
             }}
@@ -574,7 +574,8 @@ const LiveEditor: FC = () => {
               onClick={handleSave}
               disabled={!state.isDirty || state.isLoading}
               style={{
-                padding: `${T.spacingSm} ${T.spacingXl}`,
+                padding: `${T.spacingMd} ${T.spacingXl}`,
+                minWidth: '5rem',
                 background: state.isDirty ? T.colorAccent : T.colorBg,
                 color: state.isDirty ? '#ffffff' : T.colorTextMuted,
                 border: 'none', borderRadius: T.radiusMd,
@@ -595,7 +596,8 @@ const LiveEditor: FC = () => {
               ? `Commit ${gitPending.length} post(s): ${gitPending.map((p) => p.title).join(', ')}`
               : 'No pending posts to commit'}
             style={{
-              padding: `${T.spacingSm} ${T.spacingXl}`,
+              padding: `${T.spacingMd} ${T.spacingXl}`,
+              minWidth: '7rem',
               background: gitPending.length === 0 ? T.colorBg
                 : gitCommitting ? T.colorBg : '#059669',
               color: gitPending.length === 0 ? T.colorTextMuted
@@ -604,7 +606,7 @@ const LiveEditor: FC = () => {
               fontSize: T.fontSizeMd, fontWeight: 500,
               cursor: gitPending.length === 0 || gitCommitting ? 'default' : 'pointer',
               transition: `all 0.2s ease`,
-              display: 'flex', alignItems: 'center', gap: T.spacingSm,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: T.spacingSm,
               opacity: gitPending.length === 0 ? 0.5 : 1,
               boxShadow: gitPending.length > 0 && !gitCommitting ? T.shadowBtn : 'none',
             }}
@@ -616,7 +618,7 @@ const LiveEditor: FC = () => {
             onClick={() => setShowEnvConfig(true)}
             title="Environment variables"
             style={{
-              padding: `${T.spacingSm} ${T.spacingMd}`,
+              padding: `${T.spacingMd} ${T.spacingLg}`,
               background: T.colorBg, border: 'none',
               borderRadius: T.radiusMd, cursor: 'pointer',
               fontSize: T.fontSizeLg, color: T.colorTextSecondary,
@@ -773,7 +775,7 @@ const LiveEditor: FC = () => {
             className="editor-panel"
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: '560px', maxWidth: '92vw', maxHeight: '82vh',
+              width: '560px', maxWidth: '92vw', height: '70vh',
               background: T.colorBg, borderRadius: '1rem',
               boxShadow: '8px 8px 16px rgb(163 177 198 / 0.6), -8px -8px 16px rgb(255 255 255 / 0.5)',
               display: 'flex', flexDirection: 'column',

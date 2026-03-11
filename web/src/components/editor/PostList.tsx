@@ -59,17 +59,17 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Search + sort + toggle row */}
-      <div style={{ padding: `${T.spacingMd} ${T.spacingLg}`, borderBottom: `1px solid ${T.colorBorderLight}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingSm }}>
+      <div style={{ padding: `${T.spacingLg} ${T.spacingXl}`, borderBottom: `1px solid ${T.colorBorderLight}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingMd }}>
           <input
             type="text"
             value={filter.searchTerm}
             onChange={(e) => setFilter((f) => ({ ...f, searchTerm: e.target.value }))}
             placeholder="Search posts..."
             style={{
-              flex: 1, padding: `${T.spacingSm} ${T.spacingMd}`,
-              border: 'none', borderRadius: T.radiusSm,
-              fontSize: T.fontSizeSm, outline: 'none', boxSizing: 'border-box',
+              flex: 1, padding: `${T.spacingMd} ${T.spacingLg}`,
+              border: 'none', borderRadius: T.radiusMd,
+              fontSize: T.fontSizeMd, outline: 'none', boxSizing: 'border-box',
               fontFamily: T.fontSans, color: T.colorText,
               background: T.colorBg, boxShadow: T.shadowInset,
               transition: `box-shadow 0.2s ease`,
@@ -80,9 +80,11 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             onClick={cycleSortField}
             title={`Sort by ${filter.sortField}`}
             style={{
-              background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-              padding: `${T.spacingSm} ${T.spacingSm}`, fontSize: T.fontSizeMd,
-              cursor: 'pointer', color: T.colorTextSecondary, lineHeight: 1,
+              background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+              padding: `${T.spacingMd}`, fontSize: T.fontSizeMd,
+              width: '2rem', height: '2rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: T.colorTextSecondary,
               boxShadow: T.shadowBtn, transition: `all 0.2s ease`,
             }}
           >
@@ -93,9 +95,11 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             onClick={toggleSortDir}
             title={filter.sortDirection === 'asc' ? 'Ascending' : 'Descending'}
             style={{
-              background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-              padding: `${T.spacingSm} ${T.spacingSm}`, fontSize: T.fontSizeMd,
-              cursor: 'pointer', color: T.colorTextSecondary, lineHeight: 1,
+              background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+              padding: `${T.spacingMd}`, fontSize: T.fontSizeMd,
+              width: '2rem', height: '2rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: T.colorTextSecondary,
               boxShadow: T.shadowBtn, transition: `all 0.2s ease`,
             }}
           >
@@ -106,9 +110,11 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             onClick={() => setShowTitle((v) => !v)}
             title={showTitle ? 'Show filenames' : 'Show titles'}
             style={{
-              background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-              padding: `${T.spacingSm} ${T.spacingSm}`, fontSize: T.fontSizeMd,
-              cursor: 'pointer', color: T.colorTextSecondary, lineHeight: 1,
+              background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+              padding: `${T.spacingMd}`, fontSize: T.fontSizeMd,
+              width: '2rem', height: '2rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: T.colorTextSecondary,
               boxShadow: T.shadowBtn, transition: `all 0.2s ease`,
             }}
           >
@@ -179,7 +185,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             {allTags.length > 0 && (
               <div style={{ marginBottom: T.spacingSm }}>
                 <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '4px' }}>Tags</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {allTags.map((tag) => {
                     const active = filter.selectedTags.includes(tag);
                     return (
@@ -189,7 +195,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                         onClick={() => toggleTag(tag)}
                         style={{
                           background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                          padding: '2px 8px', fontSize: T.fontSizeXs, cursor: 'pointer',
+                          padding: '3px 10px', fontSize: T.fontSizeXs, cursor: 'pointer',
                           color: active ? T.colorText : T.colorTextMuted,
                           fontWeight: active ? 600 : 400,
                           boxShadow: active ? T.shadowInset : T.shadowBtn,
@@ -208,7 +214,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             {allCategories.length > 0 && (
               <div>
                 <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '4px' }}>Category</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {allCategories.map((cat) => {
                     const active = filter.selectedCategory === cat;
                     return (
@@ -218,7 +224,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                         onClick={() => setCategory(cat)}
                         style={{
                           background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                          padding: '2px 8px', fontSize: T.fontSizeXs, cursor: 'pointer',
+                          padding: '3px 10px', fontSize: T.fontSizeXs, cursor: 'pointer',
                           color: active ? T.colorText : T.colorTextMuted,
                           fontWeight: active ? 600 : 400,
                           boxShadow: active ? T.shadowInset : T.shadowBtn,
@@ -266,7 +272,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                     onClick={() => onSelect(post.slug)}
                     title={tooltipParts.join('\n')}
                     style={{
-                      flex: 1, padding: `${T.spacingMd} ${T.spacingLg}`,
+                      flex: 1, padding: `${T.spacingLg} ${T.spacingXl}`,
                       border: 'none',
                       background: isSelected ? T.colorBgTertiary : 'transparent',
                       color: isSelected ? T.colorText : T.colorTextSecondary,
