@@ -117,19 +117,6 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
     fontFamily: T.fontSans,
   };
 
-  // Neumorphism button base
-  const neuBtn = (active = false): React.CSSProperties => ({
-    padding: `${T.spacingSm} ${T.spacingLg}`,
-    background: T.colorBg,
-    border: 'none',
-    borderRadius: T.radiusSm,
-    fontSize: T.fontSizeSm,
-    color: T.colorTextSecondary,
-    cursor: 'pointer',
-    boxShadow: active ? T.shadowInset : T.shadowBtn,
-    transition: `all ${T.transitionFast}`,
-  });
-
   return (
     <div style={{
       boxShadow: T.shadowRaised,
@@ -223,11 +210,11 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
       }}>
         <button
           onClick={() => setStickerOpen(true)}
-          style={neuBtn()}
+          className="neu-editor-btn"
         >😀 Sticker</button>
 
         {editingId && (
-          <button onClick={resetForm} style={neuBtn()}>
+          <button onClick={resetForm} className="neu-editor-btn">
             Cancel
           </button>
         )}
@@ -235,10 +222,8 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
         <button
           onClick={handleSave}
           disabled={saving || !content.trim()}
+          className="neu-editor-btn neu-editor-btn-primary"
           style={{
-            ...neuBtn(),
-            fontWeight: 600,
-            color: !content.trim() ? T.colorTextMuted : T.colorAccent,
             opacity: !content.trim() ? 0.6 : 1,
           }}
         >{saving ? 'Saving...' : editingId ? 'Update' : 'Post'}</button>
