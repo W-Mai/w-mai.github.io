@@ -102,117 +102,157 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
     (window as any).__thoughtEditor = { startEdit, handleDelete };
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: '100%', padding: `${T.spacingSm} ${T.spacingMd}`,
-    border: `1px solid ${T.colorBorder}`, borderRadius: T.radiusSm,
-    fontSize: T.fontSizeSm, background: T.colorBgSecondary,
-    color: T.colorText, outline: 'none', boxSizing: 'border-box',
+  // Inset input fields — sunken into the raised card
+  const insetInput: React.CSSProperties = {
+    width: '100%',
+    padding: `${T.spacingMd} ${T.spacingLg}`,
+    border: 'none',
+    borderRadius: T.radiusMd,
+    fontSize: T.fontSizeSm,
+    background: T.colorBg,
+    color: T.colorText,
+    outline: 'none',
+    boxSizing: 'border-box',
+    boxShadow: T.shadowInset,
     fontFamily: T.fontSans,
   };
 
+  // Neumorphism button base
+  const neuBtn = (active = false): React.CSSProperties => ({
+    padding: `${T.spacingSm} ${T.spacingLg}`,
+    background: T.colorBg,
+    border: 'none',
+    borderRadius: T.radiusSm,
+    fontSize: T.fontSizeSm,
+    color: T.colorTextSecondary,
+    cursor: 'pointer',
+    boxShadow: active ? T.shadowInset : T.shadowBtn,
+    transition: `all ${T.transitionFast}`,
+  });
+
   return (
     <div style={{
-      boxShadow: T.shadowInset, borderRadius: T.radiusLg,
-      padding: T.spacingXl, fontFamily: T.fontSans,
+      boxShadow: T.shadowRaised,
+      borderRadius: T.radiusXl,
+      padding: T.spacing3xl,
+      fontFamily: T.fontSans,
       background: T.colorBg,
     }}>
-      <div style={{ fontSize: T.fontSizeSm, fontWeight: 600, color: T.colorText, marginBottom: T.spacingMd }}>
+      {/* Header */}
+      <div style={{
+        fontSize: T.fontSizeMd, fontWeight: 600,
+        color: T.colorAccent, marginBottom: T.spacingLg,
+      }}>
         {editingId ? '✏️ Edit thought' : '💭 New thought'}
       </div>
 
-      {/* Content textarea */}
+      {/* Content textarea — inset */}
       <textarea
         ref={textareaRef}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Write something..."
-        rows={3}
+        rows={4}
         style={{
-          ...inputStyle,
-          resize: 'vertical', minHeight: '4rem',
-          fontFamily: T.fontSans, lineHeight: '1.6',
+          ...insetInput,
+          resize: 'vertical',
+          minHeight: '5rem',
+          lineHeight: '1.7',
         }}
       />
 
-      {/* Tag + Mood row */}
-      <div style={{ display: 'flex', gap: T.spacingSm, marginTop: T.spacingSm, flexWrap: 'wrap', alignItems: 'center' }}>
+      {/* Tag input + Mood row */}
+      <div style={{
+        display: 'flex', gap: T.spacingMd,
+        marginTop: T.spacingLg,
+        flexWrap: 'wrap', alignItems: 'center',
+      }}>
         <input
           type="text"
           value={tagInput}
           onChange={(e) => setTagInput(e.target.value)}
           placeholder="Tags (comma separated)"
-          style={{ ...inputStyle, flex: 1, minWidth: '120px' }}
+          style={{ ...insetInput, flex: 1, minWidth: '140px' }}
         />
-        <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap' }}>
+
+        {/* Mood selector — small raised pills */}
+        <div style={{
+          display: 'flex', gap: T.spacingXs, flexWrap: 'wrap',
+        }}>
           {MOOD_OPTIONS.map((m) => (
             <button
               key={m}
               onClick={() => setMood(mood === m ? '' : m)}
               style={{
-                background: mood === m ? T.colorAccent : 'transparent',
-                border: `1px solid ${mood === m ? T.colorAccent : T.colorBorderLight}`,
-                borderRadius: T.radiusSm, padding: '2px 6px',
-                fontSize: T.fontSizeSm, cursor: 'pointer',
+                width: '2rem', height: '2rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: T.colorBg,
+                border: 'none',
+                borderRadius: T.radiusSm,
+                fontSize: T.fontSizeSm,
+                cursor: 'pointer',
+                boxShadow: mood === m ? T.shadowInset : T.shadowBtn,
                 transition: `all ${T.transitionFast}`,
-                filter: mood === m ? 'none' : 'grayscale(0.5)',
+                filter: mood === m ? 'none' : 'grayscale(0.4)',
               }}
             >{m}</button>
           ))}
         </div>
       </div>
 
-      {/* Preview */}
+      {/* Preview — inset container */}
       {content.trim() && (
         <div style={{
-          marginTop: T.spacingMd, padding: T.spacingMd,
-          borderRadius: T.radiusSm, background: T.colorBgSecondary,
-          fontSize: T.fontSizeSm, color: T.colorText, lineHeight: '1.6',
+          marginTop: T.spacingLg,
+          padding: T.spacingLg,
+          borderRadius: T.radiusMd,
+          boxShadow: T.shadowInset,
+          background: T.colorBg,
+          fontSize: T.fontSizeSm,
+          color: T.colorText,
+          lineHeight: '1.7',
         }}>
-          <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingXs }}>Preview</div>
+          <div style={{
+            fontSize: T.fontSizeXs, color: T.colorTextMuted,
+            marginBottom: T.spacingSm, fontWeight: 500,
+          }}>Preview</div>
           <div className="thought-content" dangerouslySetInnerHTML={{ __html: previewHtml }} />
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div style={{ color: T.colorError, fontSize: T.fontSizeXs, marginTop: T.spacingSm }}>{error}</div>
+        <div style={{
+          color: T.colorError, fontSize: T.fontSizeXs,
+          marginTop: T.spacingMd, padding: `${T.spacingSm} ${T.spacingMd}`,
+          borderRadius: T.radiusSm, background: T.colorErrorBg,
+        }}>{error}</div>
       )}
 
-      {/* Actions */}
-      <div style={{ display: 'flex', gap: T.spacingSm, marginTop: T.spacingMd, justifyContent: 'flex-end' }}>
+      {/* Actions — raised buttons */}
+      <div style={{
+        display: 'flex', gap: T.spacingMd,
+        marginTop: T.spacingLg, justifyContent: 'flex-end',
+      }}>
         <button
           onClick={() => setStickerOpen(true)}
-          style={{
-            padding: `${T.spacingSm} ${T.spacingMd}`,
-            background: 'none', border: `1px solid ${T.colorBorder}`,
-            borderRadius: T.radiusSm, fontSize: T.fontSizeSm,
-            color: T.colorTextSecondary, cursor: 'pointer',
-          }}
+          style={neuBtn()}
         >😀 Sticker</button>
 
         {editingId && (
-          <button
-            onClick={resetForm}
-            style={{
-              padding: `${T.spacingSm} ${T.spacingMd}`,
-              background: 'none', border: `1px solid ${T.colorBorder}`,
-              borderRadius: T.radiusSm, fontSize: T.fontSizeSm,
-              color: T.colorTextSecondary, cursor: 'pointer',
-            }}
-          >Cancel</button>
+          <button onClick={resetForm} style={neuBtn()}>
+            Cancel
+          </button>
         )}
 
         <button
           onClick={handleSave}
           disabled={saving || !content.trim()}
           style={{
-            padding: `${T.spacingSm} ${T.spacingLg}`,
-            background: !content.trim() ? T.colorBorder : T.colorAccent,
-            color: !content.trim() ? T.colorTextMuted : T.colorBg,
-            border: 'none', borderRadius: T.radiusSm,
-            fontSize: T.fontSizeSm, fontWeight: 500,
-            cursor: !content.trim() ? 'default' : 'pointer',
-            transition: `all ${T.transitionFast}`,
+            ...neuBtn(),
+            fontWeight: 600,
+            color: !content.trim() ? T.colorTextMuted : T.colorAccent,
+            opacity: !content.trim() ? 0.6 : 1,
           }}
         >{saving ? 'Saving...' : editingId ? 'Update' : 'Post'}</button>
       </div>
