@@ -1,0 +1,110 @@
+---
+title: '谁动了我的局域网：一台 Mac mini 脚踏两只船引发的广播风暴'
+description: '局域网莫名卡顿，AirPlay 断断续续，Wireshark 抓包发现 40% 流量是 mDNS 广播，真凶竟是一台同时连了有线和 Wi-Fi 的 Mac mini'
+pubDate: '2026-03-07T23:21+08:00'
+tags: ["networking", "macos", "troubleshooting", "wireshark"]
+category: 'DevOps'
+---
+
+### 案发现场
+
+局域网里那种「说不清道不明」的卡顿，你懂的。
+
+AirPlay 投屏时断时续，HomeKit 设备反应迟钝，网络仿佛得了慢性病。重启路由器？没用。换个 DNS？没用。玄学？
+
+::sticker[v2_15f69528-c9fb-4749-aca6-a74f840d4bdl.gif]::
+
+### 法医鉴定：Wireshark 出场
+
+没有任何犹豫，祭出网络界的法医工具 Wireshark。
+
+抓了一段流量包，打开的瞬间，满屏的 **mDNS (Multicast DNS)** 流量扑面而来，占比高达 **40%**。
+
+这就像在安静的图书馆里，有个人拿着大喇叭不停地喊：「谁是 HomePod？谁是 HomePod？！」 :sticker[getimgdata-12.jpg]:
+
+在杂乱的流量中，Expert Info 标红了两条关键线索：
+
+1. **DNS query retransmission** — 查询无限重传
+2. **TTL != 255** — 生存时间异常
+
+### 锁定嫌疑人
+
+追踪 IP `192.168.10.118`，锁定嫌疑人: `一台 Mac mini`。
+
+它的行为非常怪异：
+
+- **疯狂喊话**：在疯狂寻找局域网内的 HomePod（`_airplay._tcp.local`）
+- **声音太小**：发出的 mDNS 数据包，TTL 竟然是 **1**
+
+::sticker[v2_cc91a343-c1d3-489f-b151-3d63f947e70l.gif]::
+
+这就很离谱了。
+
+根据 [RFC 6762](https://datatracker.ietf.org/doc/html/rfc6762) 标准，mDNS 多播包的 TTL **必须设置为 255**。这是为了确保数据包只在本地链路有效，同时也是一种安全机制。
+
+TTL=1 意味着什么？就像你试图寄信给隔壁邻居，但在信封上写了「这封信只能走 1 米」。信刚出门就被路由器判定为「过期」，无情丢弃。
+
+即使 HomePod 就在隔壁，它也永远听不到 Mac mini 的呼唤。
+
+于是 Mac mini 以为对方没听见，开始了**无限重试**。
+
+一个设备的无限重试 = 广播风暴。整个局域网一整个的无语住了（真·物理无语·有点窒息）。
+
+::sticker[getimgdata-15.jpg]::
+
+### 陷入僵局
+
+既然是 mDNS 问题，第一反应当然是重启 `mDNSResponder`：
+
+```bash
+sudo killall -HUP mDNSResponder
+```
+
+无效。抓包显示 TTL 依然顽固地停留在 1。
+
+::sticker[v2_ce17e8ff-f185-4f52-907d-01d4df32b6fl.gif]::
+
+Docker？VPN？虚拟机？通常这些软件接管网络协议栈时容易搞乱 TTL。排查了一圈，都不是。
+
+### 真相大白
+
+没招了，直到我重新审视网络拓扑的时候，突然想起来一件事：
+
+> 这台 Mac mini，插了网线，也连着 Wi-Fi。
+
+**？破案了。**
+
+::sticker[v2_9e96d7cd-c2a9-4b9f-b51b-1dafc8ea940l.gif]::
+
+经典的**多网卡冲突 (Multi-Interface Conflict)**。
+
+当一台设备同时通过有线和无线连接到同一个子网时，操作系统在处理多播流量时会变得「精神分裂」：
+
+- 它应该从哪个网口发出去？
+- 回复应该走哪条路？
+
+在 macOS 的某些网络配置下，这种混乱导致 mDNS 数据包的 TTL 被错误地重置为 1，或者选择了错误的路由接口，数据包出师未捷身先死。
+
+### 结局
+
+解决方案简单粗暴：**关掉 Wi-Fi，保留有线连接。**
+
+再次抓包验证：
+
+- TTL=1 的红色警报消失
+- 广播风暴平息
+- 局域网恢复了往日的宁静 :sticker[v2_cc91a343-c1d3-489f-b151-3d63f947e70l.gif]:
+
+::sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]::
+
+### 避坑指南
+
+| 原则 | 说明 |
+|------|------|
+| 专一即美德 | 固定位置的设备（台式机、Mac mini、电视盒子），插了网线就关掉 Wi-Fi。避免路由混乱，还能节省无线空口资源 |
+| 相信 Wireshark | 网络「玄学」卡顿抓个包看一眼 Expert Info，真相往往就藏在红色报错里 |
+| TTL 不会撒谎 | 多播包的 TTL 异常通常是网络配置错误的最直接证据：双网卡、Docker 桥接、VPN 泄露 |
+
+这种事情，你找谁说理去啊
+
+::sticker[getimgdata-5.jpg]::
