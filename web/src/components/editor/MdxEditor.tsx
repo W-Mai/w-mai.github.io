@@ -3,6 +3,7 @@ import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirro
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
+import { EDITOR_TOKENS as T } from './editor-tokens';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
@@ -197,7 +198,13 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
     return (
       <div
         ref={containerRef}
-        style={{ height: '100%', overflow: 'hidden' }}
+        style={{
+          height: '100%', overflow: 'hidden',
+          background: T.colorBg,
+          padding: T.spacingLg,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       />
     );
   },

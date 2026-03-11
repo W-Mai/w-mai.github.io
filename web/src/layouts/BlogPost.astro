@@ -70,6 +70,16 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, read
 						});
 					});
 				});
+
+				// Listen for theme-sync messages from parent editor
+				window.addEventListener('message', function(e) {
+					if (e.data && e.data.type === 'theme-sync') {
+						var t = e.data.theme;
+						if (t === 'dark') document.documentElement.classList.add('dark');
+						else document.documentElement.classList.remove('dark');
+						try { localStorage.setItem('theme', t); } catch(ex) {}
+					}
+				});
 			}
 		</script>
 		<style is:global>

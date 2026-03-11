@@ -558,6 +558,19 @@ const LiveEditor: FC = () => {
         }
         .editor-scrollbar-hide::-webkit-scrollbar { display: none; }
         .editor-scrollbar-hide { scrollbar-width: none; }
+        .cm-editor { position: relative; border-radius: ${T.radiusXl}; overflow: hidden; flex: 1; min-height: 0; }
+        .cm-editor::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: ${T.radiusXl};
+          box-shadow: ${T.shadowInset};
+          pointer-events: none;
+          z-index: 10;
+        }
+        .cm-content { padding-right: 2rem !important; }
+        .cm-scroller::-webkit-scrollbar { display: none; }
+        .cm-scroller { scrollbar-width: none; }
       `}</style>
 
       {/* Main area — full width */}
@@ -646,6 +659,11 @@ const LiveEditor: FC = () => {
             onClick={() => {
               if (typeof (window as any).__toggleTheme === 'function') {
                 (window as any).__toggleTheme();
+                // Sync theme to preview iframe
+                const isDark = document.documentElement.classList.contains('dark');
+                document.querySelectorAll('iframe').forEach((iframe) => {
+                  try { iframe.contentWindow?.postMessage({ type: 'theme-sync', theme: isDark ? 'dark' : 'light' }, '*'); } catch {}
+                });
               }
             }}
             title="Toggle dark mode"
