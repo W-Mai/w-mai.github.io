@@ -321,11 +321,12 @@ a.neu-tag-chip:active {
   font-size: 0.875rem;
   cursor: pointer;
   box-shadow: none;
-  transition: box-shadow 200ms ease, transform 200ms ease, filter 200ms ease;
+  transition: box-shadow 200ms ease, background 200ms ease, transform 200ms ease, filter 200ms ease;
   filter: grayscale(0.4);
 }
 
 .neu-mood-item:hover {
+  background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
   box-shadow: 3px 3px 6px var(--neu-shadow-dark),
               -3px -3px 6px var(--neu-shadow-light);
   transform: translateY(-1px);
@@ -333,12 +334,14 @@ a.neu-tag-chip:active {
 }
 
 .neu-mood-item:active {
+  background: var(--neu-bg);
   box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
               inset -2px -2px 4px var(--neu-shadow-light-strong);
   transform: translateY(0);
 }
 
 .neu-mood-item.selected {
+  background: var(--neu-bg);
   box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
               inset -2px -2px 4px var(--neu-shadow-light-strong);
   filter: grayscale(0);
