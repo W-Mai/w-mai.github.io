@@ -67,7 +67,9 @@ export const POST: APIRoute = async ({ params, request }) => {
   } catch {
     // File doesn't exist — create it
     try {
-      const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const now = new Date();
+      const pad = (n: number, w = 2) => String(n).padStart(w, '0');
+      const today = `${now.getFullYear()}/${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
       const template = `---\ntitle: '${title.replace(/'/g, "''")}'\ndescription: ''\npubDate: '${today}'\n---\n\nStart writing here.\n`;
       await writeFile(filePath, template, 'utf-8');
       return json({ success: true, slug });

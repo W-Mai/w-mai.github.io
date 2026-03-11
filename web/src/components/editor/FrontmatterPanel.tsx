@@ -1,6 +1,7 @@
 import { type FC, useState, useEffect, useCallback, useRef } from 'react';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import TagChipEditor from './TagChipEditor';
+import DateTimePicker from './DateTimePicker';
 import type { FrontmatterData } from '../../lib/frontmatter-utils';
 
 interface FrontmatterPanelProps {
@@ -144,12 +145,10 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
       {/* pubDate */}
       <div>
         <label style={labelStyle}>Publish Date</label>
-        <input
-          type="text"
+        <DateTimePicker
           value={local.pubDate}
-          onChange={(e) => handleChange('pubDate', e.target.value)}
-          placeholder="YYYY/MM/DD"
-          style={inputBaseStyle}
+          onChange={(v) => handleChange('pubDate', v)}
+          placeholder="YYYY/MM/DD HH:mm"
         />
       </div>
 
@@ -166,12 +165,10 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
           )}
         </div>
         <div style={{ marginTop: T.spacingXs }}>
-          <input
-            type="text"
+          <DateTimePicker
             value={local.updatedDate ?? ''}
-            onChange={(e) => handleChange('updatedDate', e.target.value || undefined)}
-            placeholder="YYYY/MM/DD"
-            style={inputBaseStyle}
+            onChange={(v) => handleChange('updatedDate', v || undefined)}
+            placeholder="YYYY/MM/DD HH:mm"
           />
         </div>
       </div>
