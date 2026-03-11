@@ -59,7 +59,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Search + sort + toggle row */}
-      <div style={{ padding: `${T.spacingLg} ${T.spacingXl}`, borderBottom: `1px solid ${T.colorBorderLight}` }}>
+      <div style={{ padding: `${T.spacingLg} ${T.spacingXl}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingMd }}>
           <input
             type="text"
@@ -154,37 +154,54 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
         {/* Filter bar toggle */}
         {(allTags.length > 0 || allCategories.length > 0) && (
           <button
+            className="editor-btn"
             onClick={() => setFilterOpen((v) => !v)}
             style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: T.colorTextMuted, fontSize: T.fontSizeSm, padding: `${T.spacingSm} 0`,
+              background: T.colorBg, border: 'none', cursor: 'pointer',
+              color: T.colorTextMuted, fontSize: T.fontSizeSm,
+              padding: `${T.spacingSm} ${T.spacingLg}`,
+              borderRadius: T.radiusSm, marginTop: T.spacingSm,
               display: 'flex', alignItems: 'center', gap: T.spacingSm,
-              transition: `color 0.2s ease`, width: '100%',
+              boxShadow: T.shadowBtn,
+              transition: `all 0.2s ease`, width: '100%',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = T.colorText; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = T.colorTextMuted; }}
           >
             <span style={{
               fontSize: T.fontSizeXs,
               transform: filterOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s ease',
+              transition: 'transform 0.25s ease',
               display: 'inline-block',
             }}>▶</span>
             <span>Filters</span>
+            {activeCount > 0 && (
+              <span style={{
+                marginLeft: 'auto', fontSize: T.fontSizeXs,
+                background: T.colorAccent, color: '#fff',
+                borderRadius: '9999px', padding: '0 6px',
+                lineHeight: '1.4',
+              }}>{activeCount}</span>
+            )}
           </button>
         )}
 
         {/* Expanded filter bar */}
         <div style={{
-          maxHeight: filterOpen ? '200px' : '0',
-          overflow: 'hidden',
-          transition: 'max-height 0.25s ease',
+          display: 'grid',
+          gridTemplateRows: filterOpen ? '1fr' : '0fr',
+          opacity: filterOpen ? 1 : 0,
+          transition: 'grid-template-rows 0.3s ease, opacity 0.25s ease',
         }}>
-          <div style={{ paddingTop: T.spacingSm }}>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{
+              marginTop: T.spacingSm, padding: T.spacingXl,
+              background: T.colorBg, borderRadius: T.radiusMd,
+              boxShadow: T.shadowInset,
+              display: 'flex', flexDirection: 'column', gap: T.spacingLg,
+            }}>
             {/* Tag chips */}
             {allTags.length > 0 && (
-              <div style={{ marginBottom: T.spacingSm }}>
-                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '4px' }}>Tags</div>
+              <div>
+                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingSm }}>Tags</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {allTags.map((tag) => {
                     const active = filter.selectedTags.includes(tag);
@@ -213,7 +230,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             {/* Category options */}
             {allCategories.length > 0 && (
               <div>
-                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '4px' }}>Category</div>
+                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: T.spacingSm }}>Category</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {allCategories.map((cat) => {
                     const active = filter.selectedCategory === cat;
@@ -241,9 +258,10 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
           </div>
         </div>
       </div>
+      </div>
 
       {/* Post list */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: T.spacingLg }}>
         {posts.length === 0 ? (
           <div style={{ padding: T.spacingXl, color: T.colorTextMuted, fontSize: T.fontSizeMd }}>
             No posts found.
@@ -253,7 +271,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             No matching posts
           </div>
         ) : (
-          <ul style={{ listStyle: 'none', margin: 0, padding: `${T.spacingSm} 0` }}>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: T.spacingLg }}>
             {filtered.map((post, idx) => {
               const label = showTitle ? (post.title || post.slug) : post.slug;
               const date = formatSmartDate(post.pubDate);
@@ -263,38 +281,28 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
               const isSelected = post.slug === selectedSlug;
 
               return (
-                <li key={post.slug} style={{
-                  display: 'flex', alignItems: 'center',
-                  animation: `editorPanelItemIn 0.2s ease both`,
-                  animationDelay: `${Math.min(idx * 30, 300)}ms`,
-                }}>
-                  <button
-                    onClick={() => onSelect(post.slug)}
-                    title={tooltipParts.join('\n')}
-                    style={{
-                      flex: 1, padding: `${T.spacingLg} ${T.spacingXl}`,
-                      border: 'none',
-                      background: isSelected ? T.colorBgTertiary : 'transparent',
-                      color: isSelected ? T.colorText : T.colorTextSecondary,
-                      fontWeight: isSelected ? 600 : 400,
-                      fontSize: T.fontSizeMd, textAlign: 'left', cursor: 'pointer',
-                      borderLeft: isSelected ? `3px solid ${T.colorAccent}` : '3px solid transparent',
-                      transition: `all 0.2s ease`,
-                      overflow: 'hidden',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = T.colorBgSecondary;
-                        e.currentTarget.style.color = T.colorText;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = T.colorTextSecondary;
-                      }
-                    }}
-                  >
+                <li
+                  key={post.slug}
+                  className={!isSelected ? 'editor-btn' : ''}
+                  onClick={() => onSelect(post.slug)}
+                  title={tooltipParts.join('\n')}
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    padding: `${T.spacingMd} ${T.spacingLg}`,
+                    background: T.colorBg, borderRadius: T.radiusMd,
+                    boxShadow: isSelected ? T.shadowInset : T.shadowBtn,
+                    cursor: 'pointer',
+                    transition: `all 0.2s ease`,
+                    animation: `editorPanelItemIn 0.2s ease both`,
+                    animationDelay: `${Math.min(idx * 30, 300)}ms`,
+                  }}
+                >
+                  <div style={{
+                    flex: 1, minWidth: 0, overflow: 'hidden',
+                    color: isSelected ? T.colorText : T.colorTextSecondary,
+                    fontWeight: isSelected ? 600 : 400,
+                    fontSize: T.fontSizeMd,
+                  }}>
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: T.spacingSm,
                       overflow: 'hidden',
@@ -319,18 +327,19 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                         {date}
                       </div>
                     )}
-                  </button>
+                  </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDelete(post.slug); }}
                     title={`Delete ${post.slug}`}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#d1d5db', fontSize: T.fontSizeSm, padding: T.spacingMd,
-                      marginRight: T.spacingSm, borderRadius: T.radiusSm,
+                      color: 'var(--border-subtle)', fontSize: T.fontSizeSm,
+                      padding: T.spacingMd, flexShrink: 0,
+                      borderRadius: T.radiusSm,
                       transition: `color 0.2s ease`,
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = T.colorError; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#d1d5db'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--border-subtle)'; }}
                   >
                     ✕
                   </button>

@@ -1,26 +1,27 @@
-/** Unified design tokens for the editor UI (neumorphism style) */
+/** Unified design tokens for the editor UI (neumorphism style).
+ *  Theme-dependent values use CSS custom properties so dark mode works automatically. */
 export const EDITOR_TOKENS = {
-  // Colors (synced with --neu-bg in global.css)
-  colorBg: '#e0e5ec',
-  colorBgSecondary: '#d9dee5',
-  colorBgTertiary: '#d1d6dd',
-  colorBorder: '#c4c9d0',
-  colorBorderLight: '#dde1e6',
-  colorText: '#111827',
-  colorTextSecondary: '#6b7280',
-  colorTextMuted: '#9ca3af',
-  colorAccent: '#111827',
+  // Colors — reference CSS variables for automatic dark mode support
+  colorBg: 'var(--neu-bg)',
+  colorBgSecondary: 'var(--editor-bg-secondary)',
+  colorBgTertiary: 'var(--editor-bg-tertiary)',
+  colorBorder: 'var(--border-divider)',
+  colorBorderLight: 'var(--border-subtle)',
+  colorText: 'var(--text-primary)',
+  colorTextSecondary: 'var(--text-secondary)',
+  colorTextMuted: 'var(--text-muted)',
+  colorAccent: 'var(--text-heading)',
   colorError: '#dc2626',
-  colorErrorBg: '#fef2f2',
+  colorErrorBg: 'var(--editor-error-bg)',
   colorSuccess: '#10b981',
   colorWarning: '#f59e0b',
-  colorWarningBg: '#fffbeb',
+  colorWarningBg: 'var(--editor-warning-bg)',
 
-  // Neumorphism shadows (synced with CSS variables in global.css)
-  shadowRaised: '5px 5px 10px rgb(163 177 198 / 0.6), -5px -5px 10px rgb(255 255 255 / 0.5)',
-  shadowInset: 'inset 3px 3px 6px rgb(163 177 198 / 0.7), inset -3px -3px 6px rgb(255 255 255 / 0.8)',
-  shadowBtn: '3px 3px 6px rgb(163 177 198 / 0.6), -3px -3px 6px rgb(255 255 255 / 0.5)',
-  shadowBtnHover: '1px 1px 3px rgb(163 177 198 / 0.6), -1px -1px 3px rgb(255 255 255 / 0.5)',
+  // Neumorphism shadows — reference CSS variables
+  shadowRaised: '5px 5px 10px var(--neu-shadow-dark), -5px -5px 10px var(--neu-shadow-light)',
+  shadowInset: 'inset 3px 3px 6px var(--neu-shadow-dark-strong), inset -3px -3px 6px var(--neu-shadow-light-strong)',
+  shadowBtn: '3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light)',
+  shadowBtnHover: '1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light)',
 
   // Spacing
   spacingXs: '0.25rem',

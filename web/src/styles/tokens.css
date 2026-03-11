@@ -11,6 +11,12 @@
   --neu-shadow-light-strong:rgb(255 255 255 / 0.8);
   --neu-cluster-bg:         #d5d9e0;
 
+  /* ---- Editor-specific surfaces ---- */
+  --editor-bg-secondary: #d9dee5;
+  --editor-bg-tertiary:  #d1d6dd;
+  --editor-error-bg:     #fef2f2;
+  --editor-warning-bg:   #fffbeb;
+
   /* ---- Semantic text ---- */
   --text-primary:   #1e293b;   /* slate-800 */
   --text-secondary: #64748b;   /* slate-500 */
@@ -143,6 +149,12 @@ html.dark {
   --neu-shadow-dark-strong: rgb(25 27 29 / 0.8);
   --neu-shadow-light-strong:rgb(60 64 66 / 0.6);
   --neu-cluster-bg:         #262b2d;
+
+  /* ---- Editor-specific surfaces ---- */
+  --editor-bg-secondary: #333839;
+  --editor-bg-tertiary:  #3a3f41;
+  --editor-error-bg:     #3b1c1c;
+  --editor-warning-bg:   #3b3520;
 
   /* ---- Semantic text ---- */
   --text-primary:   #e2e8f0;   /* slate-200 */

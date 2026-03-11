@@ -188,7 +188,7 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, refreshKey = 0, on
           onChange={(e) => handleFileSelect(e.target.files)} style={{ display: 'none' }} />
         <button onClick={() => fileInputRef.current?.click()} disabled={uploading} style={{
           width: '100%', padding: '0.4rem',
-          background: T.colorBgTertiary, border: `1px dashed #d1d5db`,
+          background: T.colorBgTertiary, border: `1px dashed var(--border-subtle)`,
           borderRadius: T.radiusMd, cursor: 'pointer',
           fontSize: T.fontSizeSm, color: T.colorTextSecondary,
           transition: `all ${T.transitionFast}`,
@@ -202,7 +202,7 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, refreshKey = 0, on
         <div style={{
           padding: `${T.spacingSm} ${T.spacingMd}`, background: T.colorErrorBg,
           color: T.colorError, fontSize: T.fontSizeXs,
-          borderBottom: '1px solid #fecaca',
+          borderBottom: `1px solid ${T.colorError}`,
           display: 'flex', alignItems: 'center', gap: T.spacingXs,
         }}>
           <span style={{ flex: 1 }}>{error}</span>
@@ -269,12 +269,12 @@ const AssetPanel: FC<AssetPanelProps> = ({ aiEnabled = false, refreshKey = 0, on
                   title={asset.refCount > 0 ? `Referenced by ${asset.refCount} post(s)` : `Delete ${asset.name}`}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: asset.refCount > 0 ? T.colorTextMuted : '#d1d5db',
+                    color: asset.refCount > 0 ? T.colorTextMuted : 'var(--border-subtle)',
                     fontSize: T.fontSizeXs, padding: '0.2rem', flexShrink: 0,
                     transition: `color ${T.transitionFast}`, opacity: asset.refCount > 0 ? 0.5 : 1,
                   }}
                   onMouseEnter={(e) => { if (asset.refCount === 0) e.currentTarget.style.color = T.colorError; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = asset.refCount > 0 ? T.colorTextMuted : '#d1d5db'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = asset.refCount > 0 ? T.colorTextMuted : 'var(--border-subtle)'; }}
                 >✕</button>
               </div>
             );

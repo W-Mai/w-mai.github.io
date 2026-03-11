@@ -406,10 +406,10 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
                         onClick={() => handleDelete(s.name)}
                         title="Delete" style={{
                           background: 'none', border: 'none', cursor: 'pointer',
-                          padding: '1px 3px', fontSize: '0.55rem', color: '#d1d5db',
+                          padding: '1px 3px', fontSize: '0.55rem', color: 'var(--border-subtle)',
                         }}
                         onMouseEnter={(e) => { e.currentTarget.style.color = T.colorError; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = '#d1d5db'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--border-subtle)'; }}
                       >✕</button>
                     </div>
                   </div>

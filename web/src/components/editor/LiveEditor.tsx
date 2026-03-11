@@ -551,7 +551,9 @@ const LiveEditor: FC = () => {
             style={{
               background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
               cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
-              padding: `${T.spacingMd} ${T.spacingLg}`,
+              width: '2.25rem', height: '2.25rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
               boxShadow: T.shadowBtn,
               transition: `all 0.2s ease`,
             }}
@@ -615,13 +617,34 @@ const LiveEditor: FC = () => {
           </button>
           <button
             className="editor-btn"
+            onClick={() => {
+              if (typeof (window as any).__toggleTheme === 'function') {
+                (window as any).__toggleTheme();
+              }
+            }}
+            title="Toggle dark mode"
+            style={{
+              background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+              cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
+              width: '2.25rem', height: '2.25rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: T.shadowBtn,
+              transition: `all 0.2s ease`,
+            }}
+          >
+            🌓
+          </button>
+          <button
+            className="editor-btn"
             onClick={() => setShowEnvConfig(true)}
             title="Environment variables"
             style={{
-              padding: `${T.spacingMd} ${T.spacingLg}`,
-              background: T.colorBg, border: 'none',
-              borderRadius: T.radiusMd, cursor: 'pointer',
-              fontSize: T.fontSizeLg, color: T.colorTextSecondary,
+              background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+              cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
+              width: '2.25rem', height: '2.25rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
               boxShadow: T.shadowBtn,
               transition: `all 0.2s ease`,
             }}
@@ -636,7 +659,7 @@ const LiveEditor: FC = () => {
             display: 'flex', alignItems: 'center', gap: T.spacingMd,
             padding: `${T.spacingMd} ${T.spacingXl}`,
             background: T.colorErrorBg, color: T.colorError,
-            fontSize: T.fontSizeMd, borderBottom: '1px solid #fecaca',
+            fontSize: T.fontSizeMd, borderBottom: `1px solid ${T.colorError}`,
           }}>
             <span style={{ flex: 1 }}>{state.error}</span>
             <button
@@ -777,21 +800,21 @@ const LiveEditor: FC = () => {
             style={{
               width: '560px', maxWidth: '92vw', height: '70vh',
               background: T.colorBg, borderRadius: '1rem',
-              boxShadow: '8px 8px 16px rgb(163 177 198 / 0.6), -8px -8px 16px rgb(255 255 255 / 0.5)',
+              boxShadow: '8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
             }}
           >
             {/* Panel header */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: T.spacingMd,
-              padding: `${T.spacingLg} ${T.spacingXl}`,
+              display: 'flex', alignItems: 'center', gap: T.spacingLg,
+              padding: `${T.spacingXl} ${T.spacingXl}`,
             }}>
               {/* Neumorphism tab switcher */}
               <div style={{
                 flex: 1, display: 'flex', gap: T.spacingSm,
-                background: T.colorBg, borderRadius: T.radiusMd,
-                padding: '3px',
+                background: T.colorBg, borderRadius: T.radiusLg,
+                padding: '8px',
                 boxShadow: T.shadowInset,
               }}>
                 {(['posts', 'assets'] as const).map((tab) => (
@@ -800,7 +823,7 @@ const LiveEditor: FC = () => {
                     className={sidebarTab !== tab ? 'editor-btn' : ''}
                     onClick={() => setSidebarTab(tab)}
                     style={{
-                      flex: 1, padding: `${T.spacingSm} ${T.spacingMd}`,
+                      flex: 1, padding: `${T.spacingMd} ${T.spacingLg}`,
                       background: sidebarTab === tab ? T.colorBg : 'transparent',
                       border: 'none', borderRadius: T.radiusSm,
                       fontSize: T.fontSizeMd, fontWeight: 600,
@@ -816,30 +839,34 @@ const LiveEditor: FC = () => {
                 ))}
               </div>
 
-              {/* Action buttons */}
-              {sidebarTab === 'posts' && (
-                <button
-                  className="editor-btn"
-                  onClick={() => { setShowFilePanel(false); setShowCreateModal(true); }}
-                  title="New post"
-                  style={{
-                    background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
-                    cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
-                    padding: `${T.spacingSm} ${T.spacingMd}`, lineHeight: 1,
-                    boxShadow: T.shadowBtn,
-                    transition: `all 0.2s ease`,
-                  }}
-                >
-                  +
-                </button>
-              )}
+              {/* Action buttons — fixed square, always rendered to prevent layout shift */}
+              <button
+                className="editor-btn"
+                onClick={() => { setShowFilePanel(false); setShowCreateModal(true); }}
+                title="New post"
+                style={{
+                  background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+                  cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
+                  width: '2.25rem', height: '2.25rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: sidebarTab === 'posts' ? T.shadowBtn : 'none',
+                  transition: `all 0.2s ease`,
+                  opacity: sidebarTab === 'posts' ? 1 : 0,
+                  pointerEvents: sidebarTab === 'posts' ? 'auto' : 'none',
+                }}
+              >
+                +
+              </button>
               <button
                 className="editor-btn"
                 onClick={() => setShowFilePanel(false)}
                 style={{
                   background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
                   cursor: 'pointer', color: T.colorTextMuted, fontSize: T.fontSizeLg,
-                  padding: `${T.spacingSm} ${T.spacingMd}`, lineHeight: 1,
+                  width: '2.25rem', height: '2.25rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
                   boxShadow: T.shadowBtn,
                   transition: `all 0.2s ease`,
                 }}
@@ -851,7 +878,7 @@ const LiveEditor: FC = () => {
             {/* Panel body */}
             <div style={{
               flex: 1, overflow: 'auto', minHeight: 0,
-              padding: `0 ${T.spacingMd} ${T.spacingMd}`,
+              padding: `0 ${T.spacingXl} ${T.spacingXl}`,
             }}>
               <div style={{
                 background: T.colorBg, borderRadius: T.radiusMd,

@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import { useEffect, useRef, useState, type FC } from 'react';
+import { EDITOR_TOKENS as T } from './editor-tokens';
 
 interface PreviewPanelProps {
   slug: string | null;
@@ -149,7 +150,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
     return (
       <div style={{
         height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#9ca3af', fontSize: '0.9rem', fontFamily: 'sans-serif',
+        color: T.colorTextMuted, fontSize: '0.9rem', fontFamily: 'sans-serif',
       }}>
         Select a post to preview
       </div>
@@ -159,15 +160,15 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{
-        padding: '0.375rem 0.75rem', background: '#f9fafb',
-        borderBottom: '1px solid #e5e7eb',
-        fontSize: '0.75rem', color: '#9ca3af',
+        padding: '0.375rem 0.75rem', background: T.colorBgSecondary,
+        borderBottom: `1px solid ${T.colorBorderLight}`,
+        fontSize: '0.75rem', color: T.colorTextMuted,
         display: 'flex', alignItems: 'center', gap: '0.5rem',
       }}>
         <span>/blog/{slug}</span>
         <div style={{ flex: 1 }} />
         {snapshot && (
-          <span style={{ fontSize: '0.7rem', color: '#d1d5db' }}>refreshing…</span>
+          <span style={{ fontSize: '0.7rem', color: T.colorTextMuted }}>refreshing…</span>
         )}
         <button
           onClick={() => {
@@ -186,8 +187,8 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
             });
           }}
           style={{
-            background: 'none', border: '1px solid #e5e7eb', borderRadius: '0.25rem',
-            padding: '0.15rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem', color: '#6b7280',
+            background: 'none', border: `1px solid ${T.colorBorderLight}`, borderRadius: '0.25rem',
+            padding: '0.15rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem', color: T.colorTextSecondary,
           }}
         >
           ↻ Refresh
@@ -197,7 +198,7 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
         <iframe
           ref={iframeRef}
           title="Blog Preview"
-          style={{ width: '100%', height: '100%', border: 'none', background: '#e0e5ec' /* synced with --neu-bg */ }}
+          style={{ width: '100%', height: '100%', border: 'none', background: 'var(--neu-bg)' }}
         />
         {/* Screenshot overlay to prevent flash during reload */}
         {snapshot && (

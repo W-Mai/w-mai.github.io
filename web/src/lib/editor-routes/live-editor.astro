@@ -1,5 +1,6 @@
 ---
 import LiveEditor from '../../components/editor/LiveEditor';
+import '../../styles/global.css';
 
 // Editor page: only available when EDITOR_MODE is enabled
 if (!import.meta.env.DEV || !import.meta.env.EDITOR_MODE) {
@@ -16,6 +17,33 @@ if (!import.meta.env.DEV || !import.meta.env.EDITOR_MODE) {
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body { height: 100%; overflow: hidden; }
     </style>
+    <script is:inline>
+      // Theme initialization (same logic as BaseHead.astro)
+      (function() {
+        var doc = document.documentElement;
+        function getStoredTheme() {
+          try { return localStorage.getItem('theme'); } catch(e) { return null; }
+        }
+        function getSystemTheme() {
+          return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        function applyTheme(t) {
+          if (t === 'dark') doc.classList.add('dark'); else doc.classList.remove('dark');
+        }
+        function resolveTheme() {
+          var s = getStoredTheme();
+          return s === 'dark' || s === 'light' ? s : getSystemTheme();
+        }
+        applyTheme(resolveTheme());
+        window.__toggleTheme = function() {
+          var isDark = doc.classList.contains('dark');
+          var newTheme = isDark ? 'light' : 'dark';
+          applyTheme(newTheme);
+          try { localStorage.setItem('theme', newTheme); } catch(e) {}
+          window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: newTheme } }));
+        };
+      })();
+    </script>
     <script is:inline>
       // Intercept Vite HMR full-reload to prevent editor page from refreshing
       // when posts/*.mdx files are saved. Instead, dispatch a custom event
