@@ -20,6 +20,9 @@ import EnvConfigPanel from './EnvConfigPanel';
 interface PostInfo {
   slug: string;
   title: string;
+  tags: string[];
+  category: string;
+  pubDate: string;
 }
 
 interface LiveEditorState {
@@ -553,9 +556,10 @@ const LiveEditor: FC = () => {
                   onClick={() => setShowCreateModal(true)}
                   title="New post"
                   style={{
-                    background: 'none', border: `1px solid ${T.colorBorder}`, borderRadius: T.radiusSm,
+                    background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
                     cursor: 'pointer', fontSize: T.fontSizeMd, color: T.colorTextSecondary,
                     padding: `0.1rem 0.4rem`, lineHeight: 1,
+                    boxShadow: T.shadowBtn,
                     transition: `all ${T.transitionFast}`,
                   }}
                 >
@@ -590,15 +594,16 @@ const LiveEditor: FC = () => {
           padding: `${T.spacingMd} ${T.spacingXl}`,
           borderBottom: 'none',
           background: T.colorBg, fontSize: T.fontSizeBase,
-          boxShadow: `0 2px 4px rgba(0,0,0,0.06)`,
+          boxShadow: T.shadowRaised,
         }}>
           {sidebarCollapsed && (
             <button
               onClick={() => setSidebarCollapsed(false)}
               style={{
-                background: 'none', border: `1px solid ${T.colorBorder}`, borderRadius: T.radiusSm,
+                background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
                 cursor: 'pointer', fontSize: T.fontSizeSm, color: T.colorTextSecondary,
                 padding: `0.1rem ${T.spacingSm}`,
+                boxShadow: T.shadowBtn,
               }}
             >
               ☰
@@ -660,9 +665,10 @@ const LiveEditor: FC = () => {
             title="Environment variables"
             style={{
               padding: `0.35rem ${T.spacingSm}`,
-              background: 'none', border: `1px solid ${T.colorBorder}`,
+              background: T.colorBg, border: 'none',
               borderRadius: T.radiusMd, cursor: 'pointer',
               fontSize: T.fontSizeMd, color: T.colorTextSecondary,
+              boxShadow: T.shadowBtn,
               transition: `all ${T.transitionFast}`,
             }}
           >

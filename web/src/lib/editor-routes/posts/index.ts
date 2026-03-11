@@ -1,18 +1,19 @@
 import type { APIRoute } from 'astro';
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { parseFrontmatter } from '../../frontmatter-utils';
 
 export const prerender = false;
 
 const postsDir = resolve(process.cwd(), '..', 'posts');
 
-/** Extract title from MDX frontmatter */
-function extractTitle(content: string): string {
-  const m = content.match(/^---[\s\S]*?title:\s*['"](.+?)['"][\s\S]*?---/m);
-  return m?.[1] || '';
+/** Extract YAML text between --- delimiters */
+function extractYaml(content: string): string | null {
+  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  return m?.[1] ?? null;
 }
 
-/** GET /api/editor/posts — list all posts. Add ?detail for titles. */
+/** GET /api/editor/posts — list all posts. Add ?detail for titles + metadata. */
 export const GET: APIRoute = async ({ url }) => {
   try {
     const files = await readdir(postsDir);
@@ -24,11 +25,23 @@ export const GET: APIRoute = async ({ url }) => {
         mdxFiles.map(async (f) => {
           const slug = f.replace(/\.mdx$/, '');
           let title = '';
+          let tags: string[] = [];
+          let category = '';
+          let pubDate = '';
           try {
             const content = await readFile(resolve(postsDir, f), 'utf-8');
-            title = extractTitle(content);
+            const yaml = extractYaml(content);
+            if (yaml) {
+              const result = parseFrontmatter(yaml);
+              if (result.ok) {
+                title = result.data.title;
+                tags = result.data.tags;
+                category = result.data.category ?? '';
+                pubDate = result.data.pubDate;
+              }
+            }
           } catch {}
-          return { slug, title };
+          return { slug, title, tags, category, pubDate };
         })
       );
       return new Response(JSON.stringify(posts), { headers: { 'Content-Type': 'application/json' } });
