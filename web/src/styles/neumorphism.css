@@ -344,3 +344,52 @@ a.neu-tag-chip:active {
   filter: grayscale(0);
   transform: translateY(0);
 }
+
+/* Mood badge — raised circle for display in timeline cards */
+.neu-mood-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+              -2px -2px 4px var(--neu-shadow-light);
+  flex-shrink: 0;
+}
+
+/* Mood-time capsule — joined raised pill with mood circle + time text */
+.neu-mood-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 1.125rem;
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+              -2px -2px 4px var(--neu-shadow-light);
+}
+.neu-mood-time .neu-mood-badge {
+  box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
+              inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.neu-mood-time .neu-time-pill {
+  box-shadow: none;
+  padding-left: 0.125rem;
+  padding-right: 0.5rem;
+  border-radius: 0;
+}
+
+/* Time pill — subtle raised pill, lower hierarchy than mood badge */
+.neu-time-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  box-shadow: 1px 1px 2px var(--neu-shadow-dark),
+              -1px -1px 2px var(--neu-shadow-light);
+}

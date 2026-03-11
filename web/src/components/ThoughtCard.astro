@@ -14,14 +14,18 @@ const html = renderInlineMarkdown(thought.content)
 const date = new Date(thought.createdAt)
 ---
 
-<div class="neu-card rounded-2xl p-4 sm:p-5">
+<div class="neu-card rounded-[2rem] p-5 sm:p-6">
   <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
 
   <div class="flex items-center justify-between mt-3 gap-2">
-    <span class="text-[var(--text-muted)] text-xs">
-      {thought.mood && <span class="mr-1">{thought.mood}</span>}
-      <FormattedDate date={date} />
-    </span>
+    {thought.mood ? (
+      <div class="neu-mood-time">
+        <span class="neu-mood-badge">{thought.mood}</span>
+        <span class="neu-time-pill"><FormattedDate date={date} /></span>
+      </div>
+    ) : (
+      <span class="neu-time-pill"><FormattedDate date={date} /></span>
+    )}
 
     <div class="flex items-center gap-1.5">
       {thought.tags && thought.tags.length > 0 && (
