@@ -28,5 +28,17 @@ export function renderInlineMarkdown(content: string): string {
     '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
   );
 
+  // Block sticker ::sticker[name]::
+  html = html.replace(
+    /::sticker\[([^\]]+)\]::/g,
+    '<div class="sticker-block"><img src="/stickers/$1" alt="$1" loading="lazy" /></div>',
+  );
+
+  // Inline sticker :sticker[name]:
+  html = html.replace(
+    /:sticker\[([^\]]+)\]:/g,
+    '<img class="sticker-inline" src="/stickers/$1" alt="$1" loading="lazy" />',
+  );
+
   return html;
 }
