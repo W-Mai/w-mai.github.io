@@ -31,11 +31,11 @@ export const FRIENDS: readonly FriendLink[] = [
     tags: ['图形学', '渲染', 'C++', 'Minecraft'],
   },
   {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
+    name: 'Lazy_V',
+    url: 'https://zzxzzk115.github.io/blog/',
+    avatar: 'https://avatars.githubusercontent.com/zzxzzk115',
+    description: 'Leeds PhD，研究感知图形学（VR & 高性能图形），游戏引擎与图形学爱好者。',
+    tags: ['图形学', 'VR', 'C++', '游戏引擎'],
   },
   {
     name: '虚位以待',
