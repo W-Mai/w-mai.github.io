@@ -5,9 +5,10 @@ import type { Thought } from '../data/thoughts'
 interface Props {
   thoughts: readonly Thought[]
   delayStart?: number
+  isEditorMode?: boolean
 }
 
-const { thoughts, delayStart = 3 } = Astro.props
+const { thoughts, delayStart = 3, isEditorMode = false } = Astro.props
 ---
 
 <div class="thought-timeline">
@@ -15,7 +16,7 @@ const { thoughts, delayStart = 3 } = Astro.props
     <div class="timeline-item anim-fade" style={`--delay:${delayStart + i}`}>
       <div class="timeline-dot"></div>
       <div class="timeline-connector"></div>
-      <ThoughtCard thought={thought} />
+      <ThoughtCard thought={thought} isEditorMode={isEditorMode} />
     </div>
   ))}
 </div>

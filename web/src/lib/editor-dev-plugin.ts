@@ -7,14 +7,23 @@ import type { Plugin } from 'vite';
 /** Vite plugin: intercept HMR for .mdx files and watch asset changes */
 function editorHmrPlugin(postsDir: string): Plugin {
   const assetsDir = resolve(postsDir, 'assets');
+  const thoughtsDir = resolve(postsDir, '..', 'thoughts');
   return {
     name: 'editor-dev-hmr',
     configureServer(server) {
       // Watch assets directory for add/delete to trigger Astro content rebuild
       server.watcher.add(assetsDir);
+      server.watcher.add(thoughtsDir);
       const reload = () => server.ws.send({ type: 'full-reload' });
-      server.watcher.on('add', (file) => { if (file.startsWith(assetsDir)) reload(); });
-      server.watcher.on('unlink', (file) => { if (file.startsWith(assetsDir)) reload(); });
+      server.watcher.on('add', (file) => {
+        if (file.startsWith(assetsDir) || file.startsWith(thoughtsDir)) reload();
+      });
+      server.watcher.on('unlink', (file) => {
+        if (file.startsWith(assetsDir) || file.startsWith(thoughtsDir)) reload();
+      });
+      server.watcher.on('change', (file) => {
+        if (file.startsWith(thoughtsDir) && file.endsWith('.yaml')) reload();
+      });
     },
     handleHotUpdate({ file, server }) {
       if (file.startsWith(postsDir) && file.endsWith('.mdx')) {
@@ -90,6 +99,14 @@ export default function editorDevIntegration(): AstroIntegration {
         injectRoute({
           pattern: '/api/editor/stickers/[name]',
           entrypoint: './src/lib/editor-routes/stickers/[name].ts',
+        });
+        injectRoute({
+          pattern: '/api/editor/thoughts',
+          entrypoint: './src/lib/editor-routes/thoughts/index.ts',
+        });
+        injectRoute({
+          pattern: '/api/editor/thoughts/[id]',
+          entrypoint: './src/lib/editor-routes/thoughts/[id].ts',
         });
 
         updateConfig({

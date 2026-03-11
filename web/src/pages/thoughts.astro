@@ -3,10 +3,12 @@ import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProfileSidebar from '../components/ProfileSidebar.astro'
 import ThoughtTimeline from '../components/ThoughtTimeline.astro'
 import { fetchGitHubProfile } from '../lib/github'
-import { THOUGHTS } from '../data/thoughts'
+import { loadThoughts } from '../data/thoughts'
 
 const profile = await fetchGitHubProfile()
-const allTags = [...new Set(THOUGHTS.flatMap((t) => t.tags ?? []))]
+const thoughts = await loadThoughts()
+const allTags = [...new Set(thoughts.flatMap((t) => t.tags ?? []))]
+const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
 ---
 
 <WithSidebar>
@@ -17,22 +19,68 @@ const allTags = [...new Set(THOUGHTS.flatMap((t) => t.tags ?? []))]
   <h1 class="page-title anim-fade" style="--delay:0">🧠 怼点想法</h1>
   <p class="page-subtitle anim-fade" style="--delay:1">脑子里蹦出来的碎碎念，不成文章，但值得记一笔</p>
 
+  {isEditorMode && (
+    <div class="mb-6 anim-fade" style="--delay:2" id="thought-editor-root"></div>
+  )}
+
   {allTags.length > 0 && (
-    <div class="flex flex-wrap gap-2 mb-6 anim-fade" style="--delay:2">
+    <div class="flex flex-wrap gap-2 mb-6 anim-fade" style={`--delay:${isEditorMode ? 3 : 2}`}>
       {allTags.map((tag) => (
         <button class="neu-btn neu-filter-btn" data-tag={tag}>{tag}</button>
       ))}
     </div>
   )}
 
-  {THOUGHTS.length > 0 ? (
-    <ThoughtTimeline thoughts={THOUGHTS} />
+  {thoughts.length > 0 ? (
+    <ThoughtTimeline thoughts={thoughts} isEditorMode={isEditorMode} />
   ) : (
     <p class="text-[var(--text-muted)] text-center py-12 anim-fade" style="--delay:2">
       还没有想法呢，再等等～
     </p>
   )}
 </WithSidebar>
+
+{isEditorMode && (
+  <script>
+    import { createElement } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import ThoughtEditor from '../components/editor/ThoughtEditor'
+
+    function mountEditor() {
+      const container = document.getElementById('thought-editor-root')
+      if (!container || container.dataset.mounted) return
+      container.dataset.mounted = 'true'
+
+      const root = createRoot(container)
+      root.render(createElement(ThoughtEditor, {
+        onSaved: () => window.location.reload(),
+      }))
+
+      // Wire up edit/delete buttons on ThoughtCards
+      document.querySelectorAll<HTMLButtonElement>('[data-thought-edit]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const raw = btn.dataset.thoughtEdit
+          if (!raw) return
+          try {
+            const thought = JSON.parse(raw);
+            (window as any).__thoughtEditor?.startEdit(thought)
+            container.scrollIntoView({ behavior: 'smooth' })
+          } catch {}
+        })
+      })
+
+      document.querySelectorAll<HTMLButtonElement>('[data-thought-delete]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.thoughtDelete
+          if (!id) return
+          ;(window as any).__thoughtEditor?.handleDelete(id)
+        })
+      })
+    }
+
+    document.addEventListener('astro:page-load', mountEditor)
+  </script>
+)}
 
 <script>
   function initThoughtFilter() {

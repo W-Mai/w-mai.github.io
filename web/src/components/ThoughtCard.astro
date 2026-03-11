@@ -5,9 +5,10 @@ import type { Thought } from '../data/thoughts'
 
 interface Props {
   thought: Thought
+  isEditorMode?: boolean
 }
 
-const { thought } = Astro.props
+const { thought, isEditorMode = false } = Astro.props
 const html = renderInlineMarkdown(thought.content)
 ---
 
@@ -20,12 +21,29 @@ const html = renderInlineMarkdown(thought.content)
       {thought.createdAt}
     </span>
 
-    {thought.tags && thought.tags.length > 0 && (
-      <div class="flex flex-wrap gap-1.5">
-        {thought.tags.map((tag) => (
-          <TagChip tag={tag} interactive={false} />
-        ))}
-      </div>
-    )}
+    <div class="flex items-center gap-1.5">
+      {thought.tags && thought.tags.length > 0 && (
+        <div class="flex flex-wrap gap-1.5">
+          {thought.tags.map((tag) => (
+            <TagChip tag={tag} interactive={false} />
+          ))}
+        </div>
+      )}
+
+      {isEditorMode && (
+        <div class="flex gap-1 ml-2">
+          <button
+            class="neu-btn px-2 py-0.5 text-xs cursor-pointer"
+            data-thought-edit={JSON.stringify(thought)}
+            title="Edit"
+          >✏️</button>
+          <button
+            class="neu-btn px-2 py-0.5 text-xs cursor-pointer"
+            data-thought-delete={thought.id}
+            title="Delete"
+          >🗑️</button>
+        </div>
+      )}
+    </div>
   </div>
 </div>
