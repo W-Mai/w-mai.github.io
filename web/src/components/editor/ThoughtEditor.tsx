@@ -175,26 +175,13 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
           style={{ ...insetInput, flex: 1, minWidth: '140px' }}
         />
 
-        {/* Mood selector — small raised pills */}
-        <div style={{
-          display: 'flex', gap: T.spacingXs, flexWrap: 'wrap',
-        }}>
+        {/* Mood selector — neumorphism capsule */}
+        <div className="neu-mood-capsule">
           {MOOD_OPTIONS.map((m) => (
             <button
               key={m}
+              className={`neu-mood-item${mood === m ? ' selected' : ''}`}
               onClick={() => setMood(mood === m ? '' : m)}
-              style={{
-                width: '2rem', height: '2rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: T.colorBg,
-                border: 'none',
-                borderRadius: T.radiusSm,
-                fontSize: T.fontSizeSm,
-                cursor: 'pointer',
-                boxShadow: mood === m ? T.shadowInset : T.shadowBtn,
-                transition: `all ${T.transitionFast}`,
-                filter: mood === m ? 'none' : 'grayscale(0.4)',
-              }}
             >{m}</button>
           ))}
         </div>

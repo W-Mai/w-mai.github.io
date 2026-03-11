@@ -298,3 +298,49 @@ a.neu-tag-chip:active {
                -1px -1px 2px var(--neu-shadow-light);
   }
 }
+
+/* ---- Mood selector (neumorphism capsule) ---- */
+.neu-mood-capsule {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border-radius: 1.5rem;
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+}
+
+.neu-mood-item {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 0.875rem;
+  cursor: pointer;
+  box-shadow: none;
+  transition: box-shadow 200ms ease, transform 200ms ease, filter 200ms ease;
+  filter: grayscale(0.4);
+}
+
+.neu-mood-item:hover {
+  box-shadow: 3px 3px 6px var(--neu-shadow-dark),
+              -3px -3px 6px var(--neu-shadow-light);
+  transform: translateY(-1px);
+  filter: grayscale(0);
+}
+
+.neu-mood-item:active {
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+  transform: translateY(0);
+}
+
+.neu-mood-item.selected {
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+  filter: grayscale(0);
+  transform: translateY(0);
+}
