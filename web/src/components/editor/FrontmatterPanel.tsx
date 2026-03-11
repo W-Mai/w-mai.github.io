@@ -111,7 +111,7 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
 
   return (
     <div style={{
-      padding: `${T.spacingLg}`,
+      padding: `${T.spacingLg} ${T.spacingLg} ${T.spacing3xl}`,
       fontFamily: T.fontSans,
     }}>
     <div style={{
