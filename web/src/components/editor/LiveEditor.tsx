@@ -801,7 +801,7 @@ const LiveEditor: FC = () => {
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '840px', maxWidth: '92vw', height: '70vh',
-              background: T.colorBg, borderRadius: T.radiusXl,
+              background: T.colorBg, borderRadius: '3rem',
               boxShadow: '8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
@@ -810,13 +810,13 @@ const LiveEditor: FC = () => {
             {/* Panel header */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: T.spacingLg,
-              padding: `${T.spacing2xl} ${T.spacing3xl}`,
+              padding: '2rem',
             }}>
               {/* Neumorphism tab switcher */}
               <div style={{
                 flex: 1, display: 'flex', gap: T.spacingSm,
                 background: T.colorBg, borderRadius: T.radiusLg,
-                padding: '8px',
+                padding: '10px',
                 boxShadow: T.shadowInset,
               }}>
                 {(['posts', 'assets'] as const).map((tab) => (
@@ -880,7 +880,7 @@ const LiveEditor: FC = () => {
             {/* Panel body */}
             <div style={{
               flex: 1, minHeight: 0, overflow: 'hidden',
-              padding: `0 ${T.spacing3xl} ${T.spacing3xl}`,
+              padding: `0 2rem 2rem`,
             }}>
               <div style={{
                 background: T.colorBg, borderRadius: T.radiusLg,
