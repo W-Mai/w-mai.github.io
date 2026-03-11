@@ -19,7 +19,6 @@ const SORT_ICONS: Record<SortField, string> = { pubDate: '📅', title: 'Aa', sl
 const SORT_FIELDS: SortField[] = ['pubDate', 'title', 'slug'];
 
 const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }) => {
-  const [showTitle, setShowTitle] = useState(false);
   const [filter, setFilter] = useState<FilterOptions>(DEFAULT_FILTER);
 
   const allTags = useMemo(() => collectTags(posts), [posts]);
@@ -99,21 +98,6 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
               }}
             >
               {filter.sortDirection === 'asc' ? '↑' : '↓'}
-            </button>
-            <button
-              className="editor-btn"
-              onClick={() => setShowTitle((v) => !v)}
-              title={showTitle ? 'Show filenames' : 'Show titles'}
-              style={{
-                background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                width: '2rem', height: '2rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: T.colorTextSecondary,
-                fontSize: T.fontSizeMd,
-                boxShadow: T.shadowBtn, transition: 'all 0.2s ease',
-              }}
-            >
-              {showTitle ? 'Aa' : '📄'}
             </button>
           </div>
 
@@ -252,21 +236,6 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                 >
                   {filter.sortDirection === 'asc' ? '↑' : '↓'}
                 </button>
-                <button
-                  className="editor-btn"
-                  onClick={() => setShowTitle((v) => !v)}
-                  title={showTitle ? 'Show filenames' : 'Show titles'}
-                  style={{
-                    background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
-                    width: '2rem', height: '2rem',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', color: T.colorTextSecondary,
-                    fontSize: T.fontSizeMd,
-                    boxShadow: T.shadowBtn, transition: 'all 0.2s ease',
-                  }}
-                >
-                  {showTitle ? 'Aa' : '📄'}
-                </button>
               </>
             )}
           </div>
@@ -293,7 +262,6 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
           ) : (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: T.spacingXl }}>
               {filtered.map((post, idx) => {
-                const label = showTitle ? (post.title || post.slug) : post.slug;
                 const date = formatSmartDate(post.pubDate);
                 const tooltipParts = [post.title || post.slug];
                 if (post.tags.length > 0) tooltipParts.push(`Tags: ${post.tags.join(', ')}`);
@@ -330,7 +298,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                         <span style={{
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
                         }}>
-                          {label}
+                          {post.title || post.slug}
                         </span>
                         {post.category && (
                           <span style={{
@@ -342,11 +310,17 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                           </span>
                         )}
                       </div>
-                      {date && (
-                        <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginTop: '2px' }}>
-                          {date}
-                        </div>
-                      )}
+                      <div style={{
+                        fontSize: T.fontSizeXs, color: T.colorTextMuted, marginTop: '2px',
+                        display: 'flex', alignItems: 'center', gap: T.spacingMd,
+                      }}>
+                        <span style={{
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {post.slug}
+                        </span>
+                        {date && <span style={{ flexShrink: 0 }}>{date}</span>}
+                      </div>
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(post.slug); }}
