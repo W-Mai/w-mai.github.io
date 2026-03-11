@@ -38,12 +38,15 @@ const editorTheme = EditorView.theme({
   },
   '.cm-content': { padding: '0.75rem 0' },
   '.cm-gutters': {
-    background: '#fafafa',
-    borderRight: '1px solid #e5e7eb',
+    background: '#e0e5ec',
+    borderRight: '1px solid #c4c9d0',
     color: '#9ca3af',
   },
-  '.cm-activeLineGutter': { background: '#f3f4f6' },
-  '.cm-activeLine': { background: '#f9fafb' },
+  '.cm-activeLineGutter': {
+    background: '#d9dee5',
+    color: '#111827',
+  },
+  '.cm-activeLine': { background: 'rgba(163, 177, 198, 0.1)' },
 });
 
 const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(

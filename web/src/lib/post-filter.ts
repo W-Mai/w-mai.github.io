@@ -96,10 +96,31 @@ export function countActiveFilters(options: FilterOptions): number {
   return count;
 }
 
-/** Format ISO date string (YYYY-MM-DD) to compact MM/DD format */
-export function formatCompactDate(dateStr: string): string {
+/**
+ * Smart date formatter with relative context:
+ * - Today → "HH:mm"
+ * - This year → "MM/DD HH:mm"
+ * - Other years → "YYYY/MM/DD HH:mm"
+ * Falls back to raw date portion if time is missing.
+ */
+export function formatSmartDate(dateStr: string, now: Date = new Date()): string {
   if (!dateStr) return '';
-  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (!m) return '';
-  return `${m[2]}/${m[3]}`;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const hhmm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const mmdd = `${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
+
+  const sameYear = d.getFullYear() === now.getFullYear();
+  const sameDay = sameYear && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+
+  if (sameDay) return hhmm;
+  if (sameYear) return `${mmdd} ${hhmm}`;
+  return `${d.getFullYear()}/${mmdd} ${hhmm}`;
+}
+
+/** @deprecated Use formatSmartDate instead */
+export function formatCompactDate(dateStr: string): string {
+  return formatSmartDate(dateStr);
 }

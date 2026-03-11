@@ -2,7 +2,7 @@ import { useState, useMemo, type FC } from 'react';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import {
   filterAndSortPosts, collectTags, collectCategories,
-  countActiveFilters, formatCompactDate, DEFAULT_FILTER,
+  countActiveFilters, formatSmartDate, DEFAULT_FILTER,
   type PostInfo, type SortField, type SortDirection, type FilterOptions,
 } from '../../lib/post-filter';
 
@@ -232,7 +232,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {filtered.map((post) => {
               const label = showTitle ? (post.title || post.slug) : post.slug;
-              const date = formatCompactDate(post.pubDate);
+              const date = formatSmartDate(post.pubDate);
               const tooltipParts = [post.title || post.slug];
               if (post.tags.length > 0) tooltipParts.push(`Tags: ${post.tags.join(', ')}`);
               if (post.category) tooltipParts.push(`Category: ${post.category}`);
@@ -252,6 +252,18 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                       borderLeft: post.slug === selectedSlug ? `2px solid ${T.colorAccent}` : '2px solid transparent',
                       transition: `all ${T.transitionFast}`,
                       overflow: 'hidden',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (post.slug !== selectedSlug) {
+                        e.currentTarget.style.background = T.colorBgSecondary;
+                        e.currentTarget.style.color = T.colorText;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (post.slug !== selectedSlug) {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = T.colorTextSecondary;
+                      }
                     }}
                   >
                     <div style={{
