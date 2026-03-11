@@ -32,10 +32,11 @@ export const EDITOR_TOKENS = {
   // Typography
   fontSans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   fontMono: "'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace",
-  fontSizeXs: '0.65rem',
-  fontSizeSm: '0.75rem',
-  fontSizeMd: '0.8rem',
-  fontSizeBase: '0.875rem',
+  fontSizeXs: '0.75rem',
+  fontSizeSm: '0.8125rem',
+  fontSizeMd: '0.875rem',
+  fontSizeBase: '0.9375rem',
+  fontSizeLg: '1rem',
 
   // Border radius
   radiusSm: '0.375rem',

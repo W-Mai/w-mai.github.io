@@ -59,54 +59,57 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Search + sort + toggle row */}
-      <div style={{ padding: `${T.spacingSm} ${T.spacingMd}`, borderBottom: `1px solid ${T.colorBorderLight}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingXs }}>
+      <div style={{ padding: `${T.spacingMd} ${T.spacingLg}`, borderBottom: `1px solid ${T.colorBorderLight}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingSm }}>
           <input
             type="text"
             value={filter.searchTerm}
             onChange={(e) => setFilter((f) => ({ ...f, searchTerm: e.target.value }))}
-            placeholder="Filter posts..."
+            placeholder="Search posts..."
             style={{
-              flex: 1, padding: `${T.spacingXs} ${T.spacingSm}`,
+              flex: 1, padding: `${T.spacingSm} ${T.spacingMd}`,
               border: 'none', borderRadius: T.radiusSm,
-              fontSize: T.fontSizeXs, outline: 'none', boxSizing: 'border-box',
+              fontSize: T.fontSizeSm, outline: 'none', boxSizing: 'border-box',
               fontFamily: T.fontSans, color: T.colorText,
               background: T.colorBg, boxShadow: T.shadowInset,
-              transition: `box-shadow ${T.transitionFast}`,
+              transition: `box-shadow 0.2s ease`,
             }}
           />
           <button
+            className="editor-btn"
             onClick={cycleSortField}
             title={`Sort by ${filter.sortField}`}
             style={{
               background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-              padding: `${T.spacingXs} 0.35rem`, fontSize: T.fontSizeXs,
+              padding: `${T.spacingSm} ${T.spacingSm}`, fontSize: T.fontSizeMd,
               cursor: 'pointer', color: T.colorTextSecondary, lineHeight: 1,
-              boxShadow: T.shadowBtn, transition: `all ${T.transitionFast}`,
+              boxShadow: T.shadowBtn, transition: `all 0.2s ease`,
             }}
           >
             {SORT_ICONS[filter.sortField]}
           </button>
           <button
+            className="editor-btn"
             onClick={toggleSortDir}
             title={filter.sortDirection === 'asc' ? 'Ascending' : 'Descending'}
             style={{
               background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-              padding: `${T.spacingXs} 0.3rem`, fontSize: T.fontSizeXs,
+              padding: `${T.spacingSm} ${T.spacingSm}`, fontSize: T.fontSizeMd,
               cursor: 'pointer', color: T.colorTextSecondary, lineHeight: 1,
-              boxShadow: T.shadowBtn, transition: `all ${T.transitionFast}`,
+              boxShadow: T.shadowBtn, transition: `all 0.2s ease`,
             }}
           >
             {filter.sortDirection === 'asc' ? '↑' : '↓'}
           </button>
           <button
+            className="editor-btn"
             onClick={() => setShowTitle((v) => !v)}
             title={showTitle ? 'Show filenames' : 'Show titles'}
             style={{
               background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-              padding: `${T.spacingXs} 0.35rem`, fontSize: T.fontSizeXs,
+              padding: `${T.spacingSm} ${T.spacingSm}`, fontSize: T.fontSizeMd,
               cursor: 'pointer', color: T.colorTextSecondary, lineHeight: 1,
-              boxShadow: T.shadowBtn, transition: `all ${T.transitionFast}`,
+              boxShadow: T.shadowBtn, transition: `all 0.2s ease`,
             }}
           >
             {showTitle ? 'Aa' : '📄'}
@@ -116,8 +119,8 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
         {/* Filter status bar */}
         {(activeCount > 0 || filter.searchTerm) && (
           <div style={{
-            display: 'flex', alignItems: 'center', gap: T.spacingXs,
-            fontSize: T.fontSizeXs, color: T.colorTextMuted, marginTop: T.spacingXs,
+            display: 'flex', alignItems: 'center', gap: T.spacingSm,
+            fontSize: T.fontSizeSm, color: T.colorTextMuted, marginTop: T.spacingSm,
           }}>
             <span>{filtered.length} / {posts.length}</span>
             {activeCount > 0 && (
@@ -129,9 +132,11 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                   title="Clear all filters"
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: T.colorTextMuted, fontSize: T.fontSizeXs, padding: 0,
-                    textDecoration: 'underline', transition: `color ${T.transitionFast}`,
+                    color: T.colorTextMuted, fontSize: T.fontSizeSm, padding: 0,
+                    textDecoration: 'underline', transition: `color 0.2s ease`,
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = T.colorText; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = T.colorTextMuted; }}
                 >
                   clear
                 </button>
@@ -146,37 +151,49 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             onClick={() => setFilterOpen((v) => !v)}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: T.colorTextMuted, fontSize: T.fontSizeXs, padding: `${T.spacingXs} 0`,
-              display: 'flex', alignItems: 'center', gap: T.spacingXs,
-              transition: `color ${T.transitionFast}`, width: '100%',
+              color: T.colorTextMuted, fontSize: T.fontSizeSm, padding: `${T.spacingSm} 0`,
+              display: 'flex', alignItems: 'center', gap: T.spacingSm,
+              transition: `color 0.2s ease`, width: '100%',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = T.colorText; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = T.colorTextMuted; }}
           >
-            <span style={{ fontSize: '0.6rem' }}>{filterOpen ? '▼' : '▶'}</span>
+            <span style={{
+              fontSize: T.fontSizeXs,
+              transform: filterOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease',
+              display: 'inline-block',
+            }}>▶</span>
             <span>Filters</span>
           </button>
         )}
 
         {/* Expanded filter bar */}
-        {filterOpen && (
-          <div style={{ marginTop: T.spacingXs }}>
+        <div style={{
+          maxHeight: filterOpen ? '200px' : '0',
+          overflow: 'hidden',
+          transition: 'max-height 0.25s ease',
+        }}>
+          <div style={{ paddingTop: T.spacingSm }}>
             {/* Tag chips */}
             {allTags.length > 0 && (
-              <div style={{ marginBottom: T.spacingXs }}>
-                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '2px' }}>Tags</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+              <div style={{ marginBottom: T.spacingSm }}>
+                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '4px' }}>Tags</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                   {allTags.map((tag) => {
                     const active = filter.selectedTags.includes(tag);
                     return (
                       <button
                         key={tag}
+                        className={!active ? 'editor-btn' : ''}
                         onClick={() => toggleTag(tag)}
                         style={{
                           background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                          padding: '1px 6px', fontSize: '0.6rem', cursor: 'pointer',
+                          padding: '2px 8px', fontSize: T.fontSizeXs, cursor: 'pointer',
                           color: active ? T.colorText : T.colorTextMuted,
                           fontWeight: active ? 600 : 400,
                           boxShadow: active ? T.shadowInset : T.shadowBtn,
-                          transition: `all ${T.transitionFast}`,
+                          transition: `all 0.2s ease`,
                         }}
                       >
                         {tag}
@@ -190,21 +207,22 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             {/* Category options */}
             {allCategories.length > 0 && (
               <div>
-                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '2px' }}>Category</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginBottom: '4px' }}>Category</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                   {allCategories.map((cat) => {
                     const active = filter.selectedCategory === cat;
                     return (
                       <button
                         key={cat}
+                        className={!active ? 'editor-btn' : ''}
                         onClick={() => setCategory(cat)}
                         style={{
                           background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                          padding: '1px 6px', fontSize: '0.6rem', cursor: 'pointer',
+                          padding: '2px 8px', fontSize: T.fontSizeXs, cursor: 'pointer',
                           color: active ? T.colorText : T.colorTextMuted,
                           fontWeight: active ? 600 : 400,
                           boxShadow: active ? T.shadowInset : T.shadowBtn,
-                          transition: `all ${T.transitionFast}`,
+                          transition: `all 0.2s ease`,
                         }}
                       >
                         {cat}
@@ -215,13 +233,13 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Post list */}
       <div style={{ flex: 1, overflow: 'auto' }}>
         {posts.length === 0 ? (
-          <div style={{ padding: T.spacingXl, color: T.colorTextMuted, fontSize: T.fontSizeBase }}>
+          <div style={{ padding: T.spacingXl, color: T.colorTextMuted, fontSize: T.fontSizeMd }}>
             No posts found.
           </div>
         ) : filtered.length === 0 ? (
@@ -229,13 +247,14 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
             No matching posts
           </div>
         ) : (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+          <ul style={{ listStyle: 'none', margin: 0, padding: `${T.spacingSm} 0` }}>
             {filtered.map((post, idx) => {
               const label = showTitle ? (post.title || post.slug) : post.slug;
               const date = formatSmartDate(post.pubDate);
               const tooltipParts = [post.title || post.slug];
               if (post.tags.length > 0) tooltipParts.push(`Tags: ${post.tags.join(', ')}`);
               if (post.category) tooltipParts.push(`Category: ${post.category}`);
+              const isSelected = post.slug === selectedSlug;
 
               return (
                 <li key={post.slug} style={{
@@ -247,31 +266,31 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                     onClick={() => onSelect(post.slug)}
                     title={tooltipParts.join('\n')}
                     style={{
-                      flex: 1, padding: `0.5rem ${T.spacingXl}`,
+                      flex: 1, padding: `${T.spacingMd} ${T.spacingLg}`,
                       border: 'none',
-                      background: post.slug === selectedSlug ? T.colorBgTertiary : 'transparent',
-                      color: post.slug === selectedSlug ? T.colorText : T.colorTextSecondary,
-                      fontWeight: post.slug === selectedSlug ? 600 : 400,
-                      fontSize: T.fontSizeBase, textAlign: 'left', cursor: 'pointer',
-                      borderLeft: post.slug === selectedSlug ? `2px solid ${T.colorAccent}` : '2px solid transparent',
-                      transition: `all ${T.transitionFast}`,
+                      background: isSelected ? T.colorBgTertiary : 'transparent',
+                      color: isSelected ? T.colorText : T.colorTextSecondary,
+                      fontWeight: isSelected ? 600 : 400,
+                      fontSize: T.fontSizeMd, textAlign: 'left', cursor: 'pointer',
+                      borderLeft: isSelected ? `3px solid ${T.colorAccent}` : '3px solid transparent',
+                      transition: `all 0.2s ease`,
                       overflow: 'hidden',
                     }}
                     onMouseEnter={(e) => {
-                      if (post.slug !== selectedSlug) {
+                      if (!isSelected) {
                         e.currentTarget.style.background = T.colorBgSecondary;
                         e.currentTarget.style.color = T.colorText;
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (post.slug !== selectedSlug) {
+                      if (!isSelected) {
                         e.currentTarget.style.background = 'transparent';
                         e.currentTarget.style.color = T.colorTextSecondary;
                       }
                     }}
                   >
                     <div style={{
-                      display: 'flex', alignItems: 'center', gap: T.spacingXs,
+                      display: 'flex', alignItems: 'center', gap: T.spacingSm,
                       overflow: 'hidden',
                     }}>
                       <span style={{
@@ -281,16 +300,16 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                       </span>
                       {post.category && (
                         <span style={{
-                          fontSize: '0.55rem', color: T.colorTextMuted,
+                          fontSize: T.fontSizeXs, color: T.colorTextMuted,
                           background: T.colorBgTertiary, borderRadius: T.radiusSm,
-                          padding: '0 4px', whiteSpace: 'nowrap', flexShrink: 0,
+                          padding: '1px 6px', whiteSpace: 'nowrap', flexShrink: 0,
                         }}>
                           {post.category}
                         </span>
                       )}
                     </div>
                     {date && (
-                      <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginTop: '1px' }}>
+                      <div style={{ fontSize: T.fontSizeXs, color: T.colorTextMuted, marginTop: '2px' }}>
                         {date}
                       </div>
                     )}
@@ -300,9 +319,9 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
                     title={`Delete ${post.slug}`}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#d1d5db', fontSize: T.fontSizeSm, padding: '0.4rem',
-                      marginRight: T.spacingXs, borderRadius: T.radiusSm,
-                      transition: `color ${T.transitionFast}`,
+                      color: '#d1d5db', fontSize: T.fontSizeSm, padding: T.spacingMd,
+                      marginRight: T.spacingSm, borderRadius: T.radiusSm,
+                      transition: `color 0.2s ease`,
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = T.colorError; }}
                     onMouseLeave={(e) => { e.currentTarget.style.color = '#d1d5db'; }}

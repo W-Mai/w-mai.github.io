@@ -539,7 +539,7 @@ const LiveEditor: FC = () => {
         {/* Top bar */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: T.spacingLg,
-          padding: `${T.spacingMd} ${T.spacingXl}`,
+          padding: `${T.spacingLg} ${T.spacingXl}`,
           borderBottom: 'none',
           background: T.colorBg, fontSize: T.fontSizeBase,
           boxShadow: T.shadowRaised,
@@ -549,16 +549,16 @@ const LiveEditor: FC = () => {
             onClick={() => setShowFilePanel(true)}
             title="Open file panel"
             style={{
-              background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-              cursor: 'pointer', fontSize: T.fontSizeMd, color: T.colorTextSecondary,
-              padding: `0.25rem ${T.spacingSm}`,
+              background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+              cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
+              padding: `${T.spacingSm} ${T.spacingMd}`,
               boxShadow: T.shadowBtn,
-              transition: `all ${T.transitionFast}`,
+              transition: `all 0.2s ease`,
             }}
           >
             📝
           </button>
-          <span style={{ color: T.colorTextSecondary }}>
+          <span style={{ color: T.colorTextSecondary, fontSize: T.fontSizeMd }}>
             {state.selectedSlug ? `${state.selectedSlug}.mdx` : 'Select a post to edit'}
           </span>
           {state.isDirty && (
@@ -574,13 +574,13 @@ const LiveEditor: FC = () => {
               onClick={handleSave}
               disabled={!state.isDirty || state.isLoading}
               style={{
-                padding: `0.35rem ${T.spacingXl}`,
+                padding: `${T.spacingSm} ${T.spacingXl}`,
                 background: state.isDirty ? T.colorAccent : T.colorBg,
                 color: state.isDirty ? '#ffffff' : T.colorTextMuted,
                 border: 'none', borderRadius: T.radiusMd,
                 fontSize: T.fontSizeMd, fontWeight: 500,
                 cursor: state.isDirty ? 'pointer' : 'default',
-                transition: `all ${T.transitionFast}`,
+                transition: `all 0.2s ease`,
                 boxShadow: state.isDirty ? T.shadowBtn : 'none',
               }}
             >
@@ -595,7 +595,7 @@ const LiveEditor: FC = () => {
               ? `Commit ${gitPending.length} post(s): ${gitPending.map((p) => p.title).join(', ')}`
               : 'No pending posts to commit'}
             style={{
-              padding: `0.35rem ${T.spacingXl}`,
+              padding: `${T.spacingSm} ${T.spacingXl}`,
               background: gitPending.length === 0 ? T.colorBg
                 : gitCommitting ? T.colorBg : '#059669',
               color: gitPending.length === 0 ? T.colorTextMuted
@@ -603,7 +603,7 @@ const LiveEditor: FC = () => {
               border: 'none', borderRadius: T.radiusMd,
               fontSize: T.fontSizeMd, fontWeight: 500,
               cursor: gitPending.length === 0 || gitCommitting ? 'default' : 'pointer',
-              transition: `all ${T.transitionFast}`,
+              transition: `all 0.2s ease`,
               display: 'flex', alignItems: 'center', gap: T.spacingSm,
               opacity: gitPending.length === 0 ? 0.5 : 1,
               boxShadow: gitPending.length > 0 && !gitCommitting ? T.shadowBtn : 'none',
@@ -616,12 +616,12 @@ const LiveEditor: FC = () => {
             onClick={() => setShowEnvConfig(true)}
             title="Environment variables"
             style={{
-              padding: `0.35rem ${T.spacingSm}`,
+              padding: `${T.spacingSm} ${T.spacingMd}`,
               background: T.colorBg, border: 'none',
               borderRadius: T.radiusMd, cursor: 'pointer',
-              fontSize: T.fontSizeMd, color: T.colorTextSecondary,
+              fontSize: T.fontSizeLg, color: T.colorTextSecondary,
               boxShadow: T.shadowBtn,
-              transition: `all ${T.transitionFast}`,
+              transition: `all 0.2s ease`,
             }}
           >
             ⚙️
@@ -764,67 +764,82 @@ const LiveEditor: FC = () => {
           onClick={() => setShowFilePanel(false)}
           style={{
             position: 'fixed', inset: 0, zIndex: 50,
-            background: 'rgba(0, 0, 0, 0.25)',
+            background: 'rgba(0, 0, 0, 0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backdropFilter: 'blur(2px)',
+            backdropFilter: 'blur(4px)',
           }}
         >
           <div
             className="editor-panel"
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: '520px', maxWidth: '90vw', maxHeight: '80vh',
-              background: T.colorBg, borderRadius: T.radiusLg,
-              boxShadow: T.shadowRaised,
+              width: '560px', maxWidth: '92vw', maxHeight: '82vh',
+              background: T.colorBg, borderRadius: '1rem',
+              boxShadow: '8px 8px 16px rgb(163 177 198 / 0.6), -8px -8px 16px rgb(255 255 255 / 0.5)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
             }}
           >
-            {/* Panel header with tabs */}
+            {/* Panel header */}
             <div style={{
-              display: 'flex', alignItems: 'center',
-              borderBottom: `1px solid ${T.colorBorder}`,
+              display: 'flex', alignItems: 'center', gap: T.spacingMd,
+              padding: `${T.spacingLg} ${T.spacingXl}`,
             }}>
-              <div style={{ display: 'flex', flex: 1 }}>
+              {/* Neumorphism tab switcher */}
+              <div style={{
+                flex: 1, display: 'flex', gap: T.spacingSm,
+                background: T.colorBg, borderRadius: T.radiusMd,
+                padding: '3px',
+                boxShadow: T.shadowInset,
+              }}>
                 {(['posts', 'assets'] as const).map((tab) => (
                   <button
                     key={tab}
+                    className={sidebarTab !== tab ? 'editor-btn' : ''}
                     onClick={() => setSidebarTab(tab)}
                     style={{
-                      flex: 1, padding: `0.75rem ${T.spacingMd}`,
-                      background: 'none', border: 'none',
-                      borderBottom: sidebarTab === tab ? `2px solid ${T.colorAccent}` : '2px solid transparent',
-                      fontSize: T.fontSizeSm, fontWeight: 600,
-                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                      flex: 1, padding: `${T.spacingSm} ${T.spacingMd}`,
+                      background: sidebarTab === tab ? T.colorBg : 'transparent',
+                      border: 'none', borderRadius: T.radiusSm,
+                      fontSize: T.fontSizeMd, fontWeight: 600,
+                      letterSpacing: '0.02em',
                       color: sidebarTab === tab ? T.colorText : T.colorTextMuted,
-                      cursor: 'pointer', transition: `all ${T.transitionFast}`,
+                      cursor: 'pointer',
+                      boxShadow: sidebarTab === tab ? T.shadowBtn : 'none',
+                      transition: `all 0.25s ease`,
                     }}
                   >
                     {tab === 'posts' ? '📝 Posts' : '🖼 Assets'}
                   </button>
                 ))}
               </div>
+
+              {/* Action buttons */}
               {sidebarTab === 'posts' && (
                 <button
+                  className="editor-btn"
                   onClick={() => { setShowFilePanel(false); setShowCreateModal(true); }}
                   title="New post"
                   style={{
-                    background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                    cursor: 'pointer', fontSize: T.fontSizeMd, color: T.colorTextSecondary,
-                    padding: `0.2rem 0.5rem`, marginRight: T.spacingMd, lineHeight: 1,
+                    background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+                    cursor: 'pointer', fontSize: T.fontSizeLg, color: T.colorTextSecondary,
+                    padding: `${T.spacingSm} ${T.spacingMd}`, lineHeight: 1,
                     boxShadow: T.shadowBtn,
-                    transition: `all ${T.transitionFast}`,
+                    transition: `all 0.2s ease`,
                   }}
                 >
                   +
                 </button>
               )}
               <button
+                className="editor-btn"
                 onClick={() => setShowFilePanel(false)}
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: T.colorTextMuted, fontSize: T.fontSizeBase,
-                  padding: `0.5rem ${T.spacingMd}`,
+                  background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
+                  cursor: 'pointer', color: T.colorTextMuted, fontSize: T.fontSizeLg,
+                  padding: `${T.spacingSm} ${T.spacingMd}`, lineHeight: 1,
+                  boxShadow: T.shadowBtn,
+                  transition: `all 0.2s ease`,
                 }}
               >
                 ✕
@@ -832,17 +847,26 @@ const LiveEditor: FC = () => {
             </div>
 
             {/* Panel body */}
-            <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-              {sidebarTab === 'posts' ? (
-                <PostList
-                  posts={state.posts}
-                  selectedSlug={state.selectedSlug}
-                  onSelect={selectPost}
-                  onDelete={deletePost}
-                />
-              ) : (
-                <AssetPanel aiEnabled={aiEnabled} refreshKey={assetRefreshKey} onInsert={handleInsertAsset} />
-              )}
+            <div style={{
+              flex: 1, overflow: 'auto', minHeight: 0,
+              padding: `0 ${T.spacingMd} ${T.spacingMd}`,
+            }}>
+              <div style={{
+                background: T.colorBg, borderRadius: T.radiusMd,
+                boxShadow: T.shadowInset,
+                overflow: 'hidden', height: '100%',
+              }}>
+                {sidebarTab === 'posts' ? (
+                  <PostList
+                    posts={state.posts}
+                    selectedSlug={state.selectedSlug}
+                    onSelect={selectPost}
+                    onDelete={deletePost}
+                  />
+                ) : (
+                  <AssetPanel aiEnabled={aiEnabled} refreshKey={assetRefreshKey} onInsert={handleInsertAsset} />
+                )}
+              </div>
             </div>
           </div>
         </div>
