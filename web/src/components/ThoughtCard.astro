@@ -14,18 +14,56 @@ const html = renderInlineMarkdown(thought.content)
 const date = new Date(thought.createdAt)
 ---
 
-<div class="neu-card rounded-[2rem] p-5 sm:p-6">
-  <div class="flex items-center justify-between mb-3 gap-2">
-    {thought.mood ? (
-      <div class="neu-mood-time">
-        <span class="neu-mood-badge">{thought.mood}</span>
-        <span class="neu-time-pill"><FormattedDate date={date} /></span>
-      </div>
-    ) : (
-      <span class="neu-time-pill"><FormattedDate date={date} /></span>
-    )}
+{isEditorMode ? (
+  <div class="flex items-center gap-2">
+    <div class="neu-card rounded-[2rem] p-5 sm:p-6 flex-1">
+      <div class="flex items-center justify-between mb-3 gap-2">
+        {thought.mood ? (
+          <div class="neu-mood-time">
+            <span class="neu-mood-badge">{thought.mood}</span>
+            <span class="neu-time-pill"><FormattedDate date={date} /></span>
+          </div>
+        ) : (
+          <span class="neu-time-pill"><FormattedDate date={date} /></span>
+        )}
 
-    <div class="flex items-center gap-1.5">
+        {thought.tags && thought.tags.length > 0 && (
+          <div class="neu-tags-capsule">
+            {thought.tags.map((tag) => (
+              <TagChip tag={tag} interactive={false} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
+    </div>
+
+    <div class="neu-action-capsule">
+      <button
+        class="neu-action-item cursor-pointer"
+        data-thought-edit={JSON.stringify(thought)}
+        title="Edit"
+      >✏️</button>
+      <button
+        class="neu-action-item cursor-pointer"
+        data-thought-delete={thought.id}
+        title="Delete"
+      >🗑️</button>
+    </div>
+  </div>
+) : (
+  <div class="neu-card rounded-[2rem] p-5 sm:p-6">
+    <div class="flex items-center justify-between mb-3 gap-2">
+      {thought.mood ? (
+        <div class="neu-mood-time">
+          <span class="neu-mood-badge">{thought.mood}</span>
+          <span class="neu-time-pill"><FormattedDate date={date} /></span>
+        </div>
+      ) : (
+        <span class="neu-time-pill"><FormattedDate date={date} /></span>
+      )}
+
       {thought.tags && thought.tags.length > 0 && (
         <div class="neu-tags-capsule">
           {thought.tags.map((tag) => (
@@ -33,23 +71,8 @@ const date = new Date(thought.createdAt)
           ))}
         </div>
       )}
-
-      {isEditorMode && (
-        <div class="flex gap-1 ml-2">
-          <button
-            class="neu-btn px-2 py-0.5 text-xs cursor-pointer"
-            data-thought-edit={JSON.stringify(thought)}
-            title="Edit"
-          >✏️</button>
-          <button
-            class="neu-btn px-2 py-0.5 text-xs cursor-pointer"
-            data-thought-delete={thought.id}
-            title="Delete"
-          >🗑️</button>
-        </div>
-      )}
     </div>
-  </div>
 
-  <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
-</div>
+    <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
+  </div>
+)}
