@@ -327,21 +327,19 @@ a.neu-tag-chip:active {
 
 .neu-mood-item:hover {
   background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
-  box-shadow: 3px 3px 6px var(--neu-shadow-dark),
-              -3px -3px 6px var(--neu-shadow-light);
   transform: translateY(-1px);
   filter: grayscale(0);
 }
 
 .neu-mood-item:active {
-  background: var(--neu-bg);
+  background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
   box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
               inset -2px -2px 4px var(--neu-shadow-light-strong);
   transform: translateY(0);
 }
 
 .neu-mood-item.selected {
-  background: var(--neu-bg);
+  background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
   box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
               inset -2px -2px 4px var(--neu-shadow-light-strong);
   filter: grayscale(0);
@@ -373,6 +371,7 @@ a.neu-tag-chip:active {
               -2px -2px 4px var(--neu-shadow-light);
 }
 .neu-mood-time .neu-mood-badge {
+  background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
   box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
               inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
   width: 1.75rem;
@@ -390,7 +389,7 @@ a.neu-tag-chip:active {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.25rem;
+  padding: 0;
   border-radius: 1.125rem;
   box-shadow: 2px 2px 4px var(--neu-shadow-dark),
               -2px -2px 4px var(--neu-shadow-light);
@@ -402,12 +401,10 @@ a.neu-tag-chip:active {
   border-radius: 0.875rem;
   font-size: 0.7rem;
   color: var(--text-muted);
-  transition: box-shadow 200ms ease, background 200ms ease, transform 200ms ease, color 200ms ease;
+  transition: background 200ms ease, color 200ms ease, transform 200ms ease;
 }
 .neu-tags-capsule .neu-tag-chip:hover {
   background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
-  box-shadow: 4px 4px 8px var(--neu-shadow-dark),
-              -4px -4px 8px var(--neu-shadow-light);
   color: var(--text-secondary);
   transform: translateY(-1px);
 }

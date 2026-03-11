@@ -10,8 +10,8 @@
   --neu-shadow-dark-strong: rgb(163 177 198 / 0.7);
   --neu-shadow-light-strong:rgb(255 255 255 / 0.8);
   --neu-cluster-bg:         #d5d9e0;
-  --neu-gradient-light:     #eaeff6;
-  --neu-gradient-dark:      #d6dbe2;
+  --neu-gradient-light:     #f0f5fc;
+  --neu-gradient-dark:      #cdd2d9;
 
   /* ---- Editor-specific surfaces ---- */
   --editor-bg-secondary: #d9dee5;
@@ -152,8 +152,8 @@ html.dark {
   --neu-shadow-dark-strong: rgb(25 27 29 / 0.8);
   --neu-shadow-light-strong:rgb(60 64 66 / 0.6);
   --neu-cluster-bg:         #262b2d;
-  --neu-gradient-light:     #353a3c;
-  --neu-gradient-dark:      #252a2c;
+  --neu-gradient-light:     #3d4244;
+  --neu-gradient-dark:      #1f2426;
 
   /* ---- Editor-specific surfaces ---- */
   --editor-bg-secondary: #333839;
