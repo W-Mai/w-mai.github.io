@@ -798,7 +798,7 @@ const LiveEditor: FC = () => {
             className="editor-panel"
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: '560px', maxWidth: '92vw', height: '70vh',
+              width: '840px', maxWidth: '92vw', height: '70vh',
               background: T.colorBg, borderRadius: '1rem',
               boxShadow: '8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)',
               display: 'flex', flexDirection: 'column',
@@ -877,7 +877,7 @@ const LiveEditor: FC = () => {
 
             {/* Panel body */}
             <div style={{
-              flex: 1, overflow: 'auto', minHeight: 0,
+              flex: 1, minHeight: 0, overflow: 'hidden',
               padding: `0 ${T.spacingXl} ${T.spacingXl}`,
             }}>
               <div style={{
