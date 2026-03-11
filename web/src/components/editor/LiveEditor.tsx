@@ -72,6 +72,7 @@ const LiveEditor: FC = () => {
   });
   const [scrollRatio, setScrollRatio] = useState(0);
   const [showFilePanel, setShowFilePanel] = useState(false);
+  const [filePanelClosing, setFilePanelClosing] = useState(false);
   const [assetRefreshKey, setAssetRefreshKey] = useState(0);
   const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[]; action: 'add' | 'update' | 'delete' }[]>([]);
   const [gitCommitting, setGitCommitting] = useState(false);
@@ -91,6 +92,15 @@ const LiveEditor: FC = () => {
   });
 
   const editorRef = useRef<MdxEditorHandle>(null);
+
+  // Animated close for file panel overlay
+  const closeFilePanel = useCallback(() => {
+    setFilePanelClosing(true);
+    setTimeout(() => {
+      setShowFilePanel(false);
+      setFilePanelClosing(false);
+    }, 200);
+  }, []);
 
   // Register sticker picker callback for autocomplete integration
   useEffect(() => {
@@ -229,7 +239,7 @@ const LiveEditor: FC = () => {
         isDirty: false, isLoading: false,
       }));
       persistEditorState('selectedSlug', slug);
-      setShowFilePanel(false);
+      closeFilePanel();
     } catch (err: any) {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
     }
@@ -510,9 +520,17 @@ const LiveEditor: FC = () => {
           from { opacity: 0; }
           to { opacity: 1; }
         }
+        @keyframes editorOverlayOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
         @keyframes editorPanelIn {
           from { opacity: 0; transform: scale(0.92) translateY(12px); }
           to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes editorPanelOut {
+          from { opacity: 1; transform: scale(1) translateY(0); }
+          to { opacity: 0; transform: scale(0.92) translateY(12px); }
         }
         @keyframes editorPanelItemIn {
           from { opacity: 0; transform: translateX(-8px); }
@@ -521,8 +539,14 @@ const LiveEditor: FC = () => {
         .editor-overlay {
           animation: editorOverlayIn 0.2s ease both;
         }
+        .editor-overlay.closing {
+          animation: editorOverlayOut 0.2s ease both;
+        }
         .editor-panel {
           animation: editorPanelIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .editor-panel.closing {
+          animation: editorPanelOut 0.2s ease both;
         }
         .editor-btn:hover {
           box-shadow: ${T.shadowBtnHover} !important;
@@ -787,22 +811,27 @@ const LiveEditor: FC = () => {
       {/* File Panel Overlay */}
       {showFilePanel && (
         <div
-          className="editor-overlay"
-          onClick={() => setShowFilePanel(false)}
+          className={`editor-overlay${filePanelClosing ? ' closing' : ''}`}
           style={{
             position: 'fixed', inset: 0, zIndex: 50,
-            background: 'rgba(0, 0, 0, 0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backdropFilter: 'blur(4px)',
           }}
         >
+          {/* Neumorphism overlay backdrop — theme-aware semi-transparent */}
           <div
-            className="editor-panel"
+            onClick={() => closeFilePanel()}
+            style={{
+              position: 'absolute', inset: 0,
+              background: 'var(--editor-overlay-bg)',
+            }}
+          />
+          <div
+            className={`editor-panel${filePanelClosing ? ' closing' : ''}`}
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '840px', maxWidth: '92vw', height: '70vh',
               background: T.colorBg, borderRadius: '3rem',
-              boxShadow: '8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)',
+              boxShadow: '16px 16px 32px var(--neu-shadow-dark), -16px -16px 32px var(--neu-shadow-light), 32px 32px 64px var(--neu-shadow-dark), -32px -32px 64px var(--neu-shadow-light)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
             }}
@@ -844,7 +873,7 @@ const LiveEditor: FC = () => {
               {/* Action buttons — fixed square, always rendered to prevent layout shift */}
               <button
                 className="editor-btn"
-                onClick={() => { setShowFilePanel(false); setShowCreateModal(true); }}
+                onClick={() => { closeFilePanel(); setShowCreateModal(true); }}
                 title="New post"
                 style={{
                   background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
@@ -862,7 +891,7 @@ const LiveEditor: FC = () => {
               </button>
               <button
                 className="editor-btn"
-                onClick={() => setShowFilePanel(false)}
+                onClick={() => closeFilePanel()}
                 style={{
                   background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
                   cursor: 'pointer', color: T.colorTextMuted, fontSize: T.fontSizeLg,

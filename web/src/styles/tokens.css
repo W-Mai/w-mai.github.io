@@ -16,6 +16,7 @@
   --editor-bg-tertiary:  #d1d6dd;
   --editor-error-bg:     #fef2f2;
   --editor-warning-bg:   #fffbeb;
+  --editor-overlay-bg:   rgba(224, 229, 236, 0.85);
 
   /* ---- Semantic text ---- */
   --text-primary:   #1e293b;   /* slate-800 */
@@ -155,6 +156,7 @@ html.dark {
   --editor-bg-tertiary:  #3a3f41;
   --editor-error-bg:     #3b1c1c;
   --editor-warning-bg:   #3b3520;
+  --editor-overlay-bg:   rgba(45, 52, 54, 0.88);
 
   /* ---- Semantic text ---- */
   --text-primary:   #e2e8f0;   /* slate-200 */
