@@ -4,14 +4,17 @@ interface Props {
 }
 
 const { date } = Astro.props;
+
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const display = `${date.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+
+const off = date.getTimezoneOffset();
+const tzSign = off <= 0 ? '+' : '-';
+const tzAbs = Math.abs(off);
+const tz = `UTC${tzSign}${pad2(Math.floor(tzAbs / 60))}:${pad2(tzAbs % 60)}`;
+const full = `${display}:${pad2(date.getSeconds())} ${tz}`;
 ---
 
-<time datetime={date.toISOString()}>
-	{
-		date.toLocaleDateString('en-us', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		})
-	}
+<time datetime={date.toISOString()} title={full}>
+	{display}
 </time>
