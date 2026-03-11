@@ -69,7 +69,11 @@ export const POST: APIRoute = async ({ params, request }) => {
     try {
       const now = new Date();
       const pad = (n: number, w = 2) => String(n).padStart(w, '0');
-      const today = `${now.getFullYear()}/${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const off = now.getTimezoneOffset();
+      const tzSign = off <= 0 ? '+' : '-';
+      const tzAbs = Math.abs(off);
+      const tz = `${tzSign}${pad(Math.floor(tzAbs / 60))}:${pad(tzAbs % 60)}`;
+      const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}${tz}`;
       const template = `---\ntitle: '${title.replace(/'/g, "''")}'\ndescription: ''\npubDate: '${today}'\n---\n\nStart writing here.\n`;
       await writeFile(filePath, template, 'utf-8');
       return json({ success: true, slug });

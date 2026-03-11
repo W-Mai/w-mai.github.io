@@ -7,9 +7,9 @@ interface DateTimePickerProps {
   placeholder?: string;
 }
 
-/** Parse "YYYY/MM/DD" or "YYYY/MM/DD HH:mm" into parts */
+/** Parse "YYYY-MM-DDTHH:mm+HH:MM" or legacy "YYYY/MM/DD HH:mm" into parts */
 function parseDateStr(s: string): { year: number; month: number; day: number; hour: number; minute: number } | null {
-  const m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?$/);
+  const m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s](\d{1,2}):(\d{2}))?/);
   if (!m) return null;
   return {
     year: parseInt(m[1], 10),
@@ -20,10 +20,20 @@ function parseDateStr(s: string): { year: number; month: number; day: number; ho
   };
 }
 
-/** Format parts back to "YYYY/MM/DD HH:mm" */
+/** Timezone offset string for the local environment (e.g. "+08:00") */
+const LOCAL_TZ = (() => {
+  const off = new Date().getTimezoneOffset();
+  const sign = off <= 0 ? '+' : '-';
+  const abs = Math.abs(off);
+  const h = String(Math.floor(abs / 60)).padStart(2, '0');
+  const m = String(abs % 60).padStart(2, '0');
+  return `${sign}${h}:${m}`;
+})();
+
+/** Format parts to ISO datetime with timezone: "YYYY-MM-DDTHH:mm+HH:MM" */
 function formatDate(y: number, mo: number, d: number, h: number, mi: number): string {
   const pad = (n: number, w = 2) => String(n).padStart(w, '0');
-  return `${pad(y, 4)}/${pad(mo)}/${pad(d)} ${pad(h)}:${pad(mi)}`;
+  return `${pad(y, 4)}-${pad(mo)}-${pad(d)}T${pad(h)}:${pad(mi)}${LOCAL_TZ}`;
 }
 
 /** Get days in a month */
