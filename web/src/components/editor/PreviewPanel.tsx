@@ -160,17 +160,18 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{
-        padding: '0.375rem 0.75rem', background: T.colorBgSecondary,
-        borderBottom: `1px solid ${T.colorBorderLight}`,
-        fontSize: '0.75rem', color: T.colorTextMuted,
-        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        padding: `${T.spacingSm} ${T.spacingLg}`, background: T.colorBg,
+        fontSize: T.fontSizeXs, color: T.colorTextMuted,
+        display: 'flex', alignItems: 'center', gap: T.spacingMd,
+        boxShadow: T.shadowRaised,
       }}>
-        <span>/blog/{slug}</span>
+        <span style={{ fontFamily: T.fontMono }}>/blog/{slug}</span>
         <div style={{ flex: 1 }} />
         {snapshot && (
           <span style={{ fontSize: '0.7rem', color: T.colorTextMuted }}>refreshing…</span>
         )}
         <button
+          className="editor-btn"
           onClick={() => {
             const iframe = iframeRef.current;
             if (!iframe || !slug) return;
@@ -187,8 +188,11 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
             });
           }}
           style={{
-            background: 'none', border: `1px solid ${T.colorBorderLight}`, borderRadius: '0.25rem',
-            padding: '0.15rem 0.5rem', cursor: 'pointer', fontSize: '0.7rem', color: T.colorTextSecondary,
+            background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
+            padding: `2px ${T.spacingMd}`, cursor: 'pointer',
+            fontSize: T.fontSizeXs, color: T.colorTextSecondary,
+            boxShadow: T.shadowBtn,
+            transition: `all ${T.transitionFast}`,
           }}
         >
           ↻ Refresh

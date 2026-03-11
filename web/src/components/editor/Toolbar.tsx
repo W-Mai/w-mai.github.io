@@ -51,9 +51,8 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: T.spacingXs,
-      padding: `${T.spacingXs} ${T.spacingMd}`,
-      borderBottom: `1px solid ${T.colorBorder}`,
-      background: T.colorBgSecondary,
+      padding: `${T.spacingSm} ${T.spacingLg}`,
+      background: T.colorBg,
       flexWrap: 'wrap',
     }}>
       {TOOLBAR_GROUPS.map((group, gi) => (
@@ -71,13 +70,14 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
                 key={item.action}
                 onClick={() => handleClick(item.action)}
                 disabled={!editorView}
+                className={!isActive ? 'editor-btn' : ''}
                 title={item.shortcut ? `${item.label} (${item.shortcut})` : item.label}
                 style={{
-                  background: isActive ? T.colorBgTertiary : 'none',
+                  background: T.colorBg,
                   border: 'none',
                   borderRadius: T.radiusSm,
                   cursor: editorView ? 'pointer' : 'default',
-                  padding: `2px ${T.spacingSm}`,
+                  padding: `4px ${T.spacingMd}`,
                   fontSize: T.fontSizeSm,
                   fontWeight: isActive ? 700 : 500,
                   color: isActive ? T.colorText : T.colorTextSecondary,
@@ -87,9 +87,10 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
                   textDecoration: item.action === 'strikethrough' ? 'line-through' : 'none',
                   transition: `all ${T.transitionFast}`,
                   lineHeight: 1.4,
-                  minWidth: '26px',
+                  minWidth: '28px',
                   textAlign: 'center',
                   opacity: editorView ? 1 : 0.4,
+                  boxShadow: isActive ? T.shadowInset : T.shadowBtn,
                 }}
               >
                 {item.icon}
@@ -103,13 +104,15 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
         <div style={{ width: '1px', height: '18px', background: T.colorBorder, margin: `0 ${T.spacingXs}` }} />
         <button
           onClick={onStickerOpen}
+          className="editor-btn"
           title="Insert Sticker"
           style={{
-            background: 'none', border: 'none', borderRadius: T.radiusSm,
-            cursor: 'pointer', padding: `2px ${T.spacingSm}`,
+            background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
+            cursor: 'pointer', padding: `4px ${T.spacingMd}`,
             fontSize: T.fontSizeSm, color: T.colorTextSecondary,
             transition: `all ${T.transitionFast}`, lineHeight: 1.4,
-            minWidth: '26px', textAlign: 'center',
+            minWidth: '28px', textAlign: 'center',
+            boxShadow: T.shadowBtn,
           }}
         >😀</button>
       </div>
