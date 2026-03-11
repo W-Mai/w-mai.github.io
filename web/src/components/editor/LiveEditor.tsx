@@ -71,7 +71,7 @@ const LiveEditor: FC = () => {
     return (restoreEditorState('sidebarTab') as 'posts' | 'assets') || 'posts';
   });
   const [scrollRatio, setScrollRatio] = useState(0);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showFilePanel, setShowFilePanel] = useState(false);
   const [assetRefreshKey, setAssetRefreshKey] = useState(0);
   const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[]; action: 'add' | 'update' | 'delete' }[]>([]);
   const [gitCommitting, setGitCommitting] = useState(false);
@@ -135,15 +135,6 @@ const LiveEditor: FC = () => {
 
   // Persist sidebar tab
   useEffect(() => { persistEditorState('sidebarTab', sidebarTab); }, [sidebarTab]);
-
-  // Responsive sidebar collapse
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 900px)');
-    const handler = (e: MediaQueryListEvent | MediaQueryList) => setSidebarCollapsed(e.matches);
-    handler(mq);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
 
   // Fetch asset names for upload naming dialog
   const refreshAssetNames = useCallback(() => {
@@ -238,6 +229,7 @@ const LiveEditor: FC = () => {
         isDirty: false, isLoading: false,
       }));
       persistEditorState('selectedSlug', slug);
+      setShowFilePanel(false);
     } catch (err: any) {
       setState((s) => ({ ...s, isLoading: false, error: err.message }));
     }
@@ -507,86 +499,12 @@ const LiveEditor: FC = () => {
     }
   }, [handleAIAction]);
 
-  const sidebarWidth = sidebarCollapsed ? 0 : 220;
-
   return (
     <div style={{
       display: 'flex', height: '100vh', width: '100vw',
       background: T.colorBg, color: T.colorText, fontFamily: T.fontSans,
     }}>
-      {/* Sidebar */}
-      {!sidebarCollapsed && (
-        <div style={{
-          width: `${sidebarWidth}px`, minWidth: `${sidebarWidth}px`,
-          borderRight: 'none',
-          display: 'flex', flexDirection: 'column',
-          background: T.colorBg,
-          boxShadow: T.shadowRaised,
-          marginRight: '4px',
-        }}>
-          {/* Sidebar tabs */}
-          <div style={{ display: 'flex', borderBottom: `1px solid ${T.colorBorder}` }}>
-            {(['posts', 'assets'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setSidebarTab(tab)}
-                style={{
-                  flex: 1, padding: `0.6rem ${T.spacingMd}`,
-                  background: 'none', border: 'none',
-                  borderBottom: sidebarTab === tab ? `2px solid ${T.colorAccent}` : '2px solid transparent',
-                  fontSize: T.fontSizeXs, fontWeight: 600,
-                  textTransform: 'uppercase', letterSpacing: '0.05em',
-                  color: sidebarTab === tab ? T.colorText : T.colorTextMuted,
-                  cursor: 'pointer', transition: `all ${T.transitionFast}`,
-                }}
-              >
-                {tab === 'posts' ? '📝 Posts' : '🖼 Assets'}
-              </button>
-            ))}
-          </div>
-
-          {/* Posts tab */}
-          {sidebarTab === 'posts' && (
-            <>
-              <div style={{
-                padding: `${T.spacingMd} ${T.spacingXl}`, borderBottom: `1px solid ${T.colorBorder}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-              }}>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  title="New post"
-                  style={{
-                    background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                    cursor: 'pointer', fontSize: T.fontSizeMd, color: T.colorTextSecondary,
-                    padding: `0.1rem 0.4rem`, lineHeight: 1,
-                    boxShadow: T.shadowBtn,
-                    transition: `all ${T.transitionFast}`,
-                  }}
-                >
-                  +
-                </button>
-              </div>
-              <div style={{ flex: 1, overflow: 'auto' }}>
-                <PostList
-                  posts={state.posts}
-                  selectedSlug={state.selectedSlug}
-                  onSelect={selectPost}
-                  onDelete={deletePost}
-                />
-              </div>
-            </>
-          )}
-
-          {/* Assets tab */}
-          {sidebarTab === 'assets' && (
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <AssetPanel aiEnabled={aiEnabled} refreshKey={assetRefreshKey} onInsert={handleInsertAsset} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Main area */}
+      {/* Main area — full width */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top bar */}
         <div style={{
@@ -596,19 +514,19 @@ const LiveEditor: FC = () => {
           background: T.colorBg, fontSize: T.fontSizeBase,
           boxShadow: T.shadowRaised,
         }}>
-          {sidebarCollapsed && (
-            <button
-              onClick={() => setSidebarCollapsed(false)}
-              style={{
-                background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
-                cursor: 'pointer', fontSize: T.fontSizeSm, color: T.colorTextSecondary,
-                padding: `0.1rem ${T.spacingSm}`,
-                boxShadow: T.shadowBtn,
-              }}
-            >
-              ☰
-            </button>
-          )}
+          <button
+            onClick={() => setShowFilePanel(true)}
+            title="Open file panel"
+            style={{
+              background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
+              cursor: 'pointer', fontSize: T.fontSizeMd, color: T.colorTextSecondary,
+              padding: `0.25rem ${T.spacingSm}`,
+              boxShadow: T.shadowBtn,
+              transition: `all ${T.transitionFast}`,
+            }}
+          >
+            📝
+          </button>
           <span style={{ color: T.colorTextSecondary }}>
             {state.selectedSlug ? `${state.selectedSlug}.mdx` : 'Select a post to edit'}
           </span>
@@ -804,6 +722,95 @@ const LiveEditor: FC = () => {
 
       {/* Env Config Panel */}
       <EnvConfigPanel isOpen={showEnvConfig} onClose={() => setShowEnvConfig(false)} />
+
+      {/* File Panel Overlay */}
+      {showFilePanel && (
+        <div
+          onClick={() => setShowFilePanel(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            background: 'rgba(0, 0, 0, 0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '520px', maxWidth: '90vw', maxHeight: '80vh',
+              background: T.colorBg, borderRadius: T.radiusLg,
+              boxShadow: T.shadowRaised,
+              display: 'flex', flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Panel header with tabs */}
+            <div style={{
+              display: 'flex', alignItems: 'center',
+              borderBottom: `1px solid ${T.colorBorder}`,
+            }}>
+              <div style={{ display: 'flex', flex: 1 }}>
+                {(['posts', 'assets'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setSidebarTab(tab)}
+                    style={{
+                      flex: 1, padding: `0.75rem ${T.spacingMd}`,
+                      background: 'none', border: 'none',
+                      borderBottom: sidebarTab === tab ? `2px solid ${T.colorAccent}` : '2px solid transparent',
+                      fontSize: T.fontSizeSm, fontWeight: 600,
+                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                      color: sidebarTab === tab ? T.colorText : T.colorTextMuted,
+                      cursor: 'pointer', transition: `all ${T.transitionFast}`,
+                    }}
+                  >
+                    {tab === 'posts' ? '📝 Posts' : '🖼 Assets'}
+                  </button>
+                ))}
+              </div>
+              {sidebarTab === 'posts' && (
+                <button
+                  onClick={() => { setShowFilePanel(false); setShowCreateModal(true); }}
+                  title="New post"
+                  style={{
+                    background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
+                    cursor: 'pointer', fontSize: T.fontSizeMd, color: T.colorTextSecondary,
+                    padding: `0.2rem 0.5rem`, marginRight: T.spacingMd, lineHeight: 1,
+                    boxShadow: T.shadowBtn,
+                    transition: `all ${T.transitionFast}`,
+                  }}
+                >
+                  +
+                </button>
+              )}
+              <button
+                onClick={() => setShowFilePanel(false)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: T.colorTextMuted, fontSize: T.fontSizeBase,
+                  padding: `0.5rem ${T.spacingMd}`,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Panel body */}
+            <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
+              {sidebarTab === 'posts' ? (
+                <PostList
+                  posts={state.posts}
+                  selectedSlug={state.selectedSlug}
+                  onSelect={selectPost}
+                  onDelete={deletePost}
+                />
+              ) : (
+                <AssetPanel aiEnabled={aiEnabled} refreshKey={assetRefreshKey} onInsert={handleInsertAsset} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
