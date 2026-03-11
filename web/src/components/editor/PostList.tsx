@@ -3,7 +3,7 @@ import { EDITOR_TOKENS as T } from './editor-tokens';
 import {
   filterAndSortPosts, collectTags, collectCategories,
   countActiveFilters, formatSmartDate, DEFAULT_FILTER,
-  type PostInfo, type SortField, type SortDirection, type FilterOptions,
+  type PostInfo, type SortField, type FilterOptions,
 } from '../../lib/post-filter';
 
 export type { PostInfo };
@@ -230,7 +230,7 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
           </div>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {filtered.map((post) => {
+            {filtered.map((post, idx) => {
               const label = showTitle ? (post.title || post.slug) : post.slug;
               const date = formatSmartDate(post.pubDate);
               const tooltipParts = [post.title || post.slug];
@@ -238,7 +238,11 @@ const PostList: FC<PostListProps> = ({ posts, selectedSlug, onSelect, onDelete }
               if (post.category) tooltipParts.push(`Category: ${post.category}`);
 
               return (
-                <li key={post.slug} style={{ display: 'flex', alignItems: 'center' }}>
+                <li key={post.slug} style={{
+                  display: 'flex', alignItems: 'center',
+                  animation: `editorPanelItemIn 0.2s ease both`,
+                  animationDelay: `${Math.min(idx * 30, 300)}ms`,
+                }}>
                   <button
                     onClick={() => onSelect(post.slug)}
                     title={tooltipParts.join('\n')}

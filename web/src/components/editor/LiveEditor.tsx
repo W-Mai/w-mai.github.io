@@ -504,6 +504,36 @@ const LiveEditor: FC = () => {
       display: 'flex', height: '100vh', width: '100vw',
       background: T.colorBg, color: T.colorText, fontFamily: T.fontSans,
     }}>
+      {/* Editor animation keyframes */}
+      <style>{`
+        @keyframes editorOverlayIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes editorPanelIn {
+          from { opacity: 0; transform: scale(0.92) translateY(12px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes editorPanelItemIn {
+          from { opacity: 0; transform: translateX(-8px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .editor-overlay {
+          animation: editorOverlayIn 0.2s ease both;
+        }
+        .editor-panel {
+          animation: editorPanelIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        .editor-btn:hover {
+          box-shadow: ${T.shadowBtnHover} !important;
+          transform: translateY(1px);
+        }
+        .editor-btn:active {
+          box-shadow: ${T.shadowInset} !important;
+          transform: translateY(0);
+        }
+      `}</style>
+
       {/* Main area — full width */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top bar */}
@@ -515,6 +545,7 @@ const LiveEditor: FC = () => {
           boxShadow: T.shadowRaised,
         }}>
           <button
+            className="editor-btn"
             onClick={() => setShowFilePanel(true)}
             title="Open file panel"
             style={{
@@ -539,6 +570,7 @@ const LiveEditor: FC = () => {
           <div style={{ flex: 1 }} />
           {state.selectedSlug && (
             <button
+              className="editor-btn"
               onClick={handleSave}
               disabled={!state.isDirty || state.isLoading}
               style={{
@@ -556,6 +588,7 @@ const LiveEditor: FC = () => {
             </button>
           )}
           <button
+            className="editor-btn"
             onClick={handleGitCommit}
             disabled={gitCommitting || gitPending.length === 0}
             title={gitPending.length > 0
@@ -579,6 +612,7 @@ const LiveEditor: FC = () => {
             {gitCommitting ? '⏳ Committing...' : `📦 Commit${gitPending.length > 0 ? ` ${gitPending.length} post${gitPending.length > 1 ? 's' : ''}` : ''}`}
           </button>
           <button
+            className="editor-btn"
             onClick={() => setShowEnvConfig(true)}
             title="Environment variables"
             style={{
@@ -726,6 +760,7 @@ const LiveEditor: FC = () => {
       {/* File Panel Overlay */}
       {showFilePanel && (
         <div
+          className="editor-overlay"
           onClick={() => setShowFilePanel(false)}
           style={{
             position: 'fixed', inset: 0, zIndex: 50,
@@ -735,6 +770,7 @@ const LiveEditor: FC = () => {
           }}
         >
           <div
+            className="editor-panel"
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '520px', maxWidth: '90vw', maxHeight: '80vh',
