@@ -49,6 +49,14 @@ function firstDayOfWeek(year: number, month: number): number {
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+/** Human-friendly display: "Mar 11, 2026  03:53" */
+function displayDate(s: string): string {
+  const p = parseDateStr(s);
+  if (!p) return s;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${MONTHS[p.month - 1]} ${p.day}, ${p.year}  ${pad(p.hour)}:${pad(p.minute)}`;
+}
+
 /** Neumorphism-styled calendar + time picker */
 const DateTimePicker: FC<DateTimePickerProps> = ({ value, onChange, placeholder = 'YYYY/MM/DD HH:mm' }) => {
   const [open, setOpen] = useState(false);
@@ -152,9 +160,13 @@ const DateTimePicker: FC<DateTimePickerProps> = ({ value, onChange, placeholder 
           cursor: 'pointer',
           textAlign: 'left',
           transition: `border-color ${T.transitionFast}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
         }}
       >
-        {value || placeholder}
+        <span style={{ opacity: 0.5, fontSize: T.fontSizeXs }}>📅</span>
+        <span>{value ? displayDate(value) : placeholder}</span>
       </button>
 
       {/* Dropdown calendar */}
