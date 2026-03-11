@@ -50,19 +50,13 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: T.spacingXs,
-      padding: `${T.spacingSm} ${T.spacingLg}`,
+      display: 'flex', alignItems: 'center', gap: T.spacingLg,
+      padding: `${T.spacingLg} ${T.spacingXl}`,
       background: T.colorBg,
       flexWrap: 'wrap',
     }}>
       {TOOLBAR_GROUPS.map((group, gi) => (
-        <div key={gi} style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-          {gi > 0 && (
-            <div style={{
-              width: '1px', height: '18px',
-              background: T.colorBorder, margin: `0 ${T.spacingXs}`,
-            }} />
-          )}
+        <div key={gi} style={{ display: 'flex', alignItems: 'center', gap: T.spacingSm }}>
           {group.map((item) => {
             const isActive = activeFormats.has(item.action);
             return (
@@ -101,7 +95,6 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
       ))}
       {/* Sticker picker button */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div style={{ width: '1px', height: '18px', background: T.colorBorder, margin: `0 ${T.spacingXs}` }} />
         <button
           onClick={onStickerOpen}
           className="editor-btn"

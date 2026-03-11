@@ -163,7 +163,6 @@ const PreviewPanel: FC<PreviewPanelProps> = ({ slug, refreshKey, scrollRatio }) 
         padding: `${T.spacingSm} ${T.spacingLg}`, background: T.colorBg,
         fontSize: T.fontSizeXs, color: T.colorTextMuted,
         display: 'flex', alignItems: 'center', gap: T.spacingMd,
-        boxShadow: T.shadowRaised,
       }}>
         <span style={{ fontFamily: T.fontMono }}>/blog/{slug}</span>
         <div style={{ flex: 1 }} />
