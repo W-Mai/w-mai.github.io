@@ -14,11 +14,12 @@ interface ThoughtData {
 
 interface ThoughtEditorProps {
   onSaved?: () => void;
+  allTags?: string[];
 }
 
 const MOOD_OPTIONS = ['🎉', '🤔', '✨', '😤', '🐛', '💡', '🔥', '😂', '🥲', '👀'];
 
-const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
+const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   const [content, setContent] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [mood, setMood] = useState('');
@@ -26,6 +27,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
   const [error, setError] = useState<string | null>(null);
   const [stickerOpen, setStickerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [suggestingTags, setSuggestingTags] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const previewHtml = content ? renderInlineMarkdown(content) : '';
@@ -104,6 +106,28 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
     }
   }, [onSaved]);
 
+  const handleSuggestTags = useCallback(async () => {
+    if (!content.trim()) return;
+    setSuggestingTags(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/editor/suggest-thought-tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: content.trim(), existingTags: allTags }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Tag suggestion failed');
+      const currentTags = tagInput.split(',').map(t => t.trim()).filter(Boolean);
+      const merged = [...new Set([...currentTags, ...data.tags])];
+      setTagInput(merged.join(', '));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSuggestingTags(false);
+    }
+  }, [content, tagInput, allTags]);
+
   // Expose edit/delete to page-level JS via custom events
   if (typeof window !== 'undefined') {
     (window as any).__thoughtEditor = { startEdit, handleDelete };
@@ -168,6 +192,17 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
           placeholder="Tags (comma separated)"
           style={{ ...insetInput, flex: 1, minWidth: '140px' }}
         />
+        <button
+          onClick={handleSuggestTags}
+          disabled={suggestingTags || !content.trim()}
+          className="neu-editor-btn"
+          style={{
+            padding: `${T.spacingSm} ${T.spacingMd}`,
+            fontSize: T.fontSizeSm,
+            opacity: !content.trim() ? 0.5 : 1,
+          }}
+          title="AI suggest tags"
+        >{suggestingTags ? '...' : '🤖'}</button>
 
         {/* Mood selector — neumorphism capsule */}
         <div className="neu-mood-capsule">

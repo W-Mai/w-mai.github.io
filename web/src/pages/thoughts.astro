@@ -22,7 +22,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
 
   {isEditorMode && (
     <div class="mb-6 anim-fade" style="--delay:2">
-      <ThoughtEditor client:load />
+      <ThoughtEditor client:load allTags={allTags} />
     </div>
   )}
 
