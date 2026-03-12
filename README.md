@@ -125,7 +125,7 @@ export const SOCIALS = [
 
 ## 写文章
 
-文章放在根目录 `posts/` 下，支持 `.md` 和 `.mdx` 格式。图片等资源放在 `posts/assets/`。
+文章放在根目录 `posts/<slug>/index.mdx` 下，每篇文章一个目录，图片等资源放在同目录下。全局共享图片放在 `assets/images/`。
 
 **文章 frontmatter：**
 
@@ -135,7 +135,7 @@ title: '文章标题'
 description: '文章描述'
 pubDate: 'Jan 1 2025'
 updatedDate: 'Feb 1 2025'          # 可选，更新日期
-heroImage: './assets/your-image.png'  # 可选封面图，相对于 posts/ 目录
+heroImage: './your-image.png'       # 可选封面图，相对于文章目录
 ---
 ```
 

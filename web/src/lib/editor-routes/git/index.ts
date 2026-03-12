@@ -55,29 +55,23 @@ async function collectPendingPosts(): Promise<{ slug: string; title: string; fil
 
   for (const line of lines) {
     const filePath = line.slice(3).trim();
-    const mdxMatch = filePath.match(/^posts\/([^/]+)\.mdx$/);
-    if (mdxMatch) {
-      const slug = mdxMatch[1];
+    // Match posts/<slug>/index.mdx or posts/<slug>/<asset>
+    const dirMatch = filePath.match(/^posts\/([^/]+)\//);
+    if (dirMatch) {
+      const slug = dirMatch[1];
       if (!slugMap.has(slug)) slugMap.set(slug, { files: new Set(), action: statusAction(line) });
       slugMap.get(slug)!.files.add(filePath);
     }
   }
 
-  const pendingFiles = new Set(lines.map((l) => l.slice(3).trim()));
   const results: { slug: string; title: string; files: string[]; action: 'add' | 'update' | 'delete' }[] = [];
 
   for (const [slug, { files, action }] of slugMap) {
-    const mdxPath = resolve(getRepoRoot(), `posts/${slug}.mdx`);
+    const mdxPath = resolve(getRepoRoot(), `posts/${slug}/index.mdx`);
     let title = slug;
     try {
       const content = await readFile(mdxPath, 'utf-8');
       title = extractTitle(content);
-      const assetRe = /\.\/assets\/([^\s)'"]+)/g;
-      let m: RegExpExecArray | null;
-      while ((m = assetRe.exec(content))) {
-        const assetPath = `posts/assets/${m[1]}`;
-        if (pendingFiles.has(assetPath)) files.add(assetPath);
-      }
     } catch {}
     results.push({ slug, title, files: [...files], action });
   }
@@ -90,14 +84,14 @@ export const GET: APIRoute = async ({ url }) => {
   try {
     const slug = url.searchParams.get('diff');
     if (slug) {
-      // Return diff for a specific post slug
-      const filePath = `posts/${slug}.mdx`;
+      // Return diff for a specific post directory
+      const dirPath = `posts/${slug}/`;
       let diff: string;
       try {
-        diff = git('-c', 'color.diff=false', 'diff', '--', filePath);
+        diff = git('-c', 'color.diff=false', 'diff', '--', dirPath);
       } catch {
-        // Untracked file — show full content as diff
-        diff = git('-c', 'color.diff=false', 'diff', '--no-index', '/dev/null', filePath);
+        // Untracked directory — show full content as diff
+        diff = git('-c', 'color.diff=false', 'diff', '--no-index', '/dev/null', `posts/${slug}/index.mdx`);
       }
       return json({ slug, diff });
     }

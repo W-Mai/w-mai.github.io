@@ -55,6 +55,7 @@ export default defineConfig({
       alias: {
         '~': new URL('./src', import.meta.url).pathname,
         '@posts': new URL('../posts', import.meta.url).pathname,
+        '@assets': new URL('../assets', import.meta.url).pathname,
       }
     }
   }

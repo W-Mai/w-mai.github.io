@@ -6,14 +6,14 @@ import { extractFirstBodyImage } from '../../lib/blog-hero';
 import { getSeriesForPost } from '../../lib/blog-series';
 import { formatReadingTime, stripMarkdown, countWords } from '../../lib/reading-stats';
 
-// Glob-import all post assets for body image fallback
+// Glob-import all co-located post images for body image fallback
 const assetImages = import.meta.glob<{ default: ImageMetadata }>(
-	'../../../posts/assets/*.{png,jpg,jpeg,gif,webp,svg}',
+	'../../../posts/**/*.{png,jpg,jpeg,gif,webp,svg}',
 	{ eager: true },
 );
 
 function resolveBodyImage(path: string): ImageMetadata | null {
-	const name = path.replace(/^\.\/assets\//, '');
+	const name = path.replace(/^\.\//, '');
 	const key = Object.keys(assetImages).find((k) => k.endsWith(`/${name}`));
 	return key ? assetImages[key].default : null;
 }

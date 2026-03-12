@@ -73,12 +73,12 @@ export function deduplicateAssetName(name: string, existingNames: Set<string>): 
 
 // --- Reference counting ---
 
-// Asset reference patterns
+// Asset reference patterns (co-located images in posts/<slug>/)
 const ASSET_PATTERNS = [
-  /!\[.*?\]\(\.?\/?\/?assets\/([^)]+)\)/g,           // ![alt](./assets/foo.png)
-  /import\s+.*?\s+from\s+['"]\.?\/?\/?assets\/([^'"]+)['"]/g, // import x from './assets/foo.png'
-  /:\s*['"]?\.?\/?\/?assets\/([^'"\s\n]+)['"]?/g,    // heroImage: ./assets/foo.png
-  /['"]@posts\/assets\/([^'"]+)['"]/g,                // '@posts/assets/foo.png'
+  /!\[.*?\]\(\.\/([^)]+)\)/g,                                    // ![alt](./foo.png)
+  /import\s+.*?\s+from\s+['"]\.\/([^'"]+)['"]/g,                 // import x from './foo.png'
+  /:\s*['"]?\.\/([^'"\s\n]+)['"]?/g,                             // heroImage: ./foo.png
+  /['"]@assets\/([^'"]+)['"]/g,                                   // '@assets/images/foo.png'
 ];
 
 /** Scan posts and src files for asset references */
@@ -92,12 +92,18 @@ export async function computeAssetReferences(
   const refs = new Map<string, string[]>(assetNames.map((n) => [n, []]));
   const srcDir = resolve(postsDir, '..', 'web', 'src');
 
-  // Collect all scannable files: .mdx posts + src code files
+  // Collect all scannable files: index.mdx in post directories + src code files
   const scanFiles: { path: string; label: string }[] = [];
 
   try {
-    for (const f of await readdir(postsDir)) {
-      if (f.endsWith('.mdx')) scanFiles.push({ path: join(postsDir, f), label: f.replace(/\.mdx$/, '') });
+    for (const entry of await readdir(postsDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        const mdxPath = join(postsDir, entry.name, 'index.mdx');
+        try {
+          await readFile(mdxPath, 'utf-8');
+          scanFiles.push({ path: mdxPath, label: entry.name });
+        } catch { /* no index.mdx */ }
+      }
     }
   } catch { /* empty */ }
 
