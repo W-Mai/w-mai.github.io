@@ -38,11 +38,11 @@ export const FRIENDS: readonly FriendLink[] = [
     tags: ['图形学', 'VR', 'C++', '游戏引擎'],
   },
   {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
+    name: 'KevinHz',
+    url: 'https://kevinhz.dev',
+    avatar: 'https://avatars.githubusercontent.com/XTM722',
+    description: 'UTSC 统计学 & 经济学 & 语言学，将严谨的数据分析与现代软件工程结合，构建可靠高性能系统。',
+    tags: ['统计学', '数据分析', '软件工程'],
   },
   {
     name: '虚位以待',
