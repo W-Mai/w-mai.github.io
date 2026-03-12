@@ -1,0 +1,51 @@
+---
+import type { SeriesData } from '../lib/blog-series';
+
+interface Props {
+	seriesData: SeriesData;
+	currentPostId: string;
+}
+
+const { seriesData, currentPostId } = Astro.props;
+const { info, posts } = seriesData;
+const currentIndex = posts.findIndex((p) => p.id === currentPostId);
+const position = currentIndex + 1;
+---
+
+<nav class="neu-inset rounded-2xl p-4 mb-8" aria-label={`Series: ${info.title}`}>
+	<div class="flex items-center justify-between gap-2 mb-3">
+		<span class="text-[var(--text-heading)] font-bold text-sm">📚 {info.title}</span>
+		<span class="text-[var(--text-muted)] text-xs whitespace-nowrap">
+			第 {position} 篇，共 {info.count} 篇
+		</span>
+	</div>
+	<ol class="flex flex-col gap-1 m-0 p-0 list-none">
+		{posts.map((post, i) => {
+			const isCurrent = post.id === currentPostId;
+			return (
+				<li>
+					{isCurrent ? (
+						<span class="neu-btn flex items-center gap-2 px-3 py-1.5 rounded-full text-sm
+						             text-[var(--text-heading)] font-semibold cursor-default
+						             bg-[linear-gradient(145deg,var(--neu-gradient-dark),var(--neu-gradient-light))]
+						             shadow-[inset_2px_2px_4px_var(--neu-shadow-dark-strong),inset_-2px_-2px_4px_var(--neu-shadow-light-strong)]">
+							<span class="text-[var(--text-muted)] text-xs w-4 shrink-0">{i + 1}.</span>
+							{post.data.title}
+						</span>
+					) : (
+						<a href={`/blog/${post.id}/`}
+						   class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm
+						          text-[var(--text-secondary)] no-underline
+						          transition-all duration-200 ease
+						          hover:text-[var(--text-heading)]
+						          hover:bg-[linear-gradient(145deg,var(--neu-gradient-light),var(--neu-gradient-dark))]
+						          hover:-translate-y-px">
+							<span class="text-[var(--text-muted)] text-xs w-4 shrink-0">{i + 1}.</span>
+							{post.data.title}
+						</a>
+					)}
+				</li>
+			);
+		})}
+	</ol>
+</nav>

@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { extractFirstBodyImage } from '../../lib/blog-hero';
+import { getSeriesForPost } from '../../lib/blog-series';
 import { formatReadingTime, stripMarkdown, countWords } from '../../lib/reading-stats';
 
 // Glob-import all post assets for body image fallback
@@ -36,8 +37,12 @@ const bodyImgMeta = bodyImgPath ? resolveBodyImage(bodyImgPath) : null;
 // Calculate reading stats at build time
 const readingTime = formatReadingTime(post.body ?? '');
 const wordCount = countWords(stripMarkdown(post.body ?? '')).total;
+
+// Resolve series data if post belongs to a series
+const allPosts = await getCollection('blog');
+const seriesData = getSeriesForPost(allPosts, post.id);
 ---
 
-<BlogPost {...post.data} bodyHeroImage={bodyImgMeta} readingTime={readingTime} wordCount={wordCount}>
+<BlogPost {...post.data} bodyHeroImage={bodyImgMeta} readingTime={readingTime} wordCount={wordCount} seriesData={seriesData} postId={post.id}>
 	<Content />
 </BlogPost>

@@ -8,15 +8,19 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Giscus from '../components/Giscus.astro';
 import Header from '../components/Header.astro';
+import SeriesNav from '../components/SeriesNav.astro';
 import TagChip from '../components/TagChip.astro';
+import type { SeriesData } from '../lib/blog-series';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	bodyHeroImage?: ImageMetadata | null;
 	readingTime?: string;
 	wordCount?: number;
+	seriesData?: SeriesData | null;
+	postId?: string;
 };
 
-const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount, tags = [], category } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount, tags = [], category, seriesData, postId } = Astro.props;
 ---
 
 <html lang="en">
@@ -124,6 +128,9 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, read
 			</a>
 
 			<article>
+				{seriesData && postId && (
+					<SeriesNav seriesData={seriesData} currentPostId={postId} />
+				)}
 				<div class="neu-hero-img rounded-3xl overflow-hidden mb-8">
 					{heroImage ? (
 						<Image

@@ -1,0 +1,60 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../../components/BaseHead.astro';
+import Footer from '../../../components/Footer.astro';
+import FormattedDate from '../../../components/FormattedDate.astro';
+import Header from '../../../components/Header.astro';
+import { SITE_TITLE } from '../../../consts';
+import { getAllSeries } from '../../../lib/blog-series';
+
+const posts = await getCollection('blog');
+const series = getAllSeries(posts);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`系列 | ${SITE_TITLE}`} description="Browse all blog series" />
+	</head>
+	<body class="neu-bg">
+		<Header />
+		<main class="max-w-4xl mx-auto px-4 py-10">
+			<h1 class="text-[var(--text-heading)] text-4xl md:text-5xl font-bold mb-2 anim-fade" style="--delay:0">📚 系列</h1>
+			<p class="text-[var(--text-secondary)] mb-10 text-lg anim-fade" style="--delay:1">
+				共 {series.length} 个系列
+			</p>
+
+			{series.length > 0 ? (
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 anim-fade" style="--delay:2">
+					{series.map((s) => (
+						<a href={`/blog/series/${s.slug}/`}
+						   class="series-card neu-card rounded-2xl p-6 no-underline
+						          transition-all duration-300 ease-out">
+							<div class="flex items-start justify-between gap-2 mb-2">
+								<h2 class="text-[var(--text-heading)] text-lg font-bold m-0 leading-snug">
+									{s.title}
+								</h2>
+								<span class="text-[var(--text-muted)] text-xs whitespace-nowrap mt-1">
+									{s.count} 篇
+								</span>
+							</div>
+							<p class="text-[var(--text-muted)] text-xs m-0">
+								最近更新：<FormattedDate date={s.latestDate} />
+							</p>
+						</a>
+					))}
+				</div>
+			) : (
+				<p class="text-[var(--text-muted)] text-center py-10">暂无系列</p>
+			)}
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.series-card:hover {
+		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+		transform: translateY(-2px);
+	}
+</style>

@@ -1,0 +1,15 @@
+---
+interface Props {
+	series: string;
+	seriesTitle?: string;
+}
+
+const { series, seriesTitle } = Astro.props;
+const label = seriesTitle ?? series;
+---
+
+<a href={`/blog/series/${series}/`}
+   class="neu-tag-chip"
+   onclick="event.stopPropagation()">
+	📚 {label}
+</a>

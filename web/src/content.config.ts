@@ -22,7 +22,14 @@ const blog = defineCollection({
 				}),
 			// Optional category for coarse-grained classification
 			category: z.string().optional(),
-		}),
+			// Series/collection fields
+			series: z.string().optional(),
+			seriesOrder: z.number().int().nonnegative().optional(),
+			seriesTitle: z.string().optional(),
+		}).refine(
+			(data) => !(data.seriesOrder !== undefined && data.series === undefined),
+			{ message: 'seriesOrder requires series to be defined', path: ['seriesOrder'] },
+		),
 });
 
 export const collections = { blog };
