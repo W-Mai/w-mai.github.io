@@ -16,6 +16,7 @@ import { persistEditorState, restoreEditorState } from '../../lib/editor-utils';
 import { setStickerPickerCallback } from '../../lib/editor-autocomplete';
 import StickerPicker from './StickerPicker';
 import EnvConfigPanel from './EnvConfigPanel';
+import PostImageManager from './PostImageManager';
 
 interface PostInfo {
   slug: string;
@@ -79,6 +80,7 @@ const LiveEditor: FC = () => {
   const [showGitModal, setShowGitModal] = useState(false);
   const [showStickerPanel, setShowStickerPanel] = useState(false);
   const [showEnvConfig, setShowEnvConfig] = useState(false);
+  const [showImageRail, setShowImageRail] = useState(false);
   const [stickerPicker, setStickerPicker] = useState<{
     pos: { x: number; y: number }; isBlock: boolean;
   } | null>(null);
@@ -715,12 +717,21 @@ const LiveEditor: FC = () => {
 
         {/* Toolbar */}
         {state.selectedSlug && (
-          <Toolbar editorView={editorRef.current?.getView() ?? null} activeFormats={activeFormats} onStickerOpen={() => setShowStickerPanel(true)} />
+          <Toolbar editorView={editorRef.current?.getView() ?? null} activeFormats={activeFormats} onStickerOpen={() => setShowStickerPanel(true)} onImageRailToggle={() => setShowImageRail((v) => !v)} imageRailOpen={showImageRail} />
         )}
 
         {/* Editor + Preview split */}
         <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
-          <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+          <div style={{ flex: 1, minWidth: 0, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+            {/* Image rail — above editor, left side only */}
+            {state.selectedSlug && (
+              <PostImageManager
+                slug={state.selectedSlug}
+                isOpen={showImageRail}
+                onClose={() => setShowImageRail(false)}
+                onInsert={(md) => editorRef.current?.insertText(md)}
+              />
+            )}
             {state.selectedSlug ? (
               <MdxEditor
                 ref={editorRef}

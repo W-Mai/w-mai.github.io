@@ -7,6 +7,8 @@ interface ToolbarProps {
   editorView: EditorView | null;
   activeFormats: Set<string>;
   onStickerOpen?: () => void;
+  onImageRailToggle?: () => void;
+  imageRailOpen?: boolean;
 }
 
 interface ToolbarItem {
@@ -41,7 +43,7 @@ const TOOLBAR_GROUPS: ToolbarItem[][] = [
   ],
 ];
 
-const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen }) => {
+const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen, onImageRailToggle, imageRailOpen }) => {
   const handleClick = (action: FormatAction) => {
     if (!editorView) return;
     FORMAT_ACTIONS[action](editorView);
@@ -94,7 +96,7 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
         </div>
       ))}
       {/* Sticker picker button */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: T.spacingSm }}>
         <button
           onClick={onStickerOpen}
           className="editor-btn"
@@ -108,6 +110,20 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen })
             boxShadow: T.shadowBtn,
           }}
         >😀</button>
+        <button
+          onClick={onImageRailToggle}
+          className={!imageRailOpen ? 'editor-btn' : ''}
+          title="Post Images"
+          style={{
+            background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
+            cursor: 'pointer', padding: `4px ${T.spacingMd}`,
+            fontSize: T.fontSizeSm, color: imageRailOpen ? T.colorText : T.colorTextSecondary,
+            transition: `all ${T.transitionFast}`, lineHeight: 1.4,
+            minWidth: '28px', textAlign: 'center',
+            boxShadow: imageRailOpen ? T.shadowInset : T.shadowBtn,
+            fontWeight: imageRailOpen ? 700 : 500,
+          }}
+        >🖼</button>
       </div>
     </div>
   );

@@ -8,7 +8,6 @@ import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Giscus from '../components/Giscus.astro';
 import Header from '../components/Header.astro';
-import PostImageManager from '../components/editor/PostImageManager';
 import SeriesNav from '../components/SeriesNav.astro';
 import TagChip from '../components/TagChip.astro';
 import type { SeriesData } from '../lib/blog-series';
@@ -22,7 +21,6 @@ type Props = CollectionEntry<'blog'>['data'] & {
 };
 
 const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount, tags = [], category, seriesData, postId } = Astro.props;
-const isDev = import.meta.env.DEV;
 ---
 
 <html lang="en">
@@ -236,12 +234,6 @@ const isDev = import.meta.env.DEV;
 		</main>
 
 		<Footer />
-
-		{isDev && postId && (
-			<div id="post-image-manager">
-				<PostImageManager slug={postId} client:only="react" />
-			</div>
-		)}
 
 		<script>
 			function initProgressBar() {

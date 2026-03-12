@@ -9,6 +9,9 @@ interface ImageInfo {
 
 interface Props {
   slug: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onInsert?: (markdown: string) => void;
 }
 
 function formatSize(bytes: number): string {
@@ -17,12 +20,13 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-const PostImageManager: FC<Props> = ({ slug }) => {
+const PostImageManager: FC<Props> = ({ slug, isOpen, onClose, onInsert }) => {
   const [images, setImages] = useState<ImageInfo[]>([]);
-  const [expanded, setExpanded] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [hoveredImg, setHoveredImg] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
 
   const fetchImages = useCallback(async () => {
     try {
@@ -31,7 +35,7 @@ const PostImageManager: FC<Props> = ({ slug }) => {
     } catch { /* ignore */ }
   }, [slug]);
 
-  useEffect(() => { fetchImages(); }, [fetchImages]);
+  useEffect(() => { if (isOpen) fetchImages(); }, [isOpen, slug, fetchImages]);
 
   const handleUpload = useCallback(async (files: FileList | null) => {
     if (!files?.length) return;
@@ -56,185 +60,209 @@ const PostImageManager: FC<Props> = ({ slug }) => {
   }, [slug, fetchImages]);
 
   const copyRef = useCallback((name: string) => {
-    const md = `![${name}](./${name})`;
-    navigator.clipboard.writeText(md);
+    navigator.clipboard.writeText(`./${name}`);
     setCopied(name);
     setTimeout(() => setCopied(null), 1500);
   }, []);
+
+  const insertImage = useCallback((name: string) => {
+    const md = `![${name}](./${name})`;
+    if (onInsert) onInsert(md);
+    else navigator.clipboard.writeText(md);
+  }, [onInsert]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     handleUpload(e.dataTransfer.files);
   }, [handleUpload]);
 
-  if (!expanded) {
-    return (
-      <button
-        onClick={() => setExpanded(true)}
-        className="neu-btn"
-        style={{
-          position: 'fixed',
-          bottom: '1.5rem',
-          right: '1.5rem',
-          zIndex: 40,
-          padding: '0.625rem 1rem',
-          borderRadius: T.radiusMd,
-          fontSize: T.fontSizeSm,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.375rem',
-          color: T.colorText,
-          background: T.colorBg,
-        }}
-      >
-        🖼️ <span>{images.length}</span>
-      </button>
-    );
-  }
+  // Horizontal wheel scroll
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (railRef.current && e.deltaY !== 0) {
+      e.preventDefault();
+      railRef.current.scrollLeft += e.deltaY;
+    }
+  }, []);
+
+  if (!isOpen) return null;
 
   return (
     <div
       style={{
-        position: 'fixed',
-        bottom: '1.5rem',
-        right: '1.5rem',
-        zIndex: 40,
-        width: '20rem',
-        maxHeight: '70vh',
-        borderRadius: T.radiusXl,
-        background: T.colorBg,
-        boxShadow: T.shadowRaised,
-        display: 'flex',
-        flexDirection: 'column',
         overflow: 'hidden',
-        fontFamily: T.fontSans,
+        background: T.colorBg,
+        borderBottom: `1px solid ${T.colorBorderLight}`,
+        animation: 'imageRailIn 0.2s ease both',
       }}
     >
-      {/* Header */}
+      <style>{`
+        @keyframes imageRailIn {
+          from { max-height: 0; opacity: 0; }
+          to { max-height: 10rem; opacity: 1; }
+        }
+        .img-rail-item { transition: all 0.15s ease; }
+        .img-rail-item:hover { transform: translateY(-2px); }
+      `}</style>
+
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: `${T.spacingLg} ${T.spacingXl}`,
-        borderBottom: `1px solid ${T.colorBorderLight}`,
+        display: 'flex', alignItems: 'center',
+        padding: `${T.spacingSm} ${T.spacingXl}`,
+        gap: T.spacingMd,
       }}>
-        <span style={{ fontSize: T.fontSizeMd, fontWeight: 600, color: T.colorAccent }}>
-          🖼️ Images ({images.length})
-        </span>
-        <button
-          onClick={() => setExpanded(false)}
+        {/* Upload zone */}
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onClick={() => fileRef.current?.click()}
           style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: T.fontSizeMd, color: T.colorTextMuted, padding: '0.25rem',
-          }}
-        >✕</button>
-      </div>
-
-      {/* Drop zone + upload */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => e.preventDefault()}
-        style={{
-          margin: `${T.spacingMd} ${T.spacingXl}`,
-          padding: T.spacingLg,
-          borderRadius: T.radiusMd,
-          boxShadow: T.shadowInset,
-          textAlign: 'center',
-          fontSize: T.fontSizeXs,
-          color: T.colorTextMuted,
-          cursor: 'pointer',
-        }}
-        onClick={() => fileRef.current?.click()}
-      >
-        {uploading ? 'Uploading...' : 'Drop images here or click to upload'}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          multiple
-          style={{ display: 'none' }}
-          onChange={(e) => handleUpload(e.target.files)}
-        />
-      </div>
-
-      {/* Image list */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: `0 ${T.spacingXl} ${T.spacingLg}`,
-      }}>
-        {images.length === 0 && (
-          <div style={{
-            textAlign: 'center',
+            flexShrink: 0,
+            width: '5rem', height: '5rem',
+            borderRadius: T.radiusMd,
+            boxShadow: T.shadowInset,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: uploading ? T.fontSizeXs : '1.5rem',
             color: T.colorTextMuted,
-            fontSize: T.fontSizeXs,
-            padding: T.spacingXl,
-          }}>No images yet</div>
-        )}
-        {images.map((img) => (
-          <div
-            key={img.name}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: T.spacingMd,
-              padding: `${T.spacingSm} 0`,
-              borderBottom: `1px solid ${T.colorBorderLight}`,
-            }}
-          >
-            {/* Thumbnail */}
-            <img
-              src={`/api/editor/posts/${slug}/images/${img.name}`}
-              alt={img.name}
+          }}
+        >
+          {uploading ? '...' : '+'}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            style={{ display: 'none' }}
+            onChange={(e) => handleUpload(e.target.files)}
+          />
+        </div>
+
+        {/* Horizontal scrollable image rail */}
+        <div
+          ref={railRef}
+          onWheel={handleWheel}
+          className="editor-scrollbar-hide"
+          style={{
+            flex: 1,
+            display: 'flex',
+            gap: T.spacingMd,
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            padding: `${T.spacingSm} 0`,
+          }}
+        >
+          {images.length === 0 && !uploading && (
+            <div style={{
+              color: T.colorTextMuted,
+              fontSize: T.fontSizeXs,
+              whiteSpace: 'nowrap',
+              padding: T.spacingLg,
+            }}>No images — drop or click + to upload</div>
+          )}
+          {images.map((img) => (
+            <div
+              key={img.name}
+              className="img-rail-item"
+              onMouseEnter={() => setHoveredImg(img.name)}
+              onMouseLeave={() => setHoveredImg(null)}
               style={{
-                width: '2.5rem',
-                height: '2.5rem',
-                objectFit: 'cover',
-                borderRadius: T.radiusSm,
-                boxShadow: T.shadowInset,
                 flexShrink: 0,
+                width: '5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '2px',
+                position: 'relative',
               }}
-              loading="lazy"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-            {/* Info */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+            >
+              {/* Thumbnail */}
               <div style={{
-                fontSize: T.fontSizeXs,
-                color: T.colorText,
+                width: '5rem', height: '5rem',
+                borderRadius: T.radiusSm,
+                boxShadow: T.shadowBtn,
+                overflow: 'hidden',
+                background: T.colorBg,
+                position: 'relative',
+              }}>
+                <img
+                  src={`/api/editor/posts/${slug}/images/${img.name}`}
+                  alt={img.name}
+                  style={{
+                    width: '100%', height: '100%',
+                    objectFit: 'cover',
+                    display: 'block',
+                  }}
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+                {/* Hover overlay with actions */}
+                {hoveredImg === img.name && (
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: 'rgba(0,0,0,0.55)',
+                    borderRadius: T.radiusSm,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    gap: '4px',
+                  }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); insertImage(img.name); }}
+                      title="Insert into editor"
+                      style={actionBtnStyle}
+                    >📥</button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); copyRef(img.name); }}
+                      title="Copy path"
+                      style={actionBtnStyle}
+                    >{copied === img.name ? '✓' : '📋'}</button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(img.name); }}
+                      title="Delete"
+                      style={actionBtnStyle}
+                    >🗑</button>
+                  </div>
+                )}
+              </div>
+              {/* Filename */}
+              <div style={{
+                fontSize: '0.5625rem',
+                color: T.colorTextMuted,
+                width: '5rem',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                textAlign: 'center',
               }}>{img.name}</div>
               <div style={{
-                fontSize: '0.625rem',
+                fontSize: '0.5rem',
                 color: T.colorTextMuted,
               }}>{formatSize(img.size)}</div>
             </div>
-            {/* Actions */}
-            <button
-              onClick={() => copyRef(img.name)}
-              title="Copy markdown reference"
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: T.fontSizeSm, padding: '0.25rem',
-                color: copied === img.name ? T.colorSuccess : T.colorTextMuted,
-              }}
-            >{copied === img.name ? '✓' : '📋'}</button>
-            <button
-              onClick={() => handleDelete(img.name)}
-              title="Delete image"
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: T.fontSizeSm, padding: '0.25rem',
-                color: T.colorTextMuted,
-              }}
-            >🗑️</button>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          style={{
+            flexShrink: 0,
+            background: 'none', border: 'none',
+            cursor: 'pointer',
+            color: T.colorTextMuted,
+            fontSize: T.fontSizeSm,
+            padding: T.spacingSm,
+          }}
+        >✕</button>
       </div>
     </div>
   );
+};
+
+const actionBtnStyle: React.CSSProperties = {
+  background: 'none', border: 'none',
+  cursor: 'pointer', fontSize: '0.875rem',
+  padding: '2px',
+  filter: 'brightness(1.2)',
 };
 
 export default PostImageManager;

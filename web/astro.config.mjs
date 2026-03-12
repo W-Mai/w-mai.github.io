@@ -15,6 +15,7 @@ import rehypeKatex from 'rehype-katex';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://benign.host',
+  devToolbar: { enabled: false },
   markdown: {
     remarkPlugins: [remarkSticker, remarkMath],
     rehypePlugins: [rehypeKatex],
