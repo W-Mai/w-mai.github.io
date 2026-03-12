@@ -1,0 +1,55 @@
+---
+title: 'Verilog 实现74138译码器'
+description: '使用 Verilog HDL 实现74138三线到八线译码器，从输入输出定义、业务逻辑分析到完整代码与仿真结果。'
+pubDate: '2020-03-30T21:04:57+08:00'
+updatedDate: '2023-11-11T12:14:48+08:00'
+tags: ["fpga", "verilog", "hardware"]
+category: 'Hardware'
+---
+
+## 代码编写
+
+首先明确有哪些输入和输出：
+
+- Enable 使能：En0 En1 En2
+- Input 输入：I0 I1 I2
+- Output 输出：O0 ~ O7
+
+用 Verilog 定义数据类型：
+
+```verilog
+// Enable has three bits — chip decodes normally only when En == 3'b100
+input wire[2:0] En;
+// Three-bit input, corresponding to 2^3 = 8 outputs (3-to-8 decoder)
+input wire[2:0] I;
+// Eight-bit output
+output wire[7:0] O;
+```
+
+## 业务逻辑分析
+
+要想有正常的译码结果：
+
+1. 首先 `En == 3'b100`
+2. 译码过程本质是一个左移操作，数学表达式为 `O = 1 << I`
+3. 74138 输出低有效，所以结果需要取反
+4. 如果 En 不满足条件，输出全 1（无效）
+
+## 完整代码
+
+```verilog
+module x74138(En, I, O);
+  input wire[2:0] En;
+  input wire[2:0] I;
+  output wire[7:0] O;
+
+  // Direct assignment: shift and invert for active-low output
+  assign O = (En==3'b100) ? ~(8'b0000_0001 << I) : 8'b1111_1111;
+endmodule
+```
+
+> 注：输出低有效（active-low），使能无效时输出全 1 而非全 0。
+
+## 仿真结果
+
+仿真结果验证了使能区域内译码逻辑正确，RTL 级电路综合符合预期。
