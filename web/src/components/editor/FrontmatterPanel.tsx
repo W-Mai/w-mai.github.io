@@ -322,6 +322,76 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
           onRemove={handleTagRemove}
         />
       </div>
+
+      {/* series — optional with clear button */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Series (slug)</label>
+          {local.series && (
+            <button
+              onClick={() => handleChange('series', undefined)}
+              aria-label="Clear series"
+              style={clearBtnStyle}
+            >×</button>
+          )}
+        </div>
+        <div style={{ marginTop: T.spacingXs }}>
+          <input
+            type="text"
+            value={local.series ?? ''}
+            onChange={(e) => handleChange('series', e.target.value || undefined)}
+            placeholder="e.g. rust-notes"
+            style={inputBaseStyle}
+          />
+        </div>
+      </div>
+
+      {/* seriesOrder — optional numeric */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Series Order</label>
+          {local.seriesOrder !== undefined && (
+            <button
+              onClick={() => handleChange('seriesOrder', undefined)}
+              aria-label="Clear series order"
+              style={clearBtnStyle}
+            >×</button>
+          )}
+        </div>
+        <div style={{ marginTop: T.spacingXs }}>
+          <input
+            type="number"
+            min={0}
+            value={local.seriesOrder ?? ''}
+            onChange={(e) => handleChange('seriesOrder', e.target.value === '' ? undefined : Number(e.target.value))}
+            placeholder="0, 1, 2…"
+            style={inputBaseStyle}
+          />
+        </div>
+      </div>
+
+      {/* seriesTitle — optional, full width */}
+      <div style={{ gridColumn: '1 / -1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Series Title</label>
+          {local.seriesTitle && (
+            <button
+              onClick={() => handleChange('seriesTitle', undefined)}
+              aria-label="Clear series title"
+              style={clearBtnStyle}
+            >×</button>
+          )}
+        </div>
+        <div style={{ marginTop: T.spacingXs }}>
+          <input
+            type="text"
+            value={local.seriesTitle ?? ''}
+            onChange={(e) => handleChange('seriesTitle', e.target.value || undefined)}
+            placeholder="Display name (optional)"
+            style={inputBaseStyle}
+          />
+        </div>
+      </div>
     </div>
     </div>
   );

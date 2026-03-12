@@ -55,6 +55,9 @@ export interface FrontmatterData {
   heroImage?: string;
   tags: string[];
   category?: string;
+  series?: string;
+  seriesOrder?: number;
+  seriesTitle?: string;
 }
 
 /** Discriminated union for parse outcomes */
@@ -84,6 +87,9 @@ export function parseFrontmatter(yaml: string): ParseResult {
       heroImage: parsed.heroImage != null ? String(parsed.heroImage) : undefined,
       tags: Array.isArray(parsed.tags) ? parsed.tags.map(String) : [],
       category: parsed.category != null ? String(parsed.category) : undefined,
+      series: parsed.series != null ? String(parsed.series) : undefined,
+      seriesOrder: parsed.seriesOrder != null ? Number(parsed.seriesOrder) : undefined,
+      seriesTitle: parsed.seriesTitle != null ? String(parsed.seriesTitle) : undefined,
     };
 
     return { ok: true, data };
@@ -102,6 +108,9 @@ const FIELD_ORDER: (keyof FrontmatterData)[] = [
   'heroImage',
   'tags',
   'category',
+  'series',
+  'seriesOrder',
+  'seriesTitle',
 ];
 
 /** Optional fields that are omitted when empty or undefined */
@@ -109,6 +118,9 @@ const OPTIONAL_FIELDS = new Set<keyof FrontmatterData>([
   'updatedDate',
   'heroImage',
   'category',
+  'series',
+  'seriesOrder',
+  'seriesTitle',
 ]);
 
 /** Escape single quotes for YAML single-quoted scalar (double the quote) */
@@ -142,6 +154,9 @@ export function serializeFrontmatter(data: FrontmatterData): string {
       const tags = value as string[];
       const inner = tags.map((t) => `"${escapeDQ(String(t))}"`).join(', ');
       lines.push(`tags: [${inner}]`);
+    } else if (key === 'seriesOrder') {
+      // Numeric field — no quotes
+      lines.push(`seriesOrder: ${Number(value)}`);
     } else {
       lines.push(`${key}: '${escapeSQ(String(value))}'`);
     }
