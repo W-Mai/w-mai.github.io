@@ -92,7 +92,7 @@ export default function editorDevIntegration(): AstroIntegration {
         });
         injectRoute({
           pattern: '/api/editor/git',
-          entrypoint: './src/lib/editor-routes/git/index.ts',
+          entrypoint: './src/lib/editor-routes/posts/git.ts',
         });
         injectRoute({
           pattern: '/api/editor/stickers',
