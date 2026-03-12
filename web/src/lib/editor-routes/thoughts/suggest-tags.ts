@@ -20,12 +20,15 @@ function getAIConfig() {
 }
 
 const SYSTEM_PROMPT = `You are a tag suggestion assistant for a personal thought/microblog system.
-Given the thought content and a list of existing tags already used in the system, suggest 1-5 relevant tags.
+Given the thought content and a list of existing tags already used in the system, suggest 2-5 relevant tags.
 
 Rules:
-- Reuse existing tags whenever they fit the content
-- Only create new tags when no existing tag covers the topic
-- Tags should be short (1-3 words), lowercase Chinese or English
+- Reuse an existing tag ONLY when it genuinely matches the content's topic — do NOT force-fit unrelated tags just because they exist
+- Create new tags when the content covers a topic not represented by existing tags
+- Each tag should describe a concrete topic (e.g. 美食, 拔牙, 追剧, CSS), not a vague mood or feeling
+- Tags should be short (1-3 words), Chinese or English
+- Always suggest at least 2 tags to provide useful categorization
+- Do NOT default to mood/emotion tags (like 发疯, 开心) unless the content is genuinely about that emotion as a topic
 - Return ONLY a JSON array of strings, e.g. ["标签1", "tag2", "标签3"]
 - No explanation, no markdown, just the JSON array`;
 
@@ -47,7 +50,9 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (!body.content?.trim()) return json({ error: 'Missing content' }, 400);
 
-  const userMessage = `Existing tags in the system:\n${(body.existingTags || []).join(', ') || '(none yet)'}\n\nThought content:\n${body.content}`;
+  const userMessage = `Existing tags in the system (tag: usage count):\n${
+    (body.existingTags || []).map(t => t).join(', ') || '(none yet)'
+  }\n\nThought content:\n${body.content}\n\nRemember: suggest tags based on the ACTUAL TOPIC of the content, not based on which existing tags are most common.`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
