@@ -254,6 +254,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
           isOpen={stickerOpen}
           onClose={() => setStickerOpen(false)}
           onInsertInline={(syntax) => insertSticker(syntax)}
+          onInsertBlock={(syntax) => insertSticker(syntax)}
         />,
         document.body,
       )}
