@@ -11,51 +11,59 @@ interface Props {
 const { profile, showBio = false } = Astro.props
 ---
 
-<aside class="neu-card rounded-[2rem] p-8
-  flex flex-col gap-y-5 md:text-sm text-2xl text-[var(--text-primary)]
+<aside class="neu-card rounded-[2rem] p-6 md:p-8
+  flex flex-row md:flex-col gap-5 text-sm text-[var(--text-primary)]
+  items-center md:items-stretch
   bg-gradient-to-br from-[var(--bg-surface-gradient-from)] to-[var(--bg-surface-gradient-to)]">
 
-  <div class="flex flex-col items-center">
+  <!-- Avatar + name -->
+  <div class="flex flex-col items-center shrink-0">
     <div class="neu-avatar-ring rounded-full p-1 aspect-square inline-flex"
          style="box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)">
       <Image
-        class="size-36 rounded-full aspect-square object-cover"
+        class="size-24 md:size-36 rounded-full aspect-square object-cover"
         src={profile.avatar_url}
         alt={USER_NAME}
         width={144}
         height={144}
       />
     </div>
-    <h4 class="mt-4 font-bold text-[var(--text-heading)]">{NICK_NAME}</h4>
-    <h5 class="m-2 text-[var(--text-secondary)]">@{USER_NAME}</h5>
+    <h4 class="mt-2 md:mt-4 font-bold text-[var(--text-heading)]">{NICK_NAME}</h4>
+    <h5 class="m-1 md:m-2 text-[var(--text-secondary)]">@{USER_NAME}</h5>
     {showBio && (
-      <h6 class="m-1.5 text-center text-[var(--text-secondary)]">{profile.bio ?? 'Overflow Stack Developer.'}</h6>
+      <h6 class="m-1.5 text-center text-[var(--text-secondary)]">
+        {profile.bio ?? 'Overflow Stack Developer.'}
+      </h6>
     )}
   </div>
 
-  <div class="neu-inset rounded-2xl px-6 py-4 flex justify-around text-center">
-    <div>
-      <span class="font-bold block text-[var(--text-primary)]">{profile.followers}</span>
-      <span class="text-xs text-[var(--text-secondary)]">followers</span>
+  <!-- Stats + social capsules -->
+  <div class="flex flex-row md:flex-col gap-3 md:gap-5 items-center justify-center flex-wrap">
+    <!-- Followers / Following -->
+    <div class="neu-btn flex items-center gap-4 px-5 py-2 rounded-full">
+      <div class="flex flex-col items-center leading-tight">
+        <span class="font-bold text-[var(--text-primary)]">{profile.followers}</span>
+        <span class="text-[0.6rem] text-[var(--text-secondary)]">followers</span>
+      </div>
+      <div class="w-px h-6 bg-[var(--border-subtle)]"></div>
+      <div class="flex flex-col items-center leading-tight">
+        <span class="font-bold text-[var(--text-primary)]">{profile.following}</span>
+        <span class="text-[0.6rem] text-[var(--text-secondary)]">following</span>
+      </div>
     </div>
-    <div class="w-px bg-[var(--border-subtle)]"></div>
-    <div>
-      <span class="font-bold block text-[var(--text-primary)]">{profile.following}</span>
-      <span class="text-xs text-[var(--text-secondary)]">following</span>
-    </div>
-  </div>
 
-  <div class="flex flex-col text-center py-2 gap-y-2 px-4 md:px-2">
-    {
-      SOCIALS.map((social) => (
-        <a class="neu-btn neu-link-btn gap-2 h-9
-                  text-[var(--text-secondary)] hover:text-[var(--text-primary)]
-                  hover:bg-gradient-to-r hover:from-[var(--bg-surface)]/30 hover:to-transparent" href={social.url} target="_blank">
-          <span class="sr-only">{social.description}</span>
-          <img class="size-4 rounded-none invert-[var(--icon-invert)]" src={social.icon} alt={social.description}/>
-          <h6 class="text-[var(--text-secondary)] m-0 text-xs">@{social.name}</h6>
-        </a>
-      ))
-    }
+    <!-- Social links -->
+    <div class="neu-btn flex items-center gap-0.5 px-2 py-1 rounded-full">
+      {
+        SOCIALS.map((social) => (
+          <a class="flex items-center justify-center size-8 rounded-full
+                    transition-colors hover:bg-[var(--hover-bg)]"
+             href={social.url} target="_blank">
+            <span class="sr-only">{social.description}</span>
+            <img class="size-4 rounded-none invert-[var(--icon-invert)]" src={social.icon} alt={social.description}/>
+          </a>
+        ))
+      }
+    </div>
   </div>
 </aside>
