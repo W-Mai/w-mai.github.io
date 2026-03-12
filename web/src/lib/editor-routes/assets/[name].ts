@@ -6,7 +6,7 @@ import { normalizeAssetName, deduplicateAssetName } from '~/lib/editor-utils';
 
 export const prerender = false;
 
-const assetsDir = resolve(process.cwd(), '..', 'posts', 'assets');
+const assetsDir = resolve(process.cwd(), '..', 'assets', 'images');
 
 const ALLOWED_EXT = /\.(png|jpe?g|gif|svg|webp|avif|ico|pdf)$/i;
 

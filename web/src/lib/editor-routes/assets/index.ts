@@ -6,7 +6,7 @@ import { computeAssetReferences } from '~/lib/editor-utils';
 export const prerender = false;
 
 const postsDir = resolve(process.cwd(), '..', 'posts');
-const assetsDir = resolve(postsDir, 'assets');
+const assetsDir = resolve(process.cwd(), '..', 'assets', 'images');
 
 /** GET /api/editor/assets — list all asset files with metadata and reference counts */
 export const GET: APIRoute = async () => {

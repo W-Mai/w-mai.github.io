@@ -16,20 +16,31 @@ function extractYaml(content: string): string | null {
 /** GET /api/editor/posts — list all posts. Add ?detail for titles + metadata. */
 export const GET: APIRoute = async ({ url }) => {
   try {
-    const files = await readdir(postsDir);
-    const mdxFiles = files.filter((f) => f.endsWith('.mdx'));
+    const { readdir: readdirFn, stat: statFn } = await import('node:fs/promises');
+    const entries = await readdirFn(postsDir, { withFileTypes: true });
+    const slugs: string[] = [];
+
+    // Collect directories that contain index.mdx
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        try {
+          await statFn(resolve(postsDir, entry.name, 'index.mdx'));
+          slugs.push(entry.name);
+        } catch { /* no index.mdx */ }
+      }
+    }
+
     const detail = url.searchParams.has('detail');
 
     if (detail) {
       const posts = await Promise.all(
-        mdxFiles.map(async (f) => {
-          const slug = f.replace(/\.mdx$/, '');
+        slugs.map(async (slug) => {
           let title = '';
           let tags: string[] = [];
           let category = '';
           let pubDate = '';
           try {
-            const content = await readFile(resolve(postsDir, f), 'utf-8');
+            const content = await readFile(resolve(postsDir, slug, 'index.mdx'), 'utf-8');
             const yaml = extractYaml(content);
             if (yaml) {
               const result = parseFrontmatter(yaml);
@@ -47,7 +58,6 @@ export const GET: APIRoute = async ({ url }) => {
       return new Response(JSON.stringify(posts), { headers: { 'Content-Type': 'application/json' } });
     }
 
-    const slugs = mdxFiles.map((f) => f.replace(/\.mdx$/, ''));
     return new Response(JSON.stringify(slugs), { headers: { 'Content-Type': 'application/json' } });
   } catch {
     return new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } });

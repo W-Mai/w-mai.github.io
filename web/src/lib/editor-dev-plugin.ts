@@ -6,12 +6,12 @@ import type { Plugin } from 'vite';
 
 /** Vite plugin: intercept HMR for .mdx files and watch asset changes */
 function editorHmrPlugin(postsDir: string): Plugin {
-  const assetsDir = resolve(postsDir, 'assets');
+  const assetsDir = resolve(postsDir, '..', 'assets', 'images');
   const thoughtsDir = resolve(postsDir, '..', 'thoughts');
   return {
     name: 'editor-dev-hmr',
     configureServer(server) {
-      // Watch assets directory for add/delete to trigger Astro content rebuild
+      // Watch global assets and thoughts directories
       server.watcher.add(assetsDir);
       server.watcher.add(thoughtsDir);
       const reload = () => server.ws.send({ type: 'full-reload' });
@@ -26,8 +26,10 @@ function editorHmrPlugin(postsDir: string): Plugin {
       });
     },
     handleHotUpdate({ file, server }) {
-      if (file.startsWith(postsDir) && file.endsWith('.mdx')) {
-        const slug = file.slice(postsDir.length + 1).replace(/\.mdx$/, '');
+      // Match posts/<slug>/index.mdx
+      if (file.startsWith(postsDir) && file.endsWith('/index.mdx')) {
+        const rel = file.slice(postsDir.length + 1);
+        const slug = rel.replace(/\/index\.mdx$/, '');
         server.ws.send({ type: 'custom', event: 'editor:post-updated', data: { slug } });
         return [];
       }

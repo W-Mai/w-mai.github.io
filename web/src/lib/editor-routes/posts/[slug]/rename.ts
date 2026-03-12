@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { readFile, writeFile, unlink, access } from 'node:fs/promises';
+import { access, rename } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { validatePostSlug } from '~/lib/editor-utils';
 
@@ -34,28 +34,26 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   if (slug === newSlug) return json({ error: 'New slug is the same as current slug' }, 400);
 
-  const oldPath = resolve(postsDir, `${slug}.mdx`);
-  const newPath = resolve(postsDir, `${newSlug}.mdx`);
+  const oldPath = resolve(postsDir, slug);
+  const newPath = resolve(postsDir, newSlug);
 
   // Check source exists
   try {
-    await access(oldPath);
+    await access(resolve(oldPath, 'index.mdx'));
   } catch {
     return json({ error: `Post not found: ${slug}` }, 404);
   }
 
   // Check target does not exist
   try {
-    await access(newPath);
+    await access(resolve(newPath, 'index.mdx'));
     return json({ error: `Post already exists: ${newSlug}` }, 409);
   } catch {
     // Target doesn't exist — good
   }
 
   try {
-    const content = await readFile(oldPath, 'utf-8');
-    await writeFile(newPath, content, 'utf-8');
-    await unlink(oldPath);
+    await rename(oldPath, newPath);
     return json({ success: true, oldSlug: slug, newSlug });
   } catch {
     return json({ error: 'Failed to rename post' }, 500);
