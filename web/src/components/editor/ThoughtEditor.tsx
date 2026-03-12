@@ -30,6 +30,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   const [suggestingTags, setSuggestingTags] = useState(false);
   const [committing, setCommitting] = useState(false);
   const [commitResult, setCommitResult] = useState<string | null>(null);
+  const [hasPending, setHasPending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const previewHtml = content ? renderInlineMarkdown(content) : '';
@@ -40,6 +41,19 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
     const el = document.getElementById('thought-preview-slot');
     setPreviewSlot(el);
   }, []);
+
+  // Check pending git changes
+  const checkPending = useCallback(async () => {
+    try {
+      const res = await fetch('/api/editor/thoughts-git');
+      const data = await res.json();
+      setHasPending(data.pending?.length > 0);
+    } catch {
+      setHasPending(false);
+    }
+  }, []);
+
+  useEffect(() => { checkPending(); }, [checkPending]);
 
   const resetForm = () => {
     setContent('');
@@ -66,6 +80,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
       resetForm();
       if (onSaved) onSaved();
       else window.location.reload();
+      checkPending();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -135,12 +150,6 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
     setError(null);
     setCommitResult(null);
     try {
-      const checkRes = await fetch('/api/editor/thoughts-git');
-      const checkData = await checkRes.json();
-      if (!checkData.pending?.length) {
-        setCommitResult('Nothing to commit');
-        return;
-      }
       const res = await fetch('/api/editor/thoughts-git', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -149,6 +158,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Commit failed');
       setCommitResult(`✓ ${data.hash}: ${data.message}`);
+      setHasPending(false);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -302,8 +312,9 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
 
         <button
           onClick={handleCommit}
-          disabled={committing}
+          disabled={committing || !hasPending}
           className="neu-editor-btn"
+          style={{ opacity: !hasPending ? 0.5 : 1 }}
           title="Git commit thoughts"
         >{committing ? '...' : '📦 Commit'}</button>
 
