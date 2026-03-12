@@ -19,8 +19,8 @@ function getAIConfig() {
   return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model };
 }
 
-const SYSTEM_PROMPT = `You are a tag suggestion assistant for a personal thought/microblog system.
-Given the thought content and a list of existing tags already used in the system, suggest 2-5 relevant tags.
+const SYSTEM_PROMPT = `You are a tag and mood suggestion assistant for a personal thought/microblog system.
+Given the thought content and a list of existing tags already used in the system, suggest 2-5 relevant tags AND one mood emoji.
 
 Rules:
 - Reuse an existing tag ONLY when it genuinely matches the content's topic — do NOT force-fit unrelated tags just because they exist
@@ -29,8 +29,9 @@ Rules:
 - Tags should be short (1-3 words), Chinese or English
 - Always suggest at least 2 tags to provide useful categorization
 - Do NOT default to mood/emotion tags (like 发疯, 开心) unless the content is genuinely about that emotion as a topic
-- Return ONLY a JSON array of strings, e.g. ["标签1", "tag2", "标签3"]
-- No explanation, no markdown, just the JSON array`;
+- For mood, pick ONE emoji from this list that best matches the overall vibe: 🎉 🤔 ✨ 😤 🐛 💡 🔥 😂 🥲 👀
+- Return ONLY valid JSON: {"tags": ["标签1", "tag2"], "mood": "🤔"}
+- No explanation, no markdown, just the JSON object`;
 
 /** POST /api/editor/thoughts/suggest-tags — AI suggest tags for thought content */
 export const POST: APIRoute = async ({ request }) => {
@@ -85,13 +86,13 @@ export const POST: APIRoute = async ({ request }) => {
     const result = await res.json();
     const content = result.choices?.[0]?.message?.content || '';
 
-    const arrMatch = content.match(/\[[\s\S]*\]/);
-    if (!arrMatch) {
+    const objMatch = content.match(/\{[\s\S]*\}/);
+    if (!objMatch) {
       return json({ error: 'Failed to parse AI response', raw: content }, 502);
     }
 
-    const tags: string[] = JSON.parse(arrMatch[0]);
-    return json({ tags });
+    const parsed: { tags: string[]; mood?: string } = JSON.parse(objMatch[0]);
+    return json({ tags: parsed.tags || [], mood: parsed.mood || '' });
   } catch (err: any) {
     clearTimeout(timeout);
     if (err.name === 'AbortError') {

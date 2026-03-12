@@ -136,8 +136,9 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Tag suggestion failed');
       const currentTags = tagInput.split(',').map(t => t.trim()).filter(Boolean);
-      const merged = [...new Set([...currentTags, ...data.tags])];
+      const merged = [...new Set([...currentTags, ...(data.tags || [])])];
       setTagInput(merged.join(', '));
+      if (data.mood && !mood) setMood(data.mood);
     } catch (err: any) {
       setError(err.message);
     } finally {
