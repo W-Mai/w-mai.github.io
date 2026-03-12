@@ -79,6 +79,14 @@ export default function editorDevIntegration(): AstroIntegration {
           entrypoint: './src/lib/editor-routes/posts/[slug]/rename.ts',
         });
         injectRoute({
+          pattern: '/api/editor/posts/[slug]/images',
+          entrypoint: './src/lib/editor-routes/posts/[slug]/images.ts',
+        });
+        injectRoute({
+          pattern: '/api/editor/posts/[slug]/images/[name]',
+          entrypoint: './src/lib/editor-routes/posts/[slug]/images/[name].ts',
+        });
+        injectRoute({
           pattern: '/api/editor/env',
           entrypoint: './src/lib/editor-routes/env/index.ts',
         });
