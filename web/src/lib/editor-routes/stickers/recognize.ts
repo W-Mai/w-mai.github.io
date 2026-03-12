@@ -5,7 +5,7 @@ import { readMetaMap, writeMetaMap, type StickerMeta } from './meta';
 
 export const prerender = false;
 
-const stickersDir = resolve(process.cwd(), '..', 'posts', 'stickers');
+const stickersDir = resolve(process.cwd(), '..', 'assets', 'stickers');
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {

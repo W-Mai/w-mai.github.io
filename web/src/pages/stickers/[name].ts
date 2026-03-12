@@ -2,7 +2,7 @@ import type { APIRoute, GetStaticPaths } from 'astro';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const stickersDir = resolve(process.cwd(), '..', 'posts', 'stickers');
+const stickersDir = resolve(process.cwd(), '..', 'assets', 'stickers');
 const STICKER_EXT = /\.(png|gif|apng|webp|jpe?g|svg)$/i;
 
 export const getStaticPaths: GetStaticPaths = () => {

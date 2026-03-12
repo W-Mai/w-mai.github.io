@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 
 export const prerender = false;
 
-const stickersDir = resolve(process.cwd(), '..', 'posts', 'stickers');
+const stickersDir = resolve(process.cwd(), '..', 'assets', 'stickers');
 const ALLOWED_EXT = /\.(png|gif|apng|webp|jpe?g|svg)$/i;
 
 function json(data: unknown, status = 200) {

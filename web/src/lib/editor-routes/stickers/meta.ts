@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 export const prerender = false;
 
-const stickersDir = resolve(process.cwd(), '..', 'posts', 'stickers');
+const stickersDir = resolve(process.cwd(), '..', 'assets', 'stickers');
 const metaPath = resolve(stickersDir, '_meta.json');
 
 export interface StickerMeta {
