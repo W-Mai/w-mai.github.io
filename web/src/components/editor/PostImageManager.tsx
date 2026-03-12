@@ -25,6 +25,9 @@ const PostImageManager: FC<Props> = ({ slug, isOpen, onClose, onInsert }) => {
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [hoveredImg, setHoveredImg] = useState<string | null>(null);
+  const [imgWidths, setImgWidths] = useState<Record<string, number>>({});
+  const [visible, setVisible] = useState(false);
+  const [closing, setClosing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +39,21 @@ const PostImageManager: FC<Props> = ({ slug, isOpen, onClose, onInsert }) => {
   }, [slug]);
 
   useEffect(() => { if (isOpen) fetchImages(); }, [isOpen, slug, fetchImages]);
+
+  // Animate open/close lifecycle
+  useEffect(() => {
+    if (isOpen) {
+      setClosing(false);
+      setVisible(true);
+    } else if (visible) {
+      setClosing(true);
+      const timer = setTimeout(() => {
+        setVisible(false);
+        setClosing(false);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const handleUpload = useCallback(async (files: FileList | null) => {
     if (!files?.length) return;
@@ -84,72 +102,131 @@ const PostImageManager: FC<Props> = ({ slug, isOpen, onClose, onInsert }) => {
     }
   }, []);
 
-  if (!isOpen) return null;
+  if (!visible) return null;
 
   return (
     <div
       style={{
+        position: 'relative',
         overflow: 'hidden',
-        background: T.colorBg,
-        borderBottom: `1px solid ${T.colorBorderLight}`,
-        animation: 'imageRailIn 0.2s ease both',
+        flexShrink: 0,
+        margin: `0 ${T.spacingLg}`,
+        borderRadius: '2rem',
+        animation: closing ? 'imageRailOut 0.35s ease both' : 'imageRailIn 0.35s ease both',
       }}
     >
       <style>{`
         @keyframes imageRailIn {
           from { max-height: 0; opacity: 0; }
-          to { max-height: 10rem; opacity: 1; }
+          to { max-height: 12rem; opacity: 1; }
         }
-        .img-rail-item { transition: all 0.15s ease; }
-        .img-rail-item:hover { transform: translateY(-2px); }
+        @keyframes imageRailOut {
+          from { max-height: 12rem; opacity: 1; }
+          to { max-height: 0; opacity: 0; }
+        }
+        .img-rail-item { transition: none; }
+        .img-rail-item .img-rail-thumb { transition: transform 0.3s ease; }
+        .img-rail-item:hover .img-rail-thumb { transform: translateY(-0.25rem); }
+        .img-rail-label {
+          max-width: var(--label-max, 5rem);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .img-rail-item:hover .img-rail-label {
+          max-width: 20rem;
+        }
+        .img-rail-overlay {
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        .img-rail-item:hover .img-rail-overlay {
+          opacity: 1;
+        }
+        .img-rail-capsule {
+          position: absolute;
+          bottom: -0.25rem;
+          left: 50%;
+          transform: translateX(-50%) translateY(0.5rem) scale(0.92);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                      box-shadow 0.3s ease;
+          z-index: 5;
+        }
+        .img-rail-item:hover .img-rail-capsule {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0) scale(1);
+          pointer-events: auto;
+          box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
+        }
       `}</style>
 
+      {/* Inset shadow overlay — fixed, does not scroll */}
       <div style={{
-        display: 'flex', alignItems: 'center',
-        padding: `${T.spacingSm} ${T.spacingXl}`,
-        gap: T.spacingMd,
-      }}>
-        {/* Upload zone */}
-        <div
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onClick={() => fileRef.current?.click()}
-          style={{
-            flexShrink: 0,
-            width: '5rem', height: '5rem',
-            borderRadius: T.radiusMd,
-            boxShadow: T.shadowInset,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-            fontSize: uploading ? T.fontSizeXs : '1.5rem',
-            color: T.colorTextMuted,
-          }}
-        >
-          {uploading ? '...' : '+'}
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            multiple
-            style={{ display: 'none' }}
-            onChange={(e) => handleUpload(e.target.files)}
-          />
-        </div>
+        position: 'absolute',
+        inset: 0,
+        borderRadius: '2rem',
+        boxShadow: T.shadowInset,
+        pointerEvents: 'none',
+        zIndex: 10,
+      }} />
 
-        {/* Horizontal scrollable image rail */}
-        <div
-          ref={railRef}
-          onWheel={handleWheel}
-          className="editor-scrollbar-hide"
-          style={{
-            flex: 1,
-            display: 'flex',
-            gap: T.spacingMd,
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            padding: `${T.spacingSm} 0`,
-          }}
-        >
+      {/* Upload zone — absolute, outside scroll */}
+      <div
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        onClick={() => fileRef.current?.click()}
+        className="neu-btn"
+        style={{
+          position: 'absolute',
+          left: '0.75rem',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 11,
+          width: '2.5rem', height: '4.5rem',
+          borderRadius: '1.25rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+          fontSize: uploading ? T.fontSizeXs : '1.5rem',
+          color: T.colorTextMuted,
+          border: 'none',
+          lineHeight: 1,
+          fontWeight: 300,
+        }}
+      >
+        {uploading ? '⏳' : '+'}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          style={{ display: 'none' }}
+          onChange={(e) => handleUpload(e.target.files)}
+        />
+      </div>
+
+      {/* Scrollable rail */}
+      <div
+        ref={railRef}
+        onWheel={handleWheel}
+        className="editor-scrollbar-hide"
+        style={{
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          background: T.colorBg,
+        }}
+      >
+        <div style={{
+          display: 'inline-flex', alignItems: 'center',
+          paddingLeft: '4rem',
+          paddingRight: '2rem',
+          height: '6.5rem',
+          gap: T.spacingMd,
+        }}>
+
+        {/* Image items */}
           {images.length === 0 && !uploading && (
             <div style={{
               color: T.colorTextMuted,
@@ -166,44 +243,46 @@ const PostImageManager: FC<Props> = ({ slug, isOpen, onClose, onInsert }) => {
               onMouseLeave={() => setHoveredImg(null)}
               style={{
                 flexShrink: 0,
-                width: '5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '2px',
                 position: 'relative',
+                height: '4.5rem',
               }}
             >
-              {/* Thumbnail */}
-              <div style={{
-                width: '5rem', height: '5rem',
-                borderRadius: T.radiusSm,
+              {/* Thumbnail — fixed height, proportional width */}
+              <div className="img-rail-thumb" style={{
+                height: '4.5rem',
+                borderRadius: T.radiusLg,
                 boxShadow: T.shadowBtn,
                 overflow: 'hidden',
                 background: T.colorBg,
                 position: 'relative',
+                display: 'flex',
               }}>
                 <img
                   src={`/api/editor/posts/${slug}/images/${img.name}`}
                   alt={img.name}
                   style={{
-                    width: '100%', height: '100%',
-                    objectFit: 'cover',
+                    height: '100%',
+                    width: 'auto',
                     display: 'block',
+                    objectFit: 'contain',
                   }}
                   loading="lazy"
+                  onLoad={(e) => {
+                    const el = e.target as HTMLImageElement;
+                    setImgWidths((prev) => ({ ...prev, [img.name]: el.clientWidth }));
+                  }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
                 {/* Hover overlay with actions */}
-                {hoveredImg === img.name && (
-                  <div style={{
+                <div className="img-rail-overlay" style={{
                     position: 'absolute', inset: 0,
                     background: 'rgba(0,0,0,0.55)',
                     borderRadius: T.radiusSm,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     gap: '4px',
+                    pointerEvents: hoveredImg === img.name ? 'auto' : 'none',
                   }}>
                     <button
                       onClick={(e) => { e.stopPropagation(); insertImage(img.name); }}
@@ -221,38 +300,33 @@ const PostImageManager: FC<Props> = ({ slug, isOpen, onClose, onInsert }) => {
                       style={actionBtnStyle}
                     >🗑</button>
                   </div>
-                )}
               </div>
-              {/* Filename */}
-              <div style={{
-                fontSize: '0.5625rem',
-                color: T.colorTextMuted,
-                width: '5rem',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                textAlign: 'center',
-              }}>{img.name}</div>
-              <div style={{
-                fontSize: '0.5rem',
-                color: T.colorTextMuted,
-              }}>{formatSize(img.size)}</div>
+              {/* Capsule: name + size */}
+              <div
+                className="img-rail-capsule"
+                title={img.name}
+                style={{
+                  '--label-max': imgWidths[img.name] ? `${Math.round(imgWidths[img.name] * 1.2)}px` : '5rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '1px 6px',
+                  borderRadius: '9999px',
+                  background: T.colorBg,
+                  boxShadow: '1px 1px 2px var(--neu-shadow-dark), -1px -1px 2px var(--neu-shadow-light)',
+                  fontSize: '0.5rem',
+                  color: T.colorTextMuted,
+                  lineHeight: 1.4,
+                  whiteSpace: 'nowrap',
+                } as React.CSSProperties}
+              >
+                <span className="img-rail-label">{img.name}</span>
+                <span style={{ opacity: 0.6 }}>·</span>
+                <span style={{ flexShrink: 0 }}>{formatSize(img.size)}</span>
+              </div>
             </div>
           ))}
         </div>
-
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          style={{
-            flexShrink: 0,
-            background: 'none', border: 'none',
-            cursor: 'pointer',
-            color: T.colorTextMuted,
-            fontSize: T.fontSizeSm,
-            padding: T.spacingSm,
-          }}
-        >✕</button>
       </div>
     </div>
   );
