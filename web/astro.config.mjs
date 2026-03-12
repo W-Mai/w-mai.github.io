@@ -9,12 +9,15 @@ import tailwindcss from '@tailwindcss/vite';
 import astroMermaid from 'astro-mermaid';
 import editorDev from './src/lib/editor-dev-plugin';
 import remarkSticker from './src/lib/remark-sticker';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://benign.host',
   markdown: {
-    remarkPlugins: [remarkSticker],
+    remarkPlugins: [remarkSticker, remarkMath],
+    rehypePlugins: [rehypeKatex],
   },
 
   integrations: [
