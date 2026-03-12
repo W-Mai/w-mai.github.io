@@ -12,6 +12,9 @@ const { thoughts, delayStart = 3, isEditorMode = false } = Astro.props
 ---
 
 <div class="thought-timeline">
+  {/* Preview slot — React ThoughtEditor portals live preview here */}
+  <div id="thought-preview-slot"></div>
+
   {thoughts.map((thought, i) => (
     <div class="timeline-item anim-fade" style={`--delay:${delayStart + i}`}>
       <div class="timeline-dot"></div>

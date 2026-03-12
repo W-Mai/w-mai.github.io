@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, type FC } from 'react';
+import { useState, useRef, useCallback, useEffect, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import StickerPanel from './StickerPanel';
@@ -29,6 +29,13 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const previewHtml = content ? renderInlineMarkdown(content) : '';
+
+  // Portal target for timeline preview
+  const [previewSlot, setPreviewSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    const el = document.getElementById('thought-preview-slot');
+    setPreviewSlot(el);
+  }, []);
 
   const resetForm = () => {
     setContent('');
@@ -174,24 +181,37 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved }) => {
         </div>
       </div>
 
-      {/* Preview — inset container */}
-      {content.trim() && (
-        <div style={{
-          marginTop: T.spacingLg,
-          padding: T.spacingLg,
-          borderRadius: T.radiusMd,
-          boxShadow: T.shadowInset,
-          background: T.colorBg,
-          fontSize: T.fontSizeSm,
-          color: T.colorText,
-          lineHeight: '1.7',
-        }}>
-          <div style={{
-            fontSize: T.fontSizeXs, color: T.colorTextMuted,
-            marginBottom: T.spacingSm, fontWeight: 500,
-          }}>Preview</div>
-          <div className="thought-content" dangerouslySetInnerHTML={{ __html: previewHtml }} />
-        </div>
+      {/* Preview — portaled into timeline slot */}
+      {previewSlot && content.trim() && createPortal(
+        <div className="timeline-item timeline-preview-item">
+          <div className="timeline-dot"></div>
+          <div className="timeline-connector"></div>
+          <div className="neu-card neu-preview-card relative rounded-[2rem] p-5 sm:p-6">
+            <span className="neu-preview-badge">Preview</span>
+            {tagInput.trim() && (
+              <div className="neu-tags-capsule absolute top-[0.875rem] right-[0.875rem]">
+                {tagInput.split(',').map(t => t.trim()).filter(Boolean).map(tag => (
+                  <span key={tag} className="neu-tag-chip">{tag}</span>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center mb-3 gap-2">
+              {mood ? (
+                <div className="neu-mood-time">
+                  <span className="neu-mood-badge">{mood}</span>
+                  <span className="neu-time-pill">just now</span>
+                </div>
+              ) : (
+                <span className="neu-time-pill">just now</span>
+              )}
+            </div>
+            <div
+              className="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
+          </div>
+        </div>,
+        previewSlot,
       )}
 
       {/* Error */}
