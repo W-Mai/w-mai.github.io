@@ -115,6 +115,10 @@ export default function editorDevIntegration(): AstroIntegration {
           entrypoint: './src/lib/editor-routes/thoughts/index.ts',
         });
         injectRoute({
+          pattern: '/api/editor/thoughts-git',
+          entrypoint: './src/lib/editor-routes/thoughts/git.ts',
+        });
+        injectRoute({
           pattern: '/api/editor/suggest-thought-tags',
           entrypoint: './src/lib/editor-routes/thoughts/suggest-tags.ts',
         });

@@ -28,6 +28,8 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   const [stickerOpen, setStickerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [suggestingTags, setSuggestingTags] = useState(false);
+  const [committing, setCommitting] = useState(false);
+  const [commitResult, setCommitResult] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const previewHtml = content ? renderInlineMarkdown(content) : '';
@@ -127,6 +129,32 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
       setSuggestingTags(false);
     }
   }, [content, tagInput, allTags]);
+
+  const handleCommit = useCallback(async () => {
+    setCommitting(true);
+    setError(null);
+    setCommitResult(null);
+    try {
+      const checkRes = await fetch('/api/editor/thoughts-git');
+      const checkData = await checkRes.json();
+      if (!checkData.pending?.length) {
+        setCommitResult('Nothing to commit');
+        return;
+      }
+      const res = await fetch('/api/editor/thoughts-git', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Commit failed');
+      setCommitResult(`✓ ${data.hash}: ${data.message}`);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setCommitting(false);
+    }
+  }, []);
 
   // Expose edit/delete to page-level JS via custom events
   if (typeof window !== 'undefined') {
@@ -262,7 +290,23 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
       <div style={{
         display: 'flex', gap: T.spacingMd,
         marginTop: T.spacingLg, justifyContent: 'flex-end',
+        alignItems: 'center',
       }}>
+        {commitResult && (
+          <span style={{
+            fontSize: T.fontSizeXs, color: T.colorTextMuted,
+            marginRight: 'auto', maxWidth: '60%', overflow: 'hidden',
+            textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }} title={commitResult}>{commitResult}</span>
+        )}
+
+        <button
+          onClick={handleCommit}
+          disabled={committing}
+          className="neu-editor-btn"
+          title="Git commit thoughts"
+        >{committing ? '...' : '📦 Commit'}</button>
+
         <button
           onClick={() => setStickerOpen(true)}
           className="neu-editor-btn"
