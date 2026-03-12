@@ -1,0 +1,79 @@
+---
+import WithSidebar from '~/layouts/WithSidebar.astro'
+import ProfileSidebar from '../components/ProfileSidebar.astro'
+import WishTimeline from '../components/WishTimeline.astro'
+import { fetchGitHubProfile } from '../lib/github'
+import { loadWishes } from '../data/wishes'
+
+const profile = await fetchGitHubProfile()
+const wishes = await loadWishes()
+const categories = [...new Set(wishes.map((w) => w.category))]
+---
+
+<WithSidebar>
+  <Fragment slot="sidebar">
+    <ProfileSidebar profile={profile} showBio />
+  </Fragment>
+
+  <h1 class="page-title anim-fade" style="--delay:0">✅ 怼点想怼嘞</h1>
+  <p class="page-subtitle anim-fade" style="--delay:1">想做的、在搞的、搞定了的，都搁这儿</p>
+
+  <!-- Status filter -->
+  <div class="flex flex-wrap gap-2 mb-6 anim-fade" style="--delay:2">
+    <button class="neu-btn neu-filter-btn" data-filter="all">全部</button>
+    <button class="neu-btn neu-filter-btn" data-filter="doing">🔨 在搞</button>
+    <button class="neu-btn neu-filter-btn" data-filter="wish">✨ 想做</button>
+    <button class="neu-btn neu-filter-btn" data-filter="done">✅ 搞定了</button>
+    {categories.map((cat) => (
+      <button class="neu-btn neu-filter-btn" data-cat={cat}>{cat}</button>
+    ))}
+  </div>
+
+  {wishes.length > 0 ? (
+    <WishTimeline wishes={wishes} />
+  ) : (
+    <p class="text-[var(--text-muted)] text-center py-12 anim-fade" style="--delay:2">
+      还没有想法呢，再等等～
+    </p>
+  )}
+</WithSidebar>
+
+<script>
+  function initWishPage() {
+    const filterBtns = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const catBtns = document.querySelectorAll<HTMLButtonElement>('[data-cat]');
+    const items = document.querySelectorAll<HTMLElement>('.wish-item');
+    let activeFilter: string | null = null;
+    let activeCat: string | null = null;
+
+    function applyFilters() {
+      items.forEach((item) => {
+        const status = item.dataset.status;
+        const cat = item.dataset.category;
+        const matchStatus = !activeFilter || activeFilter === 'all' || status === activeFilter;
+        const matchCat = !activeCat || cat === activeCat;
+        item.style.display = matchStatus && matchCat ? '' : 'none';
+      });
+    }
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const f = btn.dataset.filter!;
+        activeFilter = activeFilter === f ? null : f;
+        filterBtns.forEach((b) => b.classList.toggle('neu-filter-active', b.dataset.filter === activeFilter));
+        applyFilters();
+      });
+    });
+
+    catBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const c = btn.dataset.cat!;
+        activeCat = activeCat === c ? null : c;
+        catBtns.forEach((b) => b.classList.toggle('neu-filter-active', b.dataset.cat === activeCat));
+        applyFilters();
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initWishPage);
+</script>

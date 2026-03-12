@@ -1,0 +1,59 @@
+---
+import type { Wish, WishStatus } from '../data/wishes'
+import { statusEmoji } from '../lib/wish-utils'
+
+interface Props {
+  wishes: Wish[]
+}
+
+const { wishes } = Astro.props
+
+const categoryColors: Record<string, string> = {
+  blog: 'var(--nav-blog-text)',
+  life: 'var(--text-secondary)',
+  learn: 'var(--nav-proj-text)',
+  code: 'var(--text-link)',
+}
+---
+
+<div class="flex flex-col gap-4">
+  {wishes.map((wish, i) => (
+    <div
+      class:list={[
+        'wish-item anim-fade',
+        wish.status === 'done' ? 'neu-inset rounded-2xl' : 'neu-card rounded-2xl',
+      ]}
+      style={`--delay:${i + 3}`}
+      data-status={wish.status}
+      data-category={wish.category}
+    >
+      <div class="flex items-start gap-3 p-4 sm:p-5">
+        <span class="text-xl shrink-0 mt-0.5">{statusEmoji(wish.status)}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class:list={[
+              'font-semibold text-sm',
+              wish.status === 'done' ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]',
+            ]}>{wish.title}</span>
+            <span
+              class="neu-filter-btn text-[0.6rem] px-2 py-0.5 rounded-full"
+              style={`color: ${categoryColors[wish.category] ?? 'var(--text-muted)'}`}
+            >{wish.category}</span>
+          </div>
+          {wish.note && (
+            <p class="text-xs text-[var(--text-secondary)] mt-1">{wish.note}</p>
+          )}
+          <div class="flex items-center gap-2 mt-2 text-[0.6rem] text-[var(--text-muted)]">
+            <span>{wish.createdAt}</span>
+            {wish.doneAt && (
+              <>
+                <span>→</span>
+                <span>{wish.doneAt}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
