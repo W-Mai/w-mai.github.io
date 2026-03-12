@@ -10,18 +10,21 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 	<nav>
 		<h2><a href="/">{SITE_TITLE}</a></h2>
 		<div class="tab-bar">
-			<HeaderLink href="/">当门</HeaderLink>
-			<HeaderLink href="/blog">怼点文章</HeaderLink>
-			<HeaderLink href="/about">自个儿</HeaderLink>
+			<HeaderLink href="/">🏠 当门</HeaderLink>
+			<HeaderLink href="/blog">✍️ 怼点文章</HeaderLink>
+			<HeaderLink href="/about">🙋 自个儿</HeaderLink>
+			<span class="hide-mobile"><HeaderLink href="/stats">📊 统计</HeaderLink></span>
+			<span class="hide-mobile"><HeaderLink href="/friends">🤝 友链</HeaderLink></span>
+			<span class="hide-mobile"><HeaderLink href="/thoughts">🧠 想法</HeaderLink></span>
 			{isEditorMode && <HeaderLink href="/admin/live-editor">✏️ 编辑器</HeaderLink>}
 			<div class="more-menu">
 				<button class="more-btn" aria-expanded="false" aria-haspopup="true">
 					瞅瞅 <span class="more-arrow">▾</span>
 				</button>
 				<div class="more-dropdown" role="menu">
-					<a href="/stats" role="menuitem">📊 统计</a>
-					<a href="/friends" role="menuitem">🤝 友链</a>
-					<a href="/thoughts" role="menuitem">🧠 怼点想法</a>
+					<a href="/stats" role="menuitem" class="show-mobile">📊 统计</a>
+					<a href="/friends" role="menuitem" class="show-mobile">🤝 友链</a>
+					<a href="/thoughts" role="menuitem" class="show-mobile">🧠 想法</a>
 					<a href="/gamev1.8" role="menuitem">🎮 不大点儿游戏</a>
 					<a href="/rss.xml" target="_blank" role="menuitem">📡 RSS</a>
 				</div>
@@ -102,37 +105,43 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		gap: 1em;
 	}
 
-	/* Tab bar — flat container, tabs are individual buttons */
+	/* Tab bar — inset capsule container */
 	.tab-bar {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
-		gap: 0.6em;
+		gap: 0.25em;
+		padding: 0.4em;
+		border-radius: 9999px;
+		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong),
+		            inset -2px -2px 5px var(--neu-shadow-light-strong);
 	}
-	/* Tab links — raised pill buttons */
+	/* Tab links — flat default, gradient hover, reverse gradient active */
 	.tab-bar :global(a) {
-		padding: 0.5em 1.2em;
+		padding: 0.45em 1.1em;
 		color: rgb(var(--gray));
 		text-decoration: none;
-		border-radius: 0.85rem;
+		border-radius: 9999px;
 		font-size: 0.85em;
 		font-weight: 500;
-		transition: all 0.2s ease;
+		transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease, transform 200ms ease;
 		white-space: nowrap;
 		border: none;
-		background: var(--neu-bg);
-		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+		background: transparent;
+		box-shadow: none;
 	}
 	.tab-bar :global(a:hover) {
 		color: rgb(var(--gray-dark));
-		box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
+		background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+		transform: translateY(-1px);
 	}
-	/* Active tab — pressed inset effect */
+	/* Active tab — reverse gradient inset */
 	.tab-bar :global(a.active) {
 		color: rgb(var(--black));
 		font-weight: 700;
 		text-decoration: none;
-		background: var(--neu-bg);
-		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);
+		background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+		box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+		            inset -2px -2px 4px var(--neu-shadow-light-strong);
 	}
 
 	/* Social links */
@@ -174,10 +183,10 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		align-items: center;
 	}
 	.more-btn {
-		background: var(--neu-bg);
+		background: transparent;
 		border: none;
 		cursor: pointer;
-		padding: 0.5em 1em;
+		padding: 0.45em 1em;
 		font-size: 0.85em;
 		font-family: inherit;
 		font-weight: 500;
@@ -185,15 +194,16 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.25em;
-		border-radius: 0.85rem;
+		border-radius: 9999px;
 		line-height: inherit;
-		transition: all 0.2s ease;
+		transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease, transform 200ms ease;
 		white-space: nowrap;
-		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+		box-shadow: none;
 	}
 	.more-btn:hover {
 		color: rgb(var(--gray-dark));
-		box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
+		background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+		transform: translateY(-1px);
 	}
 	.more-arrow {
 		font-size: 0.7em;
@@ -203,8 +213,10 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		transform: rotate(180deg);
 	}
 	.more-btn[aria-expanded="true"] {
-		background: var(--neu-bg);
-		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong), inset -2px -2px 5px var(--neu-shadow-light-strong);
+		background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+		box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+		            inset -2px -2px 4px var(--neu-shadow-light-strong);
+		transform: translateY(0);
 	}
 	.more-dropdown {
 		display: none;
@@ -212,11 +224,11 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		top: calc(100% + 0.5em);
 		right: 0;
 		background: var(--neu-bg);
-		border-radius: 1rem;
+		border-radius: 1.25rem;
 		box-shadow: 6px 6px 12px var(--neu-shadow-dark), -6px -6px 12px var(--neu-shadow-light);
 		min-width: 11rem;
-		padding: 0.5rem;
-		gap: 0.3rem;
+		padding: 0.4rem;
+		gap: 0.2rem;
 		z-index: 50;
 	}
 	.more-dropdown.show {
@@ -224,17 +236,41 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		flex-direction: column;
 	}
 	.more-dropdown a {
-		padding: 0.75em 1.1em;
+		padding: 0.6em 1em;
 		border-bottom: none;
-		border-radius: 0.65rem;
+		border-radius: 9999px;
 		font-size: 0.85em;
 		white-space: nowrap;
-		color: rgb(var(--gray-dark));
-		transition: all 0.15s ease;
+		color: rgb(var(--gray));
+		background: transparent;
+		box-shadow: none;
+		transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 	}
 	.more-dropdown a:hover {
-		background: var(--hover-bg);
-		box-shadow: inset 1px 1px 3px var(--neu-shadow-dark), inset -1px -1px 3px var(--neu-shadow-light);
+		color: rgb(var(--gray-dark));
+		background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+		transform: translateY(-1px);
+	}
+	.more-dropdown a:active {
+		background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+		box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+		            inset -2px -2px 4px var(--neu-shadow-light-strong);
+		transform: translateY(0);
+	}
+
+	/* Responsive visibility for extra tabs */
+	.hide-mobile { display: contents; }
+	.show-mobile { display: none; }
+
+	@media (max-width: 1080px) {
+		.hide-mobile { display: none; }
+		.show-mobile { display: block; }
+	}
+
+	@media (max-width: 860px) {
+		.social-links .social-capsule {
+			display: none;
+		}
 	}
 
 	@media (max-width: 720px) {
@@ -250,10 +286,6 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 		}
 		.tab-bar {
 			justify-content: center;
-			width: 100%;
-		}
-		.social-links .social-capsule {
-			display: none;
 		}
 		.social-links {
 			position: absolute;
@@ -261,17 +293,34 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 			right: 0;
 		}
 	}
-	@media (max-width: 400px) {
+	@media (max-width: 440px) {
 		header {
 			padding: 0.5em 0.75em;
 		}
 		.tab-bar :global(a),
 		.more-btn {
-			padding: 0.4em 0.6em;
-			font-size: 0.78em;
+			padding: 0.3em 0.6em;
+			font-size: 0.75em;
 		}
 		h2 {
-			font-size: 0.85em;
+			font-size: 0.8em;
+		}
+	}
+	@media (max-width: 400px) {
+		header {
+			padding: 0.5em 0.75em;
+		}
+		.tab-bar {
+			gap: 0.1em;
+			padding: 0.3em;
+		}
+		.tab-bar :global(a),
+		.more-btn {
+			padding: 0.25em 0.4em;
+			font-size: 0.7em;
+		}
+		h2 {
+			font-size: 0.75em;
 		}
 	}
 
