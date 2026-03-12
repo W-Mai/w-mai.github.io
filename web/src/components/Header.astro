@@ -5,7 +5,7 @@ import ThemeToggle from './ThemeToggle.astro';
 
 const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 
-type NavItem = { href: string; label: string; collapse?: boolean; target?: string; editorOnly?: boolean };
+type NavItem = { href: string; label: string; collapse?: boolean; target?: string };
 
 // All nav items in display order; collapse = hidden on small screens, moved to dropdown
 const navItems: NavItem[] = [
