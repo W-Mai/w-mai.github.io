@@ -13,6 +13,8 @@ export interface ArchEdge {
   source: string;
   target: string;
   label?: string;
+  /** Override bypass distance for intra-group edges (left-side routing) */
+  bypassK?: number;
 }
 
 export interface ArchGroupTheme {
@@ -144,15 +146,16 @@ export const architectureData = {
     { source: 'page-home', target: 'data-posts' },
 
     // Editor → API routes
-    { source: 'editor-live', target: 'editor-mdx' },
-    { source: 'editor-live', target: 'editor-frontmatter' },
-    { source: 'editor-live', target: 'editor-asset' },
-    { source: 'editor-live', target: 'editor-sticker' },
-    { source: 'editor-live', target: 'editor-ai' },
+    // Editor intra-group connections (bypassK controls left-side routing distance)
+    { source: 'editor-live', target: 'editor-mdx', bypassK: 30 },
+    { source: 'editor-live', target: 'editor-frontmatter', bypassK: 42 },
+    { source: 'editor-live', target: 'editor-asset', bypassK: 54 },
+    { source: 'editor-live', target: 'editor-sticker', bypassK: 66 },
+    { source: 'editor-live', target: 'editor-ai', bypassK: 78 },
     { source: 'editor-mdx', target: 'api-posts' },
     { source: 'editor-thought', target: 'api-thoughts' },
-    { source: 'editor-thought', target: 'editor-git' },
-    { source: 'editor-thought', target: 'editor-ai' },
+    { source: 'editor-thought', target: 'editor-git', bypassK: 30 },
+    { source: 'editor-thought', target: 'editor-ai', bypassK: 42 },
     { source: 'editor-asset', target: 'api-assets' },
     { source: 'editor-sticker', target: 'api-stickers' },
     { source: 'editor-ai', target: 'api-ai' },
@@ -167,7 +170,7 @@ export const architectureData = {
     // Build system connections
     { source: 'build-astro', target: 'data-posts' },
     { source: 'build-astro', target: 'data-thoughts' },
-    { source: 'build-tokens', target: 'build-tailwind' },
+    { source: 'build-tokens', target: 'build-tailwind', bypassK: 30 },
     { source: 'build-rss', target: 'data-posts' },
     { source: 'build-og', target: 'data-posts' },
 

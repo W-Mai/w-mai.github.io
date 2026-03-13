@@ -482,7 +482,7 @@ function buildLayout(
     intraTgtCounter.set(e.target, tIdx + 1);
     const srcEdgeIdx = perSourceCounter.get(e.source) ?? 0;
     perSourceCounter.set(e.source, srcEdgeIdx + 1);
-    const bypassK = INTRA_BASE + srcEdgeIdx * INTRA_STEP;
+    const bypassK = e.bypassK ?? (INTRA_BASE + srcEdgeIdx * INTRA_STEP);
     edges.push({
       id: `${e.source}-${e.target}`, source: e.source, target: e.target,
       sourceHandle: `isrc-${sIdx}`, targetHandle: `itgt-${tIdx}`, type: 'colored',
