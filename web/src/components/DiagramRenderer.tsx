@@ -151,8 +151,8 @@ function LayeredEdge({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps
           <path d="M 0 0 L 8 3 L 0 6 Z" fill={color} opacity="0.5" />
         </marker>
       </defs>
-      <path d={edgePath} fill="none" stroke={color} strokeWidth="1"
-        opacity="0.4" markerEnd={`url(#${markerId})`} />
+      <path d={edgePath} fill="none" stroke={color} strokeWidth="1.5"
+        opacity="0.5" markerEnd={`url(#${markerId})`} />
       <circle r="1.2" fill={color} opacity="0.6">
         <animateMotion dur="3s" repeatCount="indefinite" path={edgePath} />
       </circle>
@@ -381,15 +381,18 @@ function DiagramFlow({ data }: DiagramRendererProps) {
     return `
       /* Dim all nodes */
       .diagram-container[data-hovered] .arch-node {
-        opacity: 0.15 !important;
+        opacity: 0.12 !important;
         border-color: var(--border-divider) !important;
+        border-left-color: var(--border-divider) !important;
+        box-shadow: none !important;
+        transform: none !important;
       }
       .diagram-container[data-hovered] .layer-band {
-        opacity: 0.2 !important;
+        opacity: 0.15 !important;
       }
       /* Dim all edges */
       .diagram-container[data-hovered] .react-flow__edge path {
-        opacity: 0.05 !important;
+        opacity: 0.04 !important;
       }
       .diagram-container[data-hovered] .react-flow__edge circle {
         opacity: 0 !important;
@@ -401,7 +404,9 @@ function DiagramFlow({ data }: DiagramRendererProps) {
       .diagram-container[data-hovered] :is(${connectedSelectors}) {
         opacity: 1 !important;
         border-color: var(--node-accent) !important;
+        border-left-color: var(--node-accent) !important;
         background: var(--node-accent-muted) !important;
+        box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light) !important;
       }
     `;
   }, [hoveredNodeId, connectedMap]);
@@ -466,43 +471,58 @@ function DiagramFlow({ data }: DiagramRendererProps) {
         .arch-node {
           position: relative;
           display: flex; align-items: center; gap: 8px;
-          padding: 6px 12px; border-radius: 6px;
-          font-size: 11px; font-weight: 500; letter-spacing: 0.01em;
+          padding: 8px 14px 8px 12px; border-radius: 8px;
+          font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
           background: var(--neu-bg);
           color: var(--text-primary);
-          border: 1px solid var(--node-border);
-          transition: opacity 200ms ease, border-color 200ms ease, background 200ms ease;
-          min-width: 120px; white-space: nowrap; overflow: hidden;
+          border: 1.5px solid var(--node-border);
+          border-left: 3.5px solid var(--node-accent);
+          box-shadow: 2px 2px 6px var(--neu-shadow-dark), -2px -2px 6px var(--neu-shadow-light);
+          transition: opacity 200ms ease, border-color 200ms ease, background 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+          min-width: 130px; white-space: nowrap; overflow: hidden;
+          cursor: default;
         }
         .arch-node:hover {
           background: var(--node-accent-muted);
           border-color: var(--node-accent);
+          border-left-color: var(--node-accent);
+          box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light);
+          transform: translateY(-1px);
         }
         .arch-node.editor-only {
           border-style: dashed;
+          border-left-style: solid;
           border-width: 1.5px;
+          border-left-width: 3.5px;
+          opacity: 0.75;
         }
-        .arch-node-icon { font-size: 13px; flex-shrink: 0; opacity: 0.8; }
+        .arch-node-icon { font-size: 14px; flex-shrink: 0; }
         .arch-node-label { }
-        .arch-node-dev { font-size: 8px; opacity: 0.5; margin-left: 2px; }
+        .arch-node-dev {
+          font-size: 7px; font-weight: 700; opacity: 0.6; margin-left: auto;
+          padding: 1px 4px; border-radius: 3px;
+          background: var(--node-accent-muted); color: var(--node-accent);
+          letter-spacing: 0.05em;
+        }
 
         /* Layer band style */
         .layer-band {
-          width: 100%; height: 100%; border-radius: 8px;
-          border: 1px dashed var(--layer-border);
-          background: transparent;
+          width: 100%; height: 100%; border-radius: 12px;
+          border: 1.5px dashed var(--layer-border);
+          background: var(--layer-accent-muted);
           transition: opacity 200ms ease;
         }
         .layer-band-badge {
-          display: inline-flex; align-items: center; gap: 4px;
-          padding: 3px 8px; margin: 6px 0 0 8px;
-          border-radius: 4px;
-          background: var(--layer-accent-muted);
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 4px 10px; margin: 8px 0 0 10px;
+          border-radius: 6px;
+          background: var(--neu-bg);
           border: 1px solid var(--layer-border);
+          box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
         }
-        .layer-band-icon { font-size: 10px; }
+        .layer-band-icon { font-size: 11px; }
         .layer-band-label {
-          font-size: 9px; font-weight: 700;
+          font-size: 10px; font-weight: 700;
           text-transform: uppercase; letter-spacing: 0.08em;
           color: var(--layer-accent);
         }
