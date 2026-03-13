@@ -133,16 +133,24 @@ function ArchNodeComponent({ data }: NodeProps) {
           style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)' }} />
       )}
 
-      {/* Bottom handles for intra-group source (outgoing within same group) */}
-      {(d.intraSourceHandles ?? []).map((hId) => (
-        <Handle key={hId} id={hId} type="source" position={Position.Bottom}
-          style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', left: '30%' }} />
-      ))}
-      {/* Top handles for intra-group target (incoming within same group) */}
-      {(d.intraTargetHandles ?? []).map((hId) => (
-        <Handle key={hId} id={hId} type="target" position={Position.Top}
-          style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', left: '30%' }} />
-      ))}
+      {/* Left handles for intra-group source (near bottom of node) */}
+      {(d.intraSourceHandles ?? []).map((hId, i, arr) => {
+        const baseTop = 75;
+        const step = arr.length > 1 ? 15 / arr.length : 0;
+        return (
+          <Handle key={hId} id={hId} type="source" position={Position.Left}
+            style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', top: `${baseTop + i * step}%` }} />
+        );
+      })}
+      {/* Left handles for intra-group target (near top of node) */}
+      {(d.intraTargetHandles ?? []).map((hId, i, arr) => {
+        const baseTop = 25;
+        const step = arr.length > 1 ? 15 / arr.length : 0;
+        return (
+          <Handle key={hId} id={hId} type="target" position={Position.Left}
+            style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', top: `${baseTop + i * step}%` }} />
+        );
+      })}
     </div>
   );
 }
@@ -189,7 +197,7 @@ function GroupNodeComponent({ data }: NodeProps) {
 function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: EdgeProps) {
   const d = data as {
     label?: string; disabled?: boolean; color?: string;
-    midXOffset?: number; intraGroup?: boolean;
+    midXOffset?: number; intraGroup?: boolean; bypassK?: number;
   } | undefined;
   const disabled = d?.disabled ?? false;
   const color = d?.color ?? '#94a3b8';
@@ -199,15 +207,20 @@ function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: Ed
   let edgePath: string;
 
   if (intraGroup) {
-    // Source is at bottom of upper node, target is at top of lower node
-    // Draw a gentle S-curve connecting them vertically
-    const dy = targetY - sourceY;
-    if (Math.abs(dy) < 1) {
-      edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
-    } else {
-      const midY = (sourceY + targetY) / 2;
-      edgePath = `M ${sourceX} ${sourceY} C ${sourceX} ${midY}, ${targetX} ${midY}, ${targetX} ${targetY}`;
-    }
+    // FrameworkDrawer algorithm: route left out → down → left back in
+    // bypassK = per-source offset distance (BASE + edgeIndex * STEP)
+    const k = d?.bypassK ?? 30;
+    const bypassX = Math.min(sourceX, targetX) - k;
+    const r = 8;
+    const dirY = targetY > sourceY ? 1 : -1;
+    edgePath = [
+      `M ${sourceX} ${sourceY}`,
+      `L ${bypassX + r} ${sourceY}`,
+      `Q ${bypassX} ${sourceY} ${bypassX} ${sourceY + r * dirY}`,
+      `L ${bypassX} ${targetY - r * dirY}`,
+      `Q ${bypassX} ${targetY} ${bypassX + r} ${targetY}`,
+      `L ${targetX} ${targetY}`,
+    ].join(' ');
   } else if (Math.abs(targetY - sourceY) < 1) {
     edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
   } else {
@@ -224,7 +237,7 @@ function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: Ed
     ].join(' ');
   }
 
-  const labelX = intraGroup ? (sourceX + targetX) / 2 + 20 : (sourceX + targetX) / 2 + offset;
+  const labelX = intraGroup ? Math.min(sourceX, targetX) - (d?.bypassK ?? 30) - 20 : (sourceX + targetX) / 2 + offset;
   const labelY = (sourceY + targetY) / 2;
 
   return (
@@ -451,6 +464,14 @@ function buildLayout(
   const intraSrcCounter = new Map<string, number>();
   const intraTgtCounter = new Map<string, number>();
 
+  // Build intra-group edges with FrameworkDrawer algorithm:
+  // k = BASE + edgeIndexWithinSource * STEP (per-source independent calculation)
+  // Each source node's edges get their own k sequence, no global sorting needed.
+  // Different sources naturally don't cross because their Y positions differ.
+  const INTRA_BASE = 30;
+  const INTRA_STEP = 12;
+  const perSourceCounter = new Map<string, number>();
+
   for (const e of intraGroupEdges) {
     const srcNode = archData.nodes.find((n) => n.id === e.source)!;
     const tgtNode = archData.nodes.find((n) => n.id === e.target)!;
@@ -459,10 +480,13 @@ function buildLayout(
     const tIdx = intraTgtCounter.get(e.target) ?? 0;
     intraSrcCounter.set(e.source, sIdx + 1);
     intraTgtCounter.set(e.target, tIdx + 1);
+    const srcEdgeIdx = perSourceCounter.get(e.source) ?? 0;
+    perSourceCounter.set(e.source, srcEdgeIdx + 1);
+    const bypassK = INTRA_BASE + srcEdgeIdx * INTRA_STEP;
     edges.push({
       id: `${e.source}-${e.target}`, source: e.source, target: e.target,
       sourceHandle: `isrc-${sIdx}`, targetHandle: `itgt-${tIdx}`, type: 'colored',
-      data: { label: e.label, disabled, color: getTheme(srcNode.group).accent, intraGroup: true },
+      data: { label: e.label, disabled, color: getTheme(srcNode.group).accent, intraGroup: true, bypassK },
     });
   }
 

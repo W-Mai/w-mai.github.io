@@ -151,6 +151,8 @@ export const architectureData = {
     { source: 'editor-live', target: 'editor-ai' },
     { source: 'editor-mdx', target: 'api-posts' },
     { source: 'editor-thought', target: 'api-thoughts' },
+    { source: 'editor-thought', target: 'editor-git' },
+    { source: 'editor-thought', target: 'editor-ai' },
     { source: 'editor-asset', target: 'api-assets' },
     { source: 'editor-sticker', target: 'api-stickers' },
     { source: 'editor-ai', target: 'api-ai' },
