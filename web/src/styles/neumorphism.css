@@ -354,6 +354,20 @@ a.neu-tag-chip:active {
   transform: translateY(0);
 }
 
+@media (max-width: 640px) {
+  .neu-mood-capsule {
+    flex-wrap: wrap;
+    gap: 0.125rem;
+    padding: 0.25rem;
+    border-radius: 1rem;
+  }
+  .neu-mood-item {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.125rem;
+  }
+}
+
 /* Mood badge — raised circle for display in timeline cards */
 .neu-mood-badge {
   display: inline-flex;
