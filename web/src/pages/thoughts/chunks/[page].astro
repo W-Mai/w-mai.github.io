@@ -1,0 +1,37 @@
+---
+import type { GetStaticPaths } from 'astro'
+import ThoughtCard from '~/components/ThoughtCard.astro'
+import type { Thought } from '~/data/thoughts'
+import { loadThoughts } from '~/data/thoughts'
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const CHUNK_SIZE = 2
+  const thoughts = await loadThoughts()
+  const remaining = thoughts.slice(CHUNK_SIZE)
+  const totalChunks = Math.ceil(remaining.length / CHUNK_SIZE)
+
+  return Array.from({ length: totalChunks }, (_, i) => ({
+    params: { page: String(i + 1) },
+    props: {
+      items: remaining.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE),
+      hasMore: i + 1 < totalChunks,
+    },
+  }))
+}
+
+interface Props {
+  items: Thought[]
+  hasMore: boolean
+}
+
+const { items, hasMore } = Astro.props
+---
+<html><body data-has-more={String(hasMore)}>
+{items.map((thought) => (
+  <div class="timeline-item" data-chunk>
+    <div class="timeline-dot"></div>
+    <div class="timeline-connector"></div>
+    <ThoughtCard thought={thought} />
+  </div>
+))}
+</body></html>

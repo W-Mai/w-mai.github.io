@@ -1,0 +1,176 @@
+---
+import WithSidebar from '~/layouts/WithSidebar.astro'
+import ProfileSidebar from '~/components/ProfileSidebar.astro'
+import ThoughtTimeline from '~/components/ThoughtTimeline.astro'
+import ThoughtEditor from '~/components/editor/ThoughtEditor'
+import { fetchGitHubProfile } from '~/lib/github'
+import { loadThoughts } from '~/data/thoughts'
+
+const CHUNK_SIZE = 2
+
+const profile = await fetchGitHubProfile()
+const thoughts = await loadThoughts()
+const initialThoughts = thoughts.slice(0, CHUNK_SIZE)
+const totalChunks = Math.ceil((thoughts.length - CHUNK_SIZE) / CHUNK_SIZE)
+const allTags = [...new Set(thoughts.flatMap((t) => t.tags ?? []))]
+const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
+---
+
+<WithSidebar>
+  <Fragment slot="sidebar">
+    <ProfileSidebar profile={profile} showBio />
+  </Fragment>
+
+  <h1 class="page-title anim-fade" style="--delay:0">🧠 怼点想法</h1>
+  <p class="page-subtitle anim-fade" style="--delay:1">脑子里蹦出来的碎碎念，不成文章，但值得记一笔</p>
+
+  {isEditorMode && (
+    <div class="mb-6 anim-fade" style="--delay:2">
+      <ThoughtEditor client:load allTags={allTags} />
+    </div>
+  )}
+
+  {allTags.length > 0 && (
+    <div class="flex flex-wrap gap-2 mb-6 anim-fade" style={`--delay:${isEditorMode ? 3 : 2}`}>
+      {allTags.map((tag) => (
+        <button class="neu-btn neu-filter-btn" data-tag={tag}>{tag}</button>
+      ))}
+    </div>
+  )}
+
+  {initialThoughts.length > 0 ? (
+    <>
+      <ThoughtTimeline thoughts={initialThoughts} isEditorMode={isEditorMode} />
+      {totalChunks > 0 && (
+        <div id="thought-sentinel" data-next="1" data-total={totalChunks} class="flex justify-center py-8">
+          <span class="text-[var(--text-muted)] text-sm">加载中…</span>
+        </div>
+      )}
+    </>
+  ) : (
+    <p class="text-[var(--text-muted)] text-center py-12 anim-fade" style="--delay:2">
+      还没有想法呢，再等等～
+    </p>
+  )}
+</WithSidebar>
+
+<script>
+  function initThoughtPage() {
+    // Tag filter
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-tag]')
+    let activeTag: string | null = null
+
+    function applyTagFilter() {
+      const items = document.querySelectorAll<HTMLElement>('.timeline-item')
+      items.forEach((item) => {
+        if (!activeTag) {
+          item.style.display = ''
+          return
+        }
+        const itemTags = Array.from(item.querySelectorAll('.neu-tag-chip'))
+          .map((el) => el.textContent?.trim() ?? '')
+        item.style.display = itemTags.includes(activeTag) ? '' : 'none'
+      })
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.tag!
+        if (activeTag === tag) {
+          activeTag = null
+          buttons.forEach((b) => b.classList.remove('neu-filter-active'))
+        } else {
+          activeTag = tag
+          buttons.forEach((b) => {
+            b.classList.toggle('neu-filter-active', b.dataset.tag === tag)
+          })
+        }
+        applyTagFilter()
+      })
+    })
+
+    // Editor mode: wire up edit/delete buttons
+    document.querySelectorAll<HTMLButtonElement>('[data-thought-edit]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const raw = btn.dataset.thoughtEdit
+        if (!raw) return
+        try {
+          const thought = JSON.parse(raw)
+          ;(window as any).__thoughtEditor?.startEdit(thought)
+          document.querySelector('.mb-6.anim-fade')?.scrollIntoView({ behavior: 'smooth' })
+        } catch {}
+      })
+    })
+
+    document.querySelectorAll<HTMLButtonElement>('[data-thought-delete]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.thoughtDelete
+        if (!id) return
+        ;(window as any).__thoughtEditor?.handleDelete(id)
+      })
+    })
+
+    // Infinite scroll — fetch pre-rendered HTML chunks
+    const sentinel = document.getElementById('thought-sentinel')
+    if (!sentinel) return
+
+    const timeline = document.querySelector('.thought-timeline')
+    if (!timeline) return
+
+    // Ensure SSR items are visible (scroll-restored pages)
+    timeline.querySelectorAll<HTMLElement>('.timeline-item.anim-fade:not(.visible)').forEach((el) => {
+      el.classList.add('visible')
+    })
+
+    let nextPage = parseInt(sentinel.dataset.next ?? '1', 10)
+    const totalChunks = parseInt(sentinel.dataset.total ?? '0', 10)
+    let loading = false
+
+    async function loadChunk(): Promise<boolean> {
+      if (nextPage > totalChunks) return false
+      const res = await fetch(`/thoughts/chunks/${nextPage}/`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const html = await res.text()
+
+      const doc = new DOMParser().parseFromString(html, 'text/html')
+      const hasMore = doc.body.dataset.hasMore === 'true'
+      const newItems = doc.querySelectorAll<HTMLElement>('.timeline-item')
+      newItems.forEach((el, i) => {
+        el.classList.add('anim-fade')
+        el.style.setProperty('--delay', String(i))
+        timeline!.appendChild(el)
+      })
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          newItems.forEach((el) => el.classList.add('visible'))
+        })
+      })
+
+      nextPage++
+      applyTagFilter()
+      return hasMore
+    }
+
+    const observer = new IntersectionObserver(async (entries) => {
+      if (!entries[0].isIntersecting || loading || nextPage > totalChunks) return
+      loading = true
+
+      try {
+        // Load all remaining chunks sequentially
+        while (await loadChunk()) { /* keep loading */ }
+        sentinel.textContent = ''
+        observer.disconnect()
+      } catch (e) {
+        console.error('[thoughts] Failed to load chunk:', e)
+        sentinel.innerHTML = '<span class="text-[var(--text-muted)] text-sm">加载失败</span>'
+        observer.disconnect()
+      } finally {
+        loading = false
+      }
+    }, { rootMargin: '100px' })
+
+    observer.observe(sentinel)
+  }
+
+  document.addEventListener('astro:page-load', initThoughtPage)
+</script>
