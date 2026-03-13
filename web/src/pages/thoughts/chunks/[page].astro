@@ -25,13 +25,14 @@ interface Props {
 }
 
 const { items, hasMore } = Astro.props
+const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
 ---
 <html><body data-has-more={String(hasMore)}>
 {items.map((thought) => (
   <div class="timeline-item" data-chunk>
     <div class="timeline-dot"></div>
     <div class="timeline-connector"></div>
-    <ThoughtCard thought={thought} />
+    <ThoughtCard thought={thought} isEditorMode={isEditorMode} />
   </div>
 ))}
 </body></html>

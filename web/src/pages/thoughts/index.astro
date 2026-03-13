@@ -89,26 +89,32 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
       })
     })
 
-    // Editor mode: wire up edit/delete buttons
-    document.querySelectorAll<HTMLButtonElement>('[data-thought-edit]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const raw = btn.dataset.thoughtEdit
-        if (!raw) return
-        try {
-          const thought = JSON.parse(raw)
-          ;(window as any).__thoughtEditor?.startEdit(thought)
-          document.querySelector('.mb-6.anim-fade')?.scrollIntoView({ behavior: 'smooth' })
-        } catch {}
+    // Editor mode: wire up edit/delete buttons on given root
+    function wireEditorButtons(root: ParentNode) {
+      root.querySelectorAll<HTMLButtonElement>('[data-thought-edit]:not([data-wired])').forEach((btn) => {
+        btn.dataset.wired = '1'
+        btn.addEventListener('click', () => {
+          const raw = btn.dataset.thoughtEdit
+          if (!raw) return
+          try {
+            const thought = JSON.parse(raw)
+            ;(window as any).__thoughtEditor?.startEdit(thought)
+            document.querySelector('.mb-6.anim-fade')?.scrollIntoView({ behavior: 'smooth' })
+          } catch {}
+        })
       })
-    })
 
-    document.querySelectorAll<HTMLButtonElement>('[data-thought-delete]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.thoughtDelete
-        if (!id) return
-        ;(window as any).__thoughtEditor?.handleDelete(id)
+      root.querySelectorAll<HTMLButtonElement>('[data-thought-delete]:not([data-wired])').forEach((btn) => {
+        btn.dataset.wired = '1'
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.thoughtDelete
+          if (!id) return
+          ;(window as any).__thoughtEditor?.handleDelete(id)
+        })
       })
-    })
+    }
+
+    wireEditorButtons(document)
 
     // Infinite scroll — fetch pre-rendered HTML chunks
     const sentinel = document.getElementById('thought-sentinel')
@@ -145,6 +151,9 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
           newItems.forEach((el) => el.classList.add('visible'))
         })
       })
+
+      // Wire edit/delete buttons on newly loaded items
+      newItems.forEach((el) => wireEditorButtons(el))
 
       nextPage++
       applyTagFilter()
