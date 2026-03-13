@@ -548,3 +548,81 @@ a.neu-tag-chip:active {
     animation: none;
   }
 }
+
+
+/* Sticker panel — desktop: centered floating, mobile: bottom sheet */
+.sticker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1999;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+.sticker-backdrop.visible {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.sticker-panel {
+  position: fixed;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: var(--neu-bg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+}
+
+/* Desktop: centered floating panel */
+@media (min-width: 641px) {
+  .sticker-panel {
+    width: 560px;
+    max-width: 90vw;
+    max-height: 70vh;
+    border-radius: 1rem;
+  }
+  .sticker-panel:not(.has-pos) {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .sticker-panel-handle { display: none; }
+}
+
+/* Mobile: bottom sheet */
+@media (max-width: 640px) {
+  .sticker-panel {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto !important;
+    max-height: 70vh;
+    border-radius: 1.25rem 1.25rem 0 0;
+    transform: translateY(0);
+    width: 100% !important;
+  }
+  .sticker-panel.sheet-entering {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  .sticker-panel.sheet-visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .sticker-panel-handle {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0 0.25rem;
+    cursor: grab;
+  }
+  .sticker-panel-handle::after {
+    content: '';
+    width: 2.5rem;
+    height: 0.25rem;
+    border-radius: 0.125rem;
+    background: var(--border-subtle);
+  }
+  .sticker-panel-header {
+    cursor: default !important;
+  }
+}

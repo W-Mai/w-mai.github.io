@@ -58,10 +58,13 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
   const [panelPos, setPanelPos] = useState<{ x: number; y: number } | null>(() => loadPanelPos());
   const [recognizing, setRecognizing] = useState<Set<string>>(new Set());
   const [recognizeAll, setRecognizeAll] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDragging = useRef(false);
   const abortRef = useRef(false);
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
 
   const fetchStickers = useCallback(async () => {
     setIsLoading(true);
@@ -80,6 +83,15 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
   useEffect(() => {
     if (isOpen) fetchStickers();
   }, [isOpen, fetchStickers]);
+
+  // Sheet entrance animation on mobile
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => setSheetVisible(true));
+    } else {
+      setSheetVisible(false);
+    }
+  }, [isOpen]);
 
   // Drag handlers
   const handleDragStart = useCallback((e: React.MouseEvent) => {
@@ -111,18 +123,13 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
     };
   }, [isOpen, dragOffset]);
 
-  // Close on Escape or click outside
+  // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    const handleClick = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose();
-    };
     document.addEventListener('keydown', handleKey);
-    setTimeout(() => document.addEventListener('mousedown', handleClick), 0);
     return () => {
       document.removeEventListener('keydown', handleKey);
-      document.removeEventListener('mousedown', handleClick);
     };
   }, [isOpen, onClose]);
 
@@ -232,26 +239,29 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
         </div>
       )}
 
-      {/* Floating panel */}
-      <div ref={panelRef} style={{
-        position: 'fixed',
-        ...(panelPos
-          ? { top: panelPos.y, left: panelPos.x, transform: 'none' }
-          : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }),
-        width: '560px', maxWidth: '90vw', maxHeight: '70vh',
-        background: T.colorBg, borderRadius: T.radiusLg,
-        boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
-        display: 'flex', flexDirection: 'column',
-        zIndex: 2000, fontFamily: T.fontSans,
-      }}>
-        {/* Header (draggable) */}
+      {/* Backdrop (visible on mobile) */}
+      <div
+        className={`sticker-backdrop${sheetVisible ? ' visible' : ''}`}
+        onClick={onClose}
+      />
+
+      {/* Panel — desktop: floating, mobile: bottom sheet */}
+      <div ref={panelRef}
+        className={`sticker-panel${panelPos && !isMobile ? ' has-pos' : ''}${sheetVisible ? ' sheet-visible' : ' sheet-entering'}`}
+        style={panelPos && !isMobile ? { top: panelPos.y, left: panelPos.x } : undefined}
+      >
+        {/* Sheet handle (mobile only) */}
+        <div className="sticker-panel-handle" />
+
+        {/* Header (draggable on desktop) */}
         <div
-          onMouseDown={handleDragStart}
+          onMouseDown={isMobile ? undefined : handleDragStart}
+          className="sticker-panel-header"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: `${T.spacingMd} ${T.spacingLg}`,
             borderBottom: `1px solid ${T.colorBorder}`,
-            cursor: 'grab', userSelect: 'none',
+            cursor: isMobile ? 'default' : 'grab', userSelect: 'none',
           }}>
           <span style={{ fontSize: T.fontSizeBase, fontWeight: 600, color: T.colorText }}>😀 Stickers</span>
           <button onClick={onClose} style={{
