@@ -66,8 +66,8 @@ function ArchNodeComponent({ id, data }: NodeProps) {
   };
 
   const hs = {
-    background: 'var(--neu-bg)', width: 5, height: 5,
-    border: `1.5px solid ${theme.accent}`,
+    background: 'transparent', width: 1, height: 1,
+    border: 'none', opacity: 0,
   };
 
   return (
@@ -148,17 +148,17 @@ function LayeredEdge({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps
     <g className="layered-edge">
       <defs>
         <marker id={markerId} markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <path d="M 0 0 L 8 3 L 0 6 Z" fill={color} opacity="0.5" />
+          <path d="M 0 0 L 8 3 L 0 6 Z" fill={color} opacity="0.25" />
         </marker>
       </defs>
       <path d={edgePath} fill="none" stroke={color} strokeWidth="1.5"
-        opacity="0.5" markerEnd={`url(#${markerId})`} />
-      <circle r="1.2" fill={color} opacity="0.6">
+        opacity="0.25" markerEnd={`url(#${markerId})`} />
+      <circle r="1.2" fill={color} opacity="0.3">
         <animateMotion dur="3s" repeatCount="indefinite" path={edgePath} />
       </circle>
       {d?.label && (
         <text x={(sourceX + targetX) / 2} y={midY} textAnchor="middle" dominantBaseline="central"
-          style={{ fontSize: '7px', fontWeight: 500, fill: color, opacity: 0.6 }}>
+          style={{ fontSize: '7px', fontWeight: 500, fill: color, opacity: 0.35 }}>
           {d.label}
         </text>
       )}
@@ -189,7 +189,7 @@ function computeAutoLayout(archData: ArchitectureData): {
 } {
   const layerBands: { layerDef: ArchLayerDef; x: number; y: number; w: number; h: number }[] = [];
   const nodePositions: Record<string, { x: number; y: number }> = {};
-  const MAX_PER_ROW = 8;
+  const MAX_PER_ROW = 6;
   let cursorY = 0;
   let maxWidth = 0;
 
@@ -330,7 +330,7 @@ function DiagramFlow({ data }: DiagramRendererProps) {
     const result = buildFlowElements(data, showEditorNodes);
     setNodes(result.nodes);
     setEdges(result.edges);
-    setTimeout(() => fitView({ padding: 0.1, duration: 300 }), 50);
+    setTimeout(() => fitView({ padding: 0.05, duration: 300 }), 50);
   }, [data, showEditorNodes, fitView]);
 
   // Hover: set CSS data attribute on container (no node rebuild)
@@ -366,33 +366,37 @@ function DiagramFlow({ data }: DiagramRendererProps) {
     const connected = connectedMap.get(hoveredNodeId);
     if (!connected) return '';
 
-    // Highlight connected nodes, dim everything else
-    const connectedSelectors = Array.from(connected)
-      .map((id) => `[data-id="${id}"] .arch-node`)
+    const connectedNodeSelectors = Array.from(connected)
+      .map((nid) => `[data-id="${nid}"] .arch-node`)
       .join(',\n');
-    const connectedEdgeSelectors = Array.from(connected)
-      .flatMap((id) => {
-        return Array.from(connected).map((id2) =>
-          `.react-flow__edge[data-testid="rf__edge-${id}->${id2}"]`
+
+    // Build edge selectors: edges where both source AND target are connected
+    const connectedEdgeSelectors: string[] = [];
+    for (const e of edges) {
+      if (connected.has(e.source) && connected.has(e.target)) {
+        connectedEdgeSelectors.push(
+          `.react-flow__edge[data-testid="rf__edge-${e.id}"]`
         );
-      })
-      .join(',\n');
+      }
+    }
+    const edgeSel = connectedEdgeSelectors.join(',\n');
 
     return `
       /* Dim all nodes */
       .diagram-container[data-hovered] .arch-node {
-        opacity: 0.12 !important;
-        border-color: var(--border-divider) !important;
-        border-left-color: var(--border-divider) !important;
+        opacity: 0.08 !important;
+        border-color: transparent !important;
+        border-left-color: transparent !important;
         box-shadow: none !important;
         transform: none !important;
+        filter: grayscale(1) !important;
       }
       .diagram-container[data-hovered] .layer-band {
-        opacity: 0.15 !important;
+        opacity: 0.08 !important;
       }
       /* Dim all edges */
       .diagram-container[data-hovered] .react-flow__edge path {
-        opacity: 0.04 !important;
+        opacity: 0.03 !important;
       }
       .diagram-container[data-hovered] .react-flow__edge circle {
         opacity: 0 !important;
@@ -401,15 +405,29 @@ function DiagramFlow({ data }: DiagramRendererProps) {
         opacity: 0 !important;
       }
       /* Highlight connected nodes */
-      .diagram-container[data-hovered] :is(${connectedSelectors}) {
+      .diagram-container[data-hovered] :is(${connectedNodeSelectors}) {
         opacity: 1 !important;
+        filter: none !important;
         border-color: var(--node-accent) !important;
         border-left-color: var(--node-accent) !important;
         background: var(--node-accent-muted) !important;
-        box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light) !important;
+        box-shadow: 0 0 0 1px var(--node-accent),
+                    3px 3px 8px var(--neu-shadow-dark),
+                    -3px -3px 8px var(--neu-shadow-light) !important;
       }
+      /* Highlight connected edges */
+      ${edgeSel ? `.diagram-container[data-hovered] :is(${edgeSel}) path {
+        opacity: 0.85 !important;
+        stroke-width: 2px !important;
+      }
+      .diagram-container[data-hovered] :is(${edgeSel}) circle {
+        opacity: 0.8 !important;
+      }
+      .diagram-container[data-hovered] :is(${edgeSel}) text {
+        opacity: 0.8 !important;
+      }` : ''}
     `;
-  }, [hoveredNodeId, connectedMap]);
+  }, [hoveredNodeId, connectedMap, edges]);
 
   return (
     <div ref={containerRef} className="diagram-container" style={{ position: 'relative', width: '100%' }}>
@@ -420,16 +438,18 @@ function DiagramFlow({ data }: DiagramRendererProps) {
         <div className="neu-mood-capsule"
           style={{ display: 'inline-flex', gap: '0.25rem', padding: '0.3rem' }}>
           {[
-            { key: true, label: '🔧 All (Dev)', title: 'Show all nodes including editor-only' },
-            { key: false, label: '🌐 Publish', title: 'Show only publish-mode nodes' },
+            { key: true, label: '🔧 全部', title: 'Show all nodes including editor-only' },
+            { key: false, label: '🌐 发布', title: 'Show only publish-mode nodes' },
           ].map((opt) => (
             <button key={String(opt.key)}
               className={showEditorNodes === opt.key ? 'neu-mood-item selected' : 'neu-mood-item'}
               onClick={() => setShowEditorNodes(opt.key)}
               title={opt.title}
               style={{
-                padding: '0.4rem 1rem', fontSize: '0.85rem',
+                width: 'auto', height: 'auto', borderRadius: '1rem',
+                padding: '0.35rem 0.85rem', fontSize: '0.8rem',
                 border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                whiteSpace: 'nowrap', filter: 'none',
               }}>
               {opt.label}
             </button>
@@ -451,10 +471,10 @@ function DiagramFlow({ data }: DiagramRendererProps) {
           onNodeMouseEnter={onNodeMouseEnter}
           onNodeMouseLeave={onNodeMouseLeave}
           nodeTypes={nodeTypes} edgeTypes={edgeTypes}
-          fitView fitViewOptions={{ padding: 0.1 }}
+          fitView fitViewOptions={{ padding: 0.05 }}
           nodesConnectable={false} elementsSelectable={false}
           panOnScroll zoomOnScroll={false} zoomOnPinch
-          minZoom={0.15} maxZoom={2}
+          minZoom={0.3} maxZoom={2}
           proOptions={{ hideAttribution: true }}
           style={{ background: 'var(--neu-bg)' }}
         >
@@ -471,14 +491,15 @@ function DiagramFlow({ data }: DiagramRendererProps) {
         .arch-node {
           position: relative;
           display: flex; align-items: center; gap: 8px;
-          padding: 8px 14px 8px 12px; border-radius: 8px;
+          padding: 8px 14px 8px 12px; border-radius: 10px;
           font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
           background: var(--neu-bg);
           color: var(--text-primary);
           border: 1.5px solid var(--node-border);
-          border-left: 3.5px solid var(--node-accent);
-          box-shadow: 2px 2px 6px var(--neu-shadow-dark), -2px -2px 6px var(--neu-shadow-light);
-          transition: opacity 200ms ease, border-color 200ms ease, background 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+          border-left: 4px solid var(--node-accent);
+          box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
+          transition: opacity 180ms ease, border-color 180ms ease, background 180ms ease,
+                      box-shadow 180ms ease, transform 180ms ease, filter 180ms ease;
           min-width: 130px; white-space: nowrap; overflow: hidden;
           cursor: default;
         }
@@ -486,50 +507,52 @@ function DiagramFlow({ data }: DiagramRendererProps) {
           background: var(--node-accent-muted);
           border-color: var(--node-accent);
           border-left-color: var(--node-accent);
-          box-shadow: 3px 3px 8px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light);
-          transform: translateY(-1px);
+          box-shadow: 0 0 0 1px var(--node-accent),
+                      4px 4px 10px var(--neu-shadow-dark),
+                      -4px -4px 10px var(--neu-shadow-light);
+          transform: translateY(-2px);
         }
         .arch-node.editor-only {
           border-style: dashed;
           border-left-style: solid;
           border-width: 1.5px;
-          border-left-width: 3.5px;
-          opacity: 0.75;
+          border-left-width: 4px;
+          opacity: 0.7;
         }
         .arch-node-icon { font-size: 14px; flex-shrink: 0; }
         .arch-node-label { }
         .arch-node-dev {
-          font-size: 7px; font-weight: 700; opacity: 0.6; margin-left: auto;
-          padding: 1px 4px; border-radius: 3px;
-          background: var(--node-accent-muted); color: var(--node-accent);
-          letter-spacing: 0.05em;
+          font-size: 7px; font-weight: 700; margin-left: auto;
+          padding: 1px 5px; border-radius: 4px;
+          background: var(--node-accent); color: #fff;
+          letter-spacing: 0.06em; opacity: 0.85;
         }
 
         /* Layer band style */
         .layer-band {
-          width: 100%; height: 100%; border-radius: 12px;
+          width: 100%; height: 100%; border-radius: 14px;
           border: 1.5px dashed var(--layer-border);
           background: var(--layer-accent-muted);
-          transition: opacity 200ms ease;
+          transition: opacity 180ms ease;
         }
         .layer-band-badge {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 4px 10px; margin: 8px 0 0 10px;
-          border-radius: 6px;
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 5px 14px; margin: 10px 0 0 12px;
+          border-radius: 10px;
           background: var(--neu-bg);
           border: 1px solid var(--layer-border);
-          box-shadow: 1px 1px 3px var(--neu-shadow-dark), -1px -1px 3px var(--neu-shadow-light);
+          box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
         }
-        .layer-band-icon { font-size: 11px; }
+        .layer-band-icon { font-size: 16px; }
         .layer-band-label {
-          font-size: 10px; font-weight: 700;
+          font-size: 14px; font-weight: 700;
           text-transform: uppercase; letter-spacing: 0.08em;
           color: var(--layer-accent);
         }
 
         /* Edge default */
-        .layered-edge path { transition: opacity 200ms ease; }
-        .layered-edge circle { transition: opacity 200ms ease; }
+        .layered-edge path { transition: opacity 180ms ease, stroke-width 180ms ease; }
+        .layered-edge circle { transition: opacity 180ms ease; }
 
         @media (max-width: 768px) {
           .diagram-mobile-hint { display: block !important; }
