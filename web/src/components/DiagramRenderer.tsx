@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type FC, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, type FC } from 'react';
 import {
   ReactFlow,
   Background,
@@ -43,40 +43,21 @@ const LAYER_THEMES: Record<string, LayerTheme> = {};
 
 function getLayerTheme(layerId: string): LayerTheme {
   return LAYER_THEMES[layerId] ?? {
-    accent: '#94a3b8',
-    accentMuted: 'rgba(148,163,184,0.08)',
+    accent: '#94a3b8', accentMuted: 'rgba(148,163,184,0.08)',
     border: 'rgba(148,163,184,0.3)',
   };
 }
 
 /* ------------------------------------------------------------------ */
-/*  Arch node component                                               */
+/*  Arch node — uses CSS classes for highlight/dim, not inline style  */
 /* ------------------------------------------------------------------ */
 
-function ArchNodeComponent({ data }: NodeProps) {
+function ArchNodeComponent({ id, data }: NodeProps) {
   const d = data as {
     label: string; icon: string; url?: string;
-    layerId: string; editorOnly: boolean;
-    highlighted: boolean; dimmed: boolean;
-    navigable: boolean;
+    layerId: string; editorOnly: boolean; navigable: boolean;
   };
   const theme = getLayerTheme(d.layerId);
-
-  const card: CSSProperties = {
-    position: 'relative',
-    display: 'flex', alignItems: 'center', gap: '8px',
-    padding: '6px 12px', borderRadius: '6px',
-    fontSize: '11px', fontWeight: 500, letterSpacing: '0.01em',
-    cursor: d.navigable ? 'pointer' : 'default',
-    background: d.highlighted ? theme.accentMuted : 'transparent',
-    color: d.dimmed ? 'var(--text-muted)' : 'var(--text-primary)',
-    opacity: d.dimmed ? 0.25 : 1,
-    border: d.editorOnly
-      ? `1.5px dashed ${d.dimmed ? 'var(--border-divider)' : theme.border}`
-      : `1px solid ${d.dimmed ? 'var(--border-divider)' : theme.border}`,
-    transition: 'opacity 200ms ease, border-color 200ms ease, background 200ms ease',
-    minWidth: '120px', whiteSpace: 'nowrap' as const, overflow: 'hidden',
-  };
 
   const handleClick = () => {
     if (d.navigable && d.url) {
@@ -84,60 +65,52 @@ function ArchNodeComponent({ data }: NodeProps) {
     }
   };
 
-  const hs: CSSProperties = {
+  const hs = {
     background: 'var(--neu-bg)', width: 5, height: 5,
     border: `1.5px solid ${theme.accent}`,
   };
 
   return (
-    <div style={card} onClick={handleClick}
-      onMouseEnter={(e) => {
-        if (!d.dimmed) {
-          (e.currentTarget as HTMLElement).style.background = theme.accentMuted;
-          (e.currentTarget as HTMLElement).style.borderColor = theme.accent;
-        }
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background = d.highlighted ? theme.accentMuted : 'transparent';
-        (e.currentTarget as HTMLElement).style.borderColor = d.dimmed ? 'var(--border-divider)' : theme.border;
-      }}
+    <div
+      className={`arch-node${d.editorOnly ? ' editor-only' : ''}`}
+      data-node-id={id}
+      style={{
+        '--node-accent': theme.accent,
+        '--node-accent-muted': theme.accentMuted,
+        '--node-border': theme.border,
+      } as React.CSSProperties}
+      onClick={handleClick}
     >
       <Handle type="target" position={Position.Top} style={{ ...hs, left: '50%' }} />
-      <span style={{ fontSize: '13px', flexShrink: 0, opacity: d.dimmed ? 0.4 : 0.8 }}>{d.icon}</span>
-      <span>{d.label}</span>
-      {d.editorOnly && <span style={{ fontSize: '8px', opacity: 0.5, marginLeft: '2px' }}>DEV</span>}
+      <span className="arch-node-icon">{d.icon}</span>
+      <span className="arch-node-label">{d.label}</span>
+      {d.editorOnly && <span className="arch-node-dev">DEV</span>}
       <Handle type="source" position={Position.Bottom} style={{ ...hs, left: '50%' }} />
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Layer band component (background row for each layer)              */
+/*  Layer band component                                              */
 /* ------------------------------------------------------------------ */
 
-function LayerBandComponent({ data }: NodeProps) {
-  const d = data as { label: string; icon: string; layerId: string; dimmed: boolean };
+function LayerBandComponent({ id, data }: NodeProps) {
+  const d = data as { label: string; icon: string; layerId: string };
   const theme = getLayerTheme(d.layerId);
 
   return (
-    <div style={{
-      width: '100%', height: '100%', borderRadius: '8px',
-      border: `1px dashed ${d.dimmed ? 'var(--border-divider)' : theme.border}`,
-      background: 'transparent',
-      opacity: d.dimmed ? 0.3 : 1,
-      transition: 'opacity 200ms ease',
-    }}>
-      <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: '4px',
-        padding: '3px 8px', margin: '6px 0 0 8px',
-        borderRadius: '4px', background: theme.accentMuted,
-        border: `1px solid ${d.dimmed ? 'var(--border-divider)' : theme.border}`,
-      }}>
-        <span style={{ fontSize: '10px' }}>{d.icon}</span>
-        <span style={{
-          fontSize: '9px', fontWeight: 700, textTransform: 'uppercase' as const,
-          letterSpacing: '0.08em', color: d.dimmed ? 'var(--text-muted)' : theme.accent,
-        }}>{d.label}</span>
+    <div
+      className="layer-band"
+      data-layer-id={d.layerId}
+      style={{
+        '--layer-accent': theme.accent,
+        '--layer-accent-muted': theme.accentMuted,
+        '--layer-border': theme.border,
+      } as React.CSSProperties}
+    >
+      <div className="layer-band-badge">
+        <span className="layer-band-icon">{d.icon}</span>
+        <span className="layer-band-label">{d.label}</span>
       </div>
     </div>
   );
@@ -148,18 +121,15 @@ function LayerBandComponent({ data }: NodeProps) {
 /* ------------------------------------------------------------------ */
 
 function LayeredEdge({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps) {
-  const d = data as { label?: string; dimmed?: boolean; color?: string } | undefined;
-  const dimmed = d?.dimmed ?? false;
+  const d = data as { label?: string; color?: string } | undefined;
   const color = d?.color ?? '#94a3b8';
   const markerId = `arrow-${id.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
-  // Vertical-first orthogonal path: down from source, horizontal, then down to target
   const midY = (sourceY + targetY) / 2;
   const r = Math.min(8, Math.abs(targetY - sourceY) / 4, Math.abs(targetX - sourceX) / 2 || 999);
 
   let edgePath: string;
   if (Math.abs(targetX - sourceX) < 1) {
-    // Straight vertical
     edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
   } else {
     const dirX = targetX > sourceX ? 1 : -1;
@@ -175,33 +145,24 @@ function LayeredEdge({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps
   }
 
   return (
-    <>
+    <g className="layered-edge">
       <defs>
         <marker id={markerId} markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-          <path d="M 0 0 L 8 3 L 0 6 Z" fill={color} opacity={dimmed ? 0.15 : 0.5} />
+          <path d="M 0 0 L 8 3 L 0 6 Z" fill={color} opacity="0.5" />
         </marker>
       </defs>
-      <path d={edgePath} fill="none"
-        stroke={color}
-        strokeWidth={dimmed ? 0.6 : 1}
-        strokeDasharray={dimmed ? '4 3' : 'none'}
-        opacity={dimmed ? 0.12 : 0.4}
-        markerEnd={`url(#${markerId})`}
-      />
-      {!dimmed && (
-        <circle r="1.2" fill={color} opacity="0.6">
-          <animateMotion dur="3s" repeatCount="indefinite" path={edgePath} />
-        </circle>
-      )}
+      <path d={edgePath} fill="none" stroke={color} strokeWidth="1"
+        opacity="0.4" markerEnd={`url(#${markerId})`} />
+      <circle r="1.2" fill={color} opacity="0.6">
+        <animateMotion dur="3s" repeatCount="indefinite" path={edgePath} />
+      </circle>
       {d?.label && (
-        <g transform={`translate(${(sourceX + targetX) / 2}, ${midY})`}>
-          <text textAnchor="middle" dominantBaseline="central"
-            style={{ fontSize: '7px', fontWeight: 500, fill: color, opacity: dimmed ? 0.2 : 0.6 }}>
-            {d.label}
-          </text>
-        </g>
+        <text x={(sourceX + targetX) / 2} y={midY} textAnchor="middle" dominantBaseline="central"
+          style={{ fontSize: '7px', fontWeight: 500, fill: color, opacity: 0.6 }}>
+          {d.label}
+        </text>
       )}
-    </>
+    </g>
   );
 }
 
@@ -216,7 +177,8 @@ const nodeTypes: NodeTypes = {
 const edgeTypes = { layered: LayeredEdge as any };
 
 /* ------------------------------------------------------------------ */
-/*  Auto-layout: arrange nodes in horizontal rows per layer           */
+/*  Auto-layout: arrange nodes in hori
+zontal rows per layer           */
 /* ------------------------------------------------------------------ */
 
 const { layerPadX, layerPadTop, layerPadBottom, layerGapY, nodeWidth, nodeHeight, nodeGapX, nodeGapY, layerHeaderHeight } = LAYOUT;
@@ -227,8 +189,6 @@ function computeAutoLayout(archData: ArchitectureData): {
 } {
   const layerBands: { layerDef: ArchLayerDef; x: number; y: number; w: number; h: number }[] = [];
   const nodePositions: Record<string, { x: number; y: number }> = {};
-
-  // Max nodes per row within a layer
   const MAX_PER_ROW = 8;
   let cursorY = 0;
   let maxWidth = 0;
@@ -236,16 +196,13 @@ function computeAutoLayout(archData: ArchitectureData): {
   for (const layer of archData.layers) {
     const layerNodes = archData.nodes.filter((n) => n.layer === layer.id);
     if (layerNodes.length === 0) continue;
-
     const rows = Math.ceil(layerNodes.length / MAX_PER_ROW);
     const contentH = rows * nodeHeight + (rows - 1) * nodeGapY;
     const bandH = layerHeaderHeight + layerPadTop + contentH + layerPadBottom;
     const nodesPerRow = Math.ceil(layerNodes.length / rows);
     const bandW = layerPadX * 2 + nodesPerRow * nodeWidth + (nodesPerRow - 1) * nodeGapX;
-
     layerBands.push({ layerDef: layer, x: 0, y: cursorY, w: bandW, h: bandH });
     maxWidth = Math.max(maxWidth, bandW);
-
     layerNodes.forEach((node, i) => {
       const row = Math.floor(i / nodesPerRow);
       const col = i % nodesPerRow;
@@ -254,126 +211,86 @@ function computeAutoLayout(archData: ArchitectureData): {
         y: layerHeaderHeight + layerPadTop + row * (nodeHeight + nodeGapY),
       };
     });
-
     cursorY += bandH + layerGapY;
   }
 
-  // Center narrower bands
   for (const band of layerBands) {
     const offset = (maxWidth - band.w) / 2;
     band.x = offset;
     const layerNodes = archData.nodes.filter((n) => n.layer === band.layerDef.id);
     for (const node of layerNodes) {
-      if (nodePositions[node.id]) {
-        nodePositions[node.id].x += offset;
-      }
+      if (nodePositions[node.id]) nodePositions[node.id].x += offset;
     }
     band.w = maxWidth;
   }
-
   return { layerBands, nodePositions };
 }
 
 /* ------------------------------------------------------------------ */
-/*  Build ReactFlow nodes + edges                                     */
+/*  Build ReactFlow nodes + edges (NO hover logic here)               */
 /* ------------------------------------------------------------------ */
 
 function buildFlowElements(
   archData: ArchitectureData,
-  hoveredNodeId: string | null,
   showEditorNodes: boolean,
 ): { nodes: Node[]; edges: Edge[] } {
-  // Populate layer themes
   for (const l of archData.layers) {
     LAYER_THEMES[l.id] = { accent: l.accent, accentMuted: l.accentMuted, border: l.border };
   }
 
-  // Filter nodes based on editor mode toggle
   const visibleNodes = showEditorNodes
     ? archData.nodes
     : archData.nodes.filter((n) => !isEditorOnly(n));
-
-  // Filter edges to only include those between visible nodes
   const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
   const visibleEdges = archData.edges.filter(
     (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target),
   );
 
-  // Compute connected set for hover highlight
-  const connectedSet = hoveredNodeId
-    ? getConnectedNodes(hoveredNodeId, visibleEdges)
-    : null;
-
-  // Build a filtered ArchitectureData for layout computation
   const filteredData: ArchitectureData = {
-    layers: archData.layers,
-    nodes: visibleNodes,
-    edges: visibleEdges,
+    layers: archData.layers, nodes: visibleNodes, edges: visibleEdges,
   };
   const { layerBands, nodePositions } = computeAutoLayout(filteredData);
 
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  // Layer band nodes
   for (const band of layerBands) {
-    const dimmed = connectedSet !== null;
     nodes.push({
-      id: `layer-${band.layerDef.id}`,
-      type: 'layerBand',
+      id: `layer-${band.layerDef.id}`, type: 'layerBand',
       position: { x: band.x, y: band.y },
-      data: {
-        label: band.layerDef.name, icon: band.layerDef.icon,
-        layerId: band.layerDef.id, dimmed,
-      },
+      data: { label: band.layerDef.name, icon: band.layerDef.icon, layerId: band.layerDef.id },
       style: { width: band.w, height: band.h },
-      draggable: false, selectable: false,
-      zIndex: -1,
+      draggable: false, selectable: false, zIndex: -1,
     });
   }
 
-  // Arch nodes (positioned relative to their layer band)
   for (const archNode of visibleNodes) {
     const band = layerBands.find((b) => b.layerDef.id === archNode.layer);
     if (!band) continue;
     const pos = nodePositions[archNode.id];
     if (!pos) continue;
-
-    const highlighted = connectedSet !== null && connectedSet.has(archNode.id);
-    const dimmed = connectedSet !== null && !connectedSet.has(archNode.id);
-
     nodes.push({
-      id: archNode.id,
-      type: 'archNode',
+      id: archNode.id, type: 'archNode',
       position: { x: pos.x, y: pos.y },
-      parentId: `layer-${archNode.layer}`,
-      extent: 'parent' as const,
+      parentId: `layer-${archNode.layer}`, extent: 'parent' as const,
       data: {
         label: archNode.name, icon: archNode.icon, url: archNode.url,
         layerId: archNode.layer, editorOnly: isEditorOnly(archNode),
-        highlighted, dimmed,
-        navigable: !dimmed && isNavigable(archNode),
+        navigable: isNavigable(archNode),
       },
-      draggable: false,
-      zIndex: 1,
+      draggable: false, zIndex: 1,
     });
   }
 
-  // Edges
   for (const archEdge of visibleEdges) {
     const srcNode = visibleNodes.find((n) => n.id === archEdge.source);
     if (!srcNode) continue;
     const theme = getLayerTheme(srcNode.layer);
-    const dimmed = connectedSet !== null &&
-      !(connectedSet.has(archEdge.source) && connectedSet.has(archEdge.target));
-
     edges.push({
       id: `${archEdge.source}->${archEdge.target}`,
-      source: archEdge.source,
-      target: archEdge.target,
+      source: archEdge.source, target: archEdge.target,
       type: 'layered',
-      data: { label: archEdge.label, dimmed, color: theme.accent },
-      zIndex: dimmed ? 0 : 2,
+      data: { label: archEdge.label, color: theme.accent },
     });
   }
 
@@ -390,28 +307,48 @@ function DiagramFlow({ data }: DiagramRendererProps) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const { fitView } = useReactFlow();
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Rebuild layout when filter or hover changes
+  // Pre-compute connected sets for all nodes (once per filter change)
+  const connectedMap = useMemo(() => {
+    const visibleNodes = showEditorNodes
+      ? data.nodes
+      : data.nodes.filter((n) => !isEditorOnly(n));
+    const visibleNodeIds = new Set(visibleNodes.map((n) => n.id));
+    const visibleEdges = data.edges.filter(
+      (e) => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target),
+    );
+    const map = new Map<string, Set<string>>();
+    for (const n of visibleNodes) {
+      map.set(n.id, getConnectedNodes(n.id, visibleEdges));
+    }
+    return map;
+  }, [data, showEditorNodes]);
+
+  // Build layout only when filter changes (NOT on hover)
   useEffect(() => {
-    const result = buildFlowElements(data, hoveredNodeId, showEditorNodes);
+    const result = buildFlowElements(data, showEditorNodes);
     setNodes(result.nodes);
     setEdges(result.edges);
-  }, [data, hoveredNodeId, showEditorNodes]);
+    setTimeout(() => fitView({ padding: 0.1, duration: 300 }), 50);
+  }, [data, showEditorNodes, fitView]);
 
-  // Fit view on filter change (not on hover)
-  const prevShowEditor = usePrevious(showEditorNodes);
+  // Hover: set CSS data attribute on container (no node rebuild)
   useEffect(() => {
-    if (prevShowEditor !== undefined && prevShowEditor !== showEditorNodes) {
-      setTimeout(() => fitView({ padding: 0.1, duration: 300 }), 50);
+    const el = containerRef.current;
+    if (!el) return;
+    if (hoveredNodeId) {
+      const connected = connectedMap.get(hoveredNodeId);
+      if (connected) {
+        el.setAttribute('data-hovered', hoveredNodeId);
+        el.setAttribute('data-connected', Array.from(connected).join(','));
+      }
+    } else {
+      el.removeAttribute('data-hovered');
+      el.removeAttribute('data-connected');
     }
-  }, [showEditorNodes, fitView, prevShowEditor]);
+  }, [hoveredNodeId, connectedMap]);
 
-  // Initial fit
-  useEffect(() => {
-    setTimeout(() => fitView({ padding: 0.1, duration: 300 }), 100);
-  }, [fitView]);
-
-  // Hover detection via node mouse events
   const onNodeMouseEnter = useCallback((_: React.MouseEvent, node: Node) => {
     if (node.type === 'archNode') setHoveredNodeId(node.id);
   }, []);
@@ -423,8 +360,54 @@ function DiagramFlow({ data }: DiagramRendererProps) {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
 
+  // Build dynamic CSS for highlight/dim based on connected nodes
+  const highlightCSS = useMemo(() => {
+    if (!hoveredNodeId) return '';
+    const connected = connectedMap.get(hoveredNodeId);
+    if (!connected) return '';
+
+    // Highlight connected nodes, dim everything else
+    const connectedSelectors = Array.from(connected)
+      .map((id) => `[data-id="${id}"] .arch-node`)
+      .join(',\n');
+    const connectedEdgeSelectors = Array.from(connected)
+      .flatMap((id) => {
+        return Array.from(connected).map((id2) =>
+          `.react-flow__edge[data-testid="rf__edge-${id}->${id2}"]`
+        );
+      })
+      .join(',\n');
+
+    return `
+      /* Dim all nodes */
+      .diagram-container[data-hovered] .arch-node {
+        opacity: 0.15 !important;
+        border-color: var(--border-divider) !important;
+      }
+      .diagram-container[data-hovered] .layer-band {
+        opacity: 0.2 !important;
+      }
+      /* Dim all edges */
+      .diagram-container[data-hovered] .react-flow__edge path {
+        opacity: 0.05 !important;
+      }
+      .diagram-container[data-hovered] .react-flow__edge circle {
+        opacity: 0 !important;
+      }
+      .diagram-container[data-hovered] .react-flow__edge text {
+        opacity: 0 !important;
+      }
+      /* Highlight connected nodes */
+      .diagram-container[data-hovered] :is(${connectedSelectors}) {
+        opacity: 1 !important;
+        border-color: var(--node-accent) !important;
+        background: var(--node-accent-muted) !important;
+      }
+    `;
+  }, [hoveredNodeId, connectedMap]);
+
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div ref={containerRef} className="diagram-container" style={{ position: 'relative', width: '100%' }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem',
@@ -447,7 +430,6 @@ function DiagramFlow({ data }: DiagramRendererProps) {
             </button>
           ))}
         </div>
-
         <p className="diagram-mobile-hint" style={{
           display: 'none', textAlign: 'center', fontSize: '0.75rem',
           color: 'var(--text-muted)', margin: 0,
@@ -480,6 +462,55 @@ function DiagramFlow({ data }: DiagramRendererProps) {
       </div>
 
       <style>{`
+        /* Base arch node style */
+        .arch-node {
+          position: relative;
+          display: flex; align-items: center; gap: 8px;
+          padding: 6px 12px; border-radius: 6px;
+          font-size: 11px; font-weight: 500; letter-spacing: 0.01em;
+          background: var(--neu-bg);
+          color: var(--text-primary);
+          border: 1px solid var(--node-border);
+          transition: opacity 200ms ease, border-color 200ms ease, background 200ms ease;
+          min-width: 120px; white-space: nowrap; overflow: hidden;
+        }
+        .arch-node:hover {
+          background: var(--node-accent-muted);
+          border-color: var(--node-accent);
+        }
+        .arch-node.editor-only {
+          border-style: dashed;
+          border-width: 1.5px;
+        }
+        .arch-node-icon { font-size: 13px; flex-shrink: 0; opacity: 0.8; }
+        .arch-node-label { }
+        .arch-node-dev { font-size: 8px; opacity: 0.5; margin-left: 2px; }
+
+        /* Layer band style */
+        .layer-band {
+          width: 100%; height: 100%; border-radius: 8px;
+          border: 1px dashed var(--layer-border);
+          background: transparent;
+          transition: opacity 200ms ease;
+        }
+        .layer-band-badge {
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 3px 8px; margin: 6px 0 0 8px;
+          border-radius: 4px;
+          background: var(--layer-accent-muted);
+          border: 1px solid var(--layer-border);
+        }
+        .layer-band-icon { font-size: 10px; }
+        .layer-band-label {
+          font-size: 9px; font-weight: 700;
+          text-transform: uppercase; letter-spacing: 0.08em;
+          color: var(--layer-accent);
+        }
+
+        /* Edge default */
+        .layered-edge path { transition: opacity 200ms ease; }
+        .layered-edge circle { transition: opacity 200ms ease; }
+
         @media (max-width: 768px) {
           .diagram-mobile-hint { display: block !important; }
         }
@@ -492,26 +523,10 @@ function DiagramFlow({ data }: DiagramRendererProps) {
         .react-flow__controls button:hover {
           background: var(--bg-surface) !important;
         }
-        .react-flow__minimap {
-          background: var(--neu-bg) !important;
-        }
       `}</style>
+      {highlightCSS && <style>{highlightCSS}</style>}
     </div>
   );
-}
-
-/* ------------------------------------------------------------------ */
-/*  usePrevious hook                                                  */
-/* ------------------------------------------------------------------ */
-
-function usePrevious<T>(value: T): T | undefined {
-  const [prev, setPrev] = useState<T | undefined>(undefined);
-  const [current, setCurrent] = useState(value);
-  if (value !== current) {
-    setPrev(current);
-    setCurrent(value);
-  }
-  return prev;
 }
 
 /* ------------------------------------------------------------------ */
