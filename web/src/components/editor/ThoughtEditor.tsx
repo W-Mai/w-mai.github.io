@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import StickerPanel from './StickerPanel';
-import { renderPreviewMarkdown } from '../../lib/markdown-inline';
 
 interface ThoughtData {
   id: string;
@@ -33,7 +32,26 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   const [hasPending, setHasPending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const previewHtml = content ? renderPreviewMarkdown(content) : '';
+  const [previewHtml, setPreviewHtml] = useState('');
+  const previewTimer = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // Debounced server-side markdown preview
+  useEffect(() => {
+    if (!content) { setPreviewHtml(''); return; }
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    previewTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/editor/thoughts-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content }),
+        });
+        const data = await res.json();
+        if (data.html) setPreviewHtml(data.html);
+      } catch { /* keep stale preview */ }
+    }, 300);
+    return () => { if (previewTimer.current) clearTimeout(previewTimer.current); };
+  }, [content]);
 
   // Portal target for timeline preview
   const [previewSlot, setPreviewSlot] = useState<HTMLElement | null>(null);
