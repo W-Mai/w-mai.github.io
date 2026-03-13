@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import StickerPanel from './StickerPanel';
-import { renderInlineMarkdown } from '../../lib/markdown';
+import { renderPreviewMarkdown } from '../../lib/markdown-inline';
 
 interface ThoughtData {
   id: string;
@@ -33,7 +33,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   const [hasPending, setHasPending] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const previewHtml = content ? renderInlineMarkdown(content) : '';
+  const previewHtml = content ? renderPreviewMarkdown(content) : '';
 
   // Portal target for timeline preview
   const [previewSlot, setPreviewSlot] = useState<HTMLElement | null>(null);

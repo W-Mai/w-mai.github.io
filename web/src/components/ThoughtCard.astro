@@ -10,7 +10,7 @@ interface Props {
 }
 
 const { thought, isEditorMode = false } = Astro.props
-const html = renderInlineMarkdown(thought.content)
+const html = await renderInlineMarkdown(thought.content)
 const date = new Date(thought.createdAt)
 ---
 
