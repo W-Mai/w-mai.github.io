@@ -9,6 +9,7 @@ interface ToolbarProps {
   onStickerOpen?: () => void;
   onImageRailToggle?: () => void;
   imageRailOpen?: boolean;
+  onWechatExport?: () => void;
 }
 
 interface ToolbarItem {
@@ -43,7 +44,7 @@ const TOOLBAR_GROUPS: ToolbarItem[][] = [
   ],
 ];
 
-const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen, onImageRailToggle, imageRailOpen }) => {
+const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen, onImageRailToggle, imageRailOpen, onWechatExport }) => {
   const handleClick = (action: FormatAction) => {
     if (!editorView) return;
     FORMAT_ACTIONS[action](editorView);
@@ -124,6 +125,21 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen, o
             fontWeight: imageRailOpen ? 700 : 500,
           }}
         >🖼</button>
+        <button
+          onClick={onWechatExport}
+          disabled={!editorView}
+          className="editor-btn"
+          title="Export to WeChat"
+          style={{
+            background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
+            cursor: editorView ? 'pointer' : 'default', padding: `4px ${T.spacingMd}`,
+            fontSize: T.fontSizeSm, color: T.colorTextSecondary,
+            transition: `all ${T.transitionFast}`, lineHeight: 1.4,
+            minWidth: '28px', textAlign: 'center',
+            opacity: editorView ? 1 : 0.4,
+            boxShadow: T.shadowBtn,
+          }}
+        >📤</button>
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ import { setStickerPickerCallback } from '../../lib/editor-autocomplete';
 import StickerPicker from './StickerPicker';
 import EnvConfigPanel from './EnvConfigPanel';
 import PostImageManager from './PostImageManager';
+import WechatExportModal from './WechatExportModal';
 
 interface PostInfo {
   slug: string;
@@ -81,6 +82,7 @@ const LiveEditor: FC = () => {
   const [showStickerPanel, setShowStickerPanel] = useState(false);
   const [showEnvConfig, setShowEnvConfig] = useState(false);
   const [showImageRail, setShowImageRail] = useState(false);
+  const [showWechatExport, setShowWechatExport] = useState(false);
   const [stickerPicker, setStickerPicker] = useState<{
     pos: { x: number; y: number }; isBlock: boolean;
   } | null>(null);
@@ -717,7 +719,7 @@ const LiveEditor: FC = () => {
 
         {/* Toolbar */}
         {state.selectedSlug && (
-          <Toolbar editorView={editorRef.current?.getView() ?? null} activeFormats={activeFormats} onStickerOpen={() => setShowStickerPanel(true)} onImageRailToggle={() => setShowImageRail((v) => !v)} imageRailOpen={showImageRail} />
+          <Toolbar editorView={editorRef.current?.getView() ?? null} activeFormats={activeFormats} onStickerOpen={() => setShowStickerPanel(true)} onImageRailToggle={() => setShowImageRail((v) => !v)} imageRailOpen={showImageRail} onWechatExport={() => setShowWechatExport(true)} />
         )}
 
         {/* Editor + Preview split */}
@@ -836,6 +838,16 @@ const LiveEditor: FC = () => {
 
       {/* Env Config Panel */}
       <EnvConfigPanel isOpen={showEnvConfig} onClose={() => setShowEnvConfig(false)} />
+
+      {/* WeChat Export Modal */}
+      {state.selectedSlug && (
+        <WechatExportModal
+          isOpen={showWechatExport}
+          onClose={() => setShowWechatExport(false)}
+          slug={state.selectedSlug}
+          content={state.content}
+        />
+      )}
 
       {/* File Panel Overlay */}
       {showFilePanel && (
