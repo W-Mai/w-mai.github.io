@@ -47,6 +47,8 @@ const DiagramRenderer: FC<DiagramRendererProps> = ({ data }) => {
   const clampScale = (s: number) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, s));
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
+    // Only zoom on pinch (ctrlKey) or meta+scroll; let normal scroll pass through
+    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -176,12 +178,14 @@ const DiagramRenderer: FC<DiagramRendererProps> = ({ data }) => {
         style={{
           overflow: 'hidden', borderRadius: '1rem',
           width: '100%', height: '70vh', cursor: dragging ? 'grabbing' : 'grab',
-          touchAction: 'none', position: 'relative',
+          touchAction: 'pan-y', position: 'relative',
           boxShadow: 'inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong)',
         }}
       >
         <svg
           width="100%" height="100%"
+          viewBox={`0 0 ${layout.width} ${layout.height}`}
+          preserveAspectRatio="xMidYMid meet"
           style={{ display: 'block' }}
         >
           <defs>
