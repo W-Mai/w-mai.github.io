@@ -38,9 +38,11 @@ export interface ArchitectureData {
   edges: readonly ArchEdge[];
 }
 
-/** Persisted group positions from diagram-layout.json */
+/** Persisted layout data from diagram-layout.json */
 export interface DiagramLayoutData {
   groups?: Record<string, { x: number; y: number }>;
+  /** Per-edge bypassK overrides, keyed by "source-target" */
+  edges?: Record<string, { bypassK: number }>;
 }
 
 export const architectureData = {
@@ -54,11 +56,19 @@ export const architectureData = {
       },
     },
     {
-      id: 'editor', name: 'Editor', icon: '✏️',
+      id: 'editor-views', name: 'Editor Views', icon: '📝',
       theme: {
         accent: '#f59e0b', accentMuted: 'rgba(245,158,11,0.08)',
         border: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.04)',
         gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+      },
+    },
+    {
+      id: 'editor-parts', name: 'Editor Components', icon: '🧩',
+      theme: {
+        accent: '#e879f9', accentMuted: 'rgba(232,121,249,0.08)',
+        border: 'rgba(232,121,249,0.3)', bg: 'rgba(232,121,249,0.04)',
+        gradient: 'linear-gradient(135deg, #e879f9, #f0abfc)',
       },
     },
     {
@@ -98,15 +108,17 @@ export const architectureData = {
     { id: 'page-projects', name: '项目', icon: '📦', group: 'pages', url: '/projects', modes: ['publish', 'editor'] },
     { id: 'page-stats', name: '统计', icon: '📊', group: 'pages', url: '/stats', modes: ['publish', 'editor'] },
 
-    // Editor components — ordered by dependency alignment with API group
-    { id: 'editor-live', name: 'Live Editor', icon: '📝', group: 'editor', url: '/admin/live-editor', modes: ['editor'] },
-    { id: 'editor-mdx', name: 'MDX Editor', icon: '📄', group: 'editor', modes: ['editor'] },
-    { id: 'editor-thought', name: 'Thought Editor', icon: '💭', group: 'editor', modes: ['editor'] },
-    { id: 'editor-asset', name: 'Asset Manager', icon: '🖼️', group: 'editor', modes: ['editor'] },
-    { id: 'editor-sticker', name: 'Sticker Panel', icon: '🎨', group: 'editor', modes: ['editor'] },
-    { id: 'editor-ai', name: 'AI Diff Panel', icon: '🤖', group: 'editor', modes: ['editor'] },
-    { id: 'editor-git', name: 'Git Commit', icon: '📌', group: 'editor', modes: ['editor'] },
-    { id: 'editor-frontmatter', name: 'Frontmatter Panel', icon: '🏷️', group: 'editor', modes: ['editor'] },
+    // Editor views — top-level user-facing editors
+    { id: 'editor-live', name: 'Live Editor', icon: '📝', group: 'editor-views', url: '/admin/live-editor', modes: ['editor'] },
+    { id: 'editor-mdx', name: 'MDX Editor', icon: '📄', group: 'editor-views', modes: ['editor'] },
+    { id: 'editor-thought', name: 'Thought Editor', icon: '💭', group: 'editor-views', modes: ['editor'] },
+
+    // Editor components — reusable building blocks used by views
+    { id: 'editor-asset', name: 'Asset Manager', icon: '🖼️', group: 'editor-parts', modes: ['editor'] },
+    { id: 'editor-sticker', name: 'Sticker Panel', icon: '🎨', group: 'editor-parts', modes: ['editor'] },
+    { id: 'editor-ai', name: 'AI Diff Panel', icon: '🤖', group: 'editor-parts', modes: ['editor'] },
+    { id: 'editor-git', name: 'Git Commit', icon: '📌', group: 'editor-parts', modes: ['editor'] },
+    { id: 'editor-frontmatter', name: 'Frontmatter Panel', icon: '🏷️', group: 'editor-parts', modes: ['editor'] },
 
     // API routes — ordered to align with editor connections
     // editor-live has no API edge, so api-posts aligns with editor-mdx (row 1)
@@ -145,17 +157,16 @@ export const architectureData = {
     { source: 'page-home', target: 'data-github' },
     { source: 'page-home', target: 'data-posts' },
 
-    // Editor → API routes
-    // Editor intra-group connections (bypassK controls left-side routing distance)
+    // Editor views → Editor components (inter-group)
     { source: 'editor-live', target: 'editor-mdx', bypassK: 30 },
-    { source: 'editor-live', target: 'editor-frontmatter', bypassK: 42 },
-    { source: 'editor-live', target: 'editor-asset', bypassK: 54 },
-    { source: 'editor-live', target: 'editor-sticker', bypassK: 66 },
-    { source: 'editor-live', target: 'editor-ai', bypassK: 78 },
+    { source: 'editor-live', target: 'editor-frontmatter' },
+    { source: 'editor-live', target: 'editor-asset' },
+    { source: 'editor-live', target: 'editor-sticker' },
+    { source: 'editor-live', target: 'editor-ai' },
     { source: 'editor-mdx', target: 'api-posts' },
     { source: 'editor-thought', target: 'api-thoughts' },
-    { source: 'editor-thought', target: 'editor-git', bypassK: 30 },
-    { source: 'editor-thought', target: 'editor-ai', bypassK: 42 },
+    { source: 'editor-thought', target: 'editor-git' },
+    { source: 'editor-thought', target: 'editor-ai' },
     { source: 'editor-asset', target: 'api-assets' },
     { source: 'editor-sticker', target: 'api-stickers' },
     { source: 'editor-ai', target: 'api-ai' },

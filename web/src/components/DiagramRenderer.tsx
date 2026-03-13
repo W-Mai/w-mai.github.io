@@ -310,10 +310,11 @@ const DEFAULT_ROW_GAP = 50;
 // Default grid for initial layout when no saved positions exist
 const DEFAULT_GRID: { id: string; col: number; row: number }[] = [
   { id: 'pages', col: 0, row: 0 },
-  { id: 'data', col: 1, row: 0 },
-  { id: 'editor', col: 0, row: 1 },
-  { id: 'api', col: 1, row: 1 },
-  { id: 'build', col: 1, row: 2 },
+  { id: 'data', col: 2, row: 0 },
+  { id: 'editor-views', col: 0, row: 1 },
+  { id: 'editor-parts', col: 1, row: 1 },
+  { id: 'api', col: 2, row: 1 },
+  { id: 'build', col: 2, row: 2 },
 ];
 
 function computeGroupSize(archData: ArchitectureData, groupId: string) {
