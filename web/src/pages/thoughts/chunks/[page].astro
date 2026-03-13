@@ -1,6 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro'
 import ThoughtCard from '~/components/ThoughtCard.astro'
+import TimelineDateSeparator from '~/components/TimelineDateSeparator.astro'
 import type { Thought } from '~/data/thoughts'
 import { loadThoughts } from '~/data/thoughts'
 
@@ -10,29 +11,60 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const remaining = thoughts.slice(CHUNK_SIZE)
   const totalChunks = Math.ceil(remaining.length / CHUNK_SIZE)
 
-  return Array.from({ length: totalChunks }, (_, i) => ({
-    params: { page: String(i + 1) },
-    props: {
-      items: remaining.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE),
-      hasMore: i + 1 < totalChunks,
-    },
-  }))
+  return Array.from({ length: totalChunks }, (_, i) => {
+    const chunkItems = remaining.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+    // Last item before this chunk for cross-chunk separator detection
+    const prevItem = i > 0 ? remaining[i * CHUNK_SIZE - 1] : thoughts[CHUNK_SIZE - 1]
+    const pd = new Date(prevItem.createdAt)
+    return {
+      params: { page: String(i + 1) },
+      props: {
+        items: chunkItems,
+        hasMore: i + 1 < totalChunks,
+        prevYear: pd.getFullYear(),
+        prevMonth: pd.getMonth(),
+        prevDay: pd.getDate(),
+      },
+    }
+  })
 }
 
 interface Props {
   items: Thought[]
   hasMore: boolean
+  prevYear: number
+  prevMonth: number
+  prevDay: number
 }
 
-const { items, hasMore } = Astro.props
+const { items, hasMore, prevYear, prevMonth, prevDay } = Astro.props
 const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
+
+let curYear = prevYear
+let curMonth = prevMonth
+let curDay = prevDay
 ---
-<html><body data-has-more={String(hasMore)}>
-{items.map((thought) => (
-  <div class="timeline-item" data-chunk>
-    <div class="timeline-dot"></div>
-    <div class="timeline-connector"></div>
-    <ThoughtCard thought={thought} isEditorMode={isEditorMode} />
-  </div>
-))}
+<html><body data-has-more={String(hasMore)} data-prev-year={String(prevYear)} data-prev-month={String(prevMonth)} data-prev-day={String(prevDay)}>
+{items.map((thought, i) => {
+  const d = new Date(thought.createdAt)
+  const y = d.getFullYear()
+  const m = d.getMonth()
+  const day = d.getDate()
+  const showYear = y !== curYear
+  const showMonth = showYear || m !== curMonth
+  const showDay = showMonth || day !== curDay
+  curYear = y; curMonth = m; curDay = day
+  return (
+    <>
+      {showYear && <TimelineDateSeparator level="year" date={d} />}
+      {showMonth && <TimelineDateSeparator level="month" date={d} />}
+      {showDay && <TimelineDateSeparator level="day" date={d} />}
+      <div class="timeline-item" data-chunk>
+        <div class="timeline-dot"></div>
+        <div class="timeline-connector"></div>
+        <ThoughtCard thought={thought} isEditorMode={isEditorMode} />
+      </div>
+    </>
+  )
+})}
 </body></html>

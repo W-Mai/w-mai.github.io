@@ -254,6 +254,81 @@ a.neu-tag-chip:active {
   padding-left: 2rem;
   padding-bottom: 1.5rem;
 }
+
+/* Date separator — timeline node with label bubble instead of card */
+.timeline-separator {
+  position: relative;
+  padding-left: 2rem;
+  padding-bottom: 0.75rem;
+}
+.timeline-separator .timeline-connector {
+  bottom: -0.75rem;
+}
+.timeline-separator-label {
+  display: inline-block;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Year — largest bubble, raised */
+.timeline-separator-year {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.timeline-separator-year:first-child {
+  padding-top: 0;
+}
+.timeline-separator-year .timeline-separator-label {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  padding: 0.25rem 1rem;
+  border-radius: 1rem;
+  background: var(--neu-bg);
+  box-shadow: 3px 3px 6px var(--neu-shadow-dark),
+              -3px -3px 6px var(--neu-shadow-light);
+}
+.timeline-separator-year .timeline-dot {
+  width: 18px;
+  height: 18px;
+  left: -3px;
+  top: calc(1rem + 4px);
+}
+.timeline-separator-year:first-child .timeline-dot {
+  top: 4px;
+}
+
+/* Month — medium bubble, raised */
+.timeline-separator-month .timeline-separator-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.15rem 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--neu-bg);
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+              -2px -2px 4px var(--neu-shadow-light);
+}
+
+/* Day — smallest bubble, inset */
+.timeline-separator-day .timeline-separator-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.125rem 0.625rem;
+  border-radius: 0.625rem;
+  background: var(--neu-bg);
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+}
+
+@media (max-width: 720px) {
+  .timeline-separator { padding-left: 1.5rem; }
+  .timeline-separator-year .timeline-dot {
+    width: 16px;
+    height: 16px;
+    left: -3px;
+  }
+}
 .timeline-connector {
   position: absolute;
   left: 3px;

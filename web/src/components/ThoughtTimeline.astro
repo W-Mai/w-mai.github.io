@@ -1,5 +1,6 @@
 ---
 import ThoughtCard from './ThoughtCard.astro'
+import TimelineDateSeparator from './TimelineDateSeparator.astro'
 import type { Thought } from '../data/thoughts'
 
 interface Props {
@@ -9,17 +10,43 @@ interface Props {
 }
 
 const { thoughts, delayStart = 3, isEditorMode = false } = Astro.props
+
+let prevYear = -1
+let prevMonth = -1
+let prevDay = -1
+let seq = 0
 ---
 
 <div class="thought-timeline">
   {/* Preview slot — React ThoughtEditor portals live preview here */}
   <div id="thought-preview-slot"></div>
 
-  {thoughts.map((thought, i) => (
-    <div class="timeline-item anim-fade" style={`--delay:${delayStart + i}`}>
-      <div class="timeline-dot"></div>
-      <div class="timeline-connector"></div>
-      <ThoughtCard thought={thought} isEditorMode={isEditorMode} />
-    </div>
-  ))}
+  {thoughts.map((thought) => {
+    const d = new Date(thought.createdAt)
+    const y = d.getFullYear()
+    const m = d.getMonth()
+    const day = d.getDate()
+    const showYear = y !== prevYear
+    const showMonth = showYear || m !== prevMonth
+    const showDay = showMonth || day !== prevDay
+    prevYear = y; prevMonth = m; prevDay = day
+
+    const yearDelay = showYear ? seq++ : -1
+    const monthDelay = showMonth ? seq++ : -1
+    const dayDelay = showDay ? seq++ : -1
+    const itemDelay = seq++
+
+    return (
+      <>
+        {showYear && <TimelineDateSeparator level="year" date={d} delay={delayStart + yearDelay} />}
+        {showMonth && <TimelineDateSeparator level="month" date={d} delay={delayStart + monthDelay} />}
+        {showDay && <TimelineDateSeparator level="day" date={d} delay={delayStart + dayDelay} />}
+        <div class="timeline-item anim-fade" style={`--delay:${delayStart + itemDelay}`}>
+          <div class="timeline-dot"></div>
+          <div class="timeline-connector"></div>
+          <ThoughtCard thought={thought} isEditorMode={isEditorMode} />
+        </div>
+      </>
+    )
+  })}
 </div>

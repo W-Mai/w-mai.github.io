@@ -124,7 +124,7 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
     if (!timeline) return
 
     // Ensure SSR items are visible (scroll-restored pages)
-    timeline.querySelectorAll<HTMLElement>('.timeline-item.anim-fade:not(.visible)').forEach((el) => {
+    timeline.querySelectorAll<HTMLElement>('.anim-fade:not(.visible)').forEach((el) => {
       el.classList.add('visible')
     })
 
@@ -140,20 +140,25 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
 
       const doc = new DOMParser().parseFromString(html, 'text/html')
       const hasMore = doc.body.dataset.hasMore === 'true'
-      const newItems = doc.querySelectorAll<HTMLElement>('.timeline-item')
-      newItems.forEach((el, i) => {
-        el.classList.add('anim-fade')
+      // Extract separators and timeline items in DOM order
+      const newElements = doc.body.querySelectorAll<HTMLElement>('.timeline-separator, .timeline-item')
+      const animTargets: HTMLElement[] = []
+      const wireTargets: HTMLElement[] = []
+      newElements.forEach((el, i) => {
         el.style.setProperty('--delay', String(i))
+        if (!el.classList.contains('anim-fade')) el.classList.add('anim-fade')
+        animTargets.push(el)
+        if (el.classList.contains('timeline-item')) wireTargets.push(el)
         timeline!.appendChild(el)
       })
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          newItems.forEach((el) => el.classList.add('visible'))
+          animTargets.forEach((el) => el.classList.add('visible'))
         })
       })
 
       // Wire edit/delete buttons on newly loaded items
-      newItems.forEach((el) => wireEditorButtons(el))
+      wireTargets.forEach((el) => wireEditorButtons(el))
 
       nextPage++
       applyTagFilter()

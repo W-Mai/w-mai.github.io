@@ -1,0 +1,25 @@
+---
+interface Props {
+  level: 'year' | 'month' | 'day'
+  date: Date
+  delay?: number
+}
+
+const { level, date, delay = 0 } = Astro.props
+
+const year = date.getFullYear()
+const month = date.toLocaleDateString('zh-CN', { month: 'long' })
+const day = date.getDate()
+const weekday = date.toLocaleDateString('zh-CN', { weekday: 'long' })
+
+const label =
+  level === 'year' ? `${year}` :
+  level === 'month' ? `${month}` :
+  `${day}日 ${weekday}`
+---
+
+<div class={`timeline-separator timeline-separator-${level} anim-fade`} style={`--delay:${delay}`}>
+  <div class="timeline-dot"></div>
+  <div class="timeline-connector"></div>
+  <span class="timeline-separator-label">{label}</span>
+</div>
