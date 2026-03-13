@@ -29,10 +29,12 @@
         "astro-mermaid": "^1.0.4",
         "date-fns": "^4.1.0",
         "html2canvas": "^1.4.1",
+        "konva": "^10.2.0",
         "mermaid": "^11.12.0",
         "pinyin-pro": "^3.28.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
+        "react-konva": "^19.2.3",
         "rehype-katex": "^7.0.1",
         "remark-math": "^6.0.0",
         "satori": "^0.25.0",
@@ -680,6 +682,8 @@
 
     "@types/react-dom": ["@types/react-dom@19.2.3", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ=="],
 
+    "@types/react-reconciler": ["@types/react-reconciler@0.33.0", "", { "peerDependencies": { "@types/react": "*" } }, "sha512-HZOXsKT0tGI9LlUw2LuedXsVeB88wFa536vVL0M6vE8zN63nI+sSr1ByxmPToP5K5bukaVscyeCJcF9guVNJ1g=="],
+
     "@types/sax": ["@types/sax@https://registry.npmjs.org/@types/sax/-/sax-1.2.7.tgz", { "dependencies": { "@types/node": "*" } }],
 
     "@types/trusted-types": ["@types/trusted-types@https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz", {}],
@@ -1176,6 +1180,8 @@
 
     "is-wsl": ["is-wsl@3.1.1", "", { "dependencies": { "is-inside-container": "^1.0.0" } }, "sha512-e6rvdUCiQCAuumZslxRJWR/Doq4VpPR82kqclvcS0efgt430SlGIk05vdCN58+VrzgtIcfNODjozVielycD4Sw=="],
 
+    "its-fine": ["its-fine@2.0.0", "", { "dependencies": { "@types/react-reconciler": "^0.28.9" }, "peerDependencies": { "react": "^19.0.0" } }, "sha512-KLViCmWx94zOvpLwSlsx6yOCeMhZYaxrJV87Po5k/FoZzcPSahvK5qJ7fYhS61sZi5ikmh2S3Hz55A2l3U69ng=="],
+
     "jiti": ["jiti@https://registry.npmjs.org/jiti/-/jiti-2.5.1.tgz", {}],
 
     "js-tokens": ["js-tokens@4.0.0", "", {}, "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="],
@@ -1201,6 +1207,8 @@
     "klona": ["klona@https://registry.npmjs.org/klona/-/klona-2.0.6.tgz", {}],
 
     "kolorist": ["kolorist@https://registry.npmjs.org/kolorist/-/kolorist-1.8.0.tgz", {}],
+
+    "konva": ["konva@10.2.0", "", {}, "sha512-JBoz0Xjbf49UPxCZegZ4WseqOzJ+C4AUDOtJ9eBve5RS5Fcq/u8TdBD5fDl/uPFInpC3a9uycm0sRyZpF4hheg=="],
 
     "langium": ["langium@https://registry.npmjs.org/langium/-/langium-3.3.1.tgz", { "dependencies": { "chevrotain": "~11.0.3", "chevrotain-allstar": "~0.3.0", "vscode-languageserver": "~9.0.1", "vscode-languageserver-textdocument": "~1.0.11", "vscode-uri": "~3.0.8" } }],
 
@@ -1481,6 +1489,10 @@
     "react-dom": ["react-dom@19.2.4", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.4" } }, "sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ=="],
 
     "react-is": ["react-is@17.0.2", "", {}, "sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w=="],
+
+    "react-konva": ["react-konva@19.2.3", "", { "dependencies": { "@types/react-reconciler": "^0.33.0", "its-fine": "^2.0.0", "react-reconciler": "0.33.0", "scheduler": "0.27.0" }, "peerDependencies": { "konva": "^8.0.1 || ^7.2.5 || ^9.0.0 || ^10.0.0", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "sha512-VsO5CJZwUo12xFa33UEIDOQn6ZZBeE6jlkStGFvpR/3NiDA/9RPQTzw6Ri++C0Pnh3Arco1AehB8qJNv9YCRwg=="],
+
+    "react-reconciler": ["react-reconciler@0.33.0", "", { "dependencies": { "scheduler": "^0.27.0" }, "peerDependencies": { "react": "^19.2.0" } }, "sha512-KetWRytFv1epdpJc3J4G75I4WrplZE5jOL7Yq0p34+OVOKF4Se7WrdIdVC45XsSSmUTlht2FM/fM1FZb1mfQeA=="],
 
     "react-refresh": ["react-refresh@0.17.0", "", {}, "sha512-z6F7K9bV85EfseRCp2bzrpyQ0Gkw1uLoCel9XBVWPg/TjRj94SkJzUTGfOa4bs7iJvBWtQG0Wq7wnI0syw3EBQ=="],
 
@@ -2063,6 +2075,8 @@
     "hastscript/space-separated-tokens": ["space-separated-tokens@https://registry.npmjs.org/space-separated-tokens/-/space-separated-tokens-2.0.2.tgz", {}],
 
     "i18next/@babel/runtime": ["@babel/runtime@https://registry.npmjs.org/@babel/runtime/-/runtime-7.28.3.tgz", {}],
+
+    "its-fine/@types/react-reconciler": ["@types/react-reconciler@0.28.9", "", { "peerDependencies": { "@types/react": "*" } }, "sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg=="],
 
     "katex/commander": ["commander@https://registry.npmjs.org/commander/-/commander-8.3.0.tgz", {}],
 
