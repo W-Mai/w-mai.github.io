@@ -14,7 +14,6 @@ import {
   useReactFlow,
   ReactFlowProvider,
   BaseEdge,
-  getSmoothStepPath,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import type { ElkNode, ElkExtendedEdge } from 'elkjs';
@@ -188,14 +187,39 @@ function ColoredEdge({
   id, sourceX, sourceY, targetX, targetY,
   sourcePosition, targetPosition, data, style,
 }: EdgeProps) {
-  const d = data as { label?: string; disabled?: boolean; color?: string } | undefined;
+  const d = data as { label?: string; disabled?: boolean; color?: string; midXOffset?: number } | undefined;
   const disabled = d?.disabled ?? false;
   const color = d?.color ?? '#94a3b8';
+  const offset = d?.midXOffset ?? 0;
 
-  const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX, sourceY, targetX, targetY,
-    sourcePosition, targetPosition, borderRadius: 16,
-  });
+  // Custom orthogonal path with offset mid-X to separate overlapping edges
+  const midX = (sourceX + targetX) / 2 + offset;
+  const r = 10;
+
+  // Build rounded orthogonal path: source → midX → target
+  const dy1 = targetY > sourceY ? r : targetY < sourceY ? -r : 0;
+  const dy2 = targetY > sourceY ? -r : targetY < sourceY ? r : 0;
+  const dx1 = r;
+  const dx2 = -r;
+
+  let edgePath: string;
+  if (Math.abs(targetY - sourceY) < 1) {
+    // Straight horizontal
+    edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
+  } else {
+    // Orthogonal with rounded corners
+    edgePath = [
+      `M ${sourceX} ${sourceY}`,
+      `L ${midX - dx1} ${sourceY}`,
+      `Q ${midX} ${sourceY} ${midX} ${sourceY + dy1}`,
+      `L ${midX} ${targetY - dy2}`,
+      `Q ${midX} ${targetY} ${midX + dx2} ${targetY}`,
+      `L ${targetX} ${targetY}`,
+    ].join(' ');
+  }
+
+  const labelX = midX;
+  const labelY = (sourceY + targetY) / 2;
 
   return (
     <>
@@ -350,10 +374,14 @@ async function computeElkLayout(
     }
   }
 
-  // Build edges with handle assignments and solid colors
+  // Build edges with handle assignments, solid colors, and mid-X offsets
   const edges: Edge[] = [];
   const srcCounter = new Map<string, number>();
   const tgtCounter = new Map<string, number>();
+
+  // Group edges by source-group → target-group pair to compute mid-X offsets
+  const pairCounter = new Map<string, number>();
+  const OFFSET_STEP = 12;
 
   for (const e of archData.edges) {
     const srcNode = archData.nodes.find((n) => n.id === e.source);
@@ -367,6 +395,12 @@ async function computeElkLayout(
     srcCounter.set(e.source, sIdx + 1);
     tgtCounter.set(e.target, tIdx + 1);
 
+    // Compute offset for edges between same group pairs
+    const pairKey = `${srcNode.group}->${tgtNode.group}`;
+    const pairIdx = pairCounter.get(pairKey) ?? 0;
+    pairCounter.set(pairKey, pairIdx + 1);
+    const midXOffset = (pairIdx - (pairCounter.get(pairKey)! - 1) / 2) * OFFSET_STEP;
+
     edges.push({
       id: `${e.source}-${e.target}`,
       source: e.source,
@@ -374,8 +408,30 @@ async function computeElkLayout(
       sourceHandle: `src-${sIdx}`,
       targetHandle: `tgt-${tIdx}`,
       type: 'colored',
-      data: { label: e.label, disabled, color: srcTheme.accent },
+      data: { label: e.label, disabled, color: srcTheme.accent, midXOffset },
     });
+  }
+
+  // Re-center offsets per pair (now that we know total count)
+  const pairTotals = new Map<string, number>();
+  for (const e of archData.edges) {
+    const srcNode = archData.nodes.find((n) => n.id === e.source);
+    const tgtNode = archData.nodes.find((n) => n.id === e.target);
+    if (!srcNode || !tgtNode) continue;
+    const pairKey = `${srcNode.group}->${tgtNode.group}`;
+    pairTotals.set(pairKey, (pairTotals.get(pairKey) ?? 0) + 1);
+  }
+
+  const pairIdx2 = new Map<string, number>();
+  for (const edge of edges) {
+    const srcNode = archData.nodes.find((n) => n.id === edge.source);
+    const tgtNode = archData.nodes.find((n) => n.id === edge.target);
+    if (!srcNode || !tgtNode) continue;
+    const pairKey = `${srcNode.group}->${tgtNode.group}`;
+    const total = pairTotals.get(pairKey) ?? 1;
+    const idx = pairIdx2.get(pairKey) ?? 0;
+    pairIdx2.set(pairKey, idx + 1);
+    (edge.data as any).midXOffset = (idx - (total - 1) / 2) * OFFSET_STEP;
   }
 
   return { nodes, edges };
