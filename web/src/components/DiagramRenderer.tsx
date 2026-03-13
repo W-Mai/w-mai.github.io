@@ -194,26 +194,22 @@ function ColoredEdge({
 
   // Custom orthogonal path with offset mid-X to separate overlapping edges
   const midX = (sourceX + targetX) / 2 + offset;
-  const r = 10;
-
-  // Build rounded orthogonal path: source → midX → target
-  const dy1 = targetY > sourceY ? r : targetY < sourceY ? -r : 0;
-  const dy2 = targetY > sourceY ? -r : targetY < sourceY ? r : 0;
-  const dx1 = r;
-  const dx2 = -r;
+  const r = Math.min(10, Math.abs(targetY - sourceY) / 2, Math.abs(midX - sourceX), Math.abs(targetX - midX));
 
   let edgePath: string;
   if (Math.abs(targetY - sourceY) < 1) {
-    // Straight horizontal
     edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
   } else {
-    // Orthogonal with rounded corners
+    // Determine vertical direction: +1 = down, -1 = up
+    const dirY = targetY > sourceY ? 1 : -1;
+    // Corner 1: horizontal to vertical (at midX, sourceY)
+    // Corner 2: vertical to horizontal (at midX, targetY)
     edgePath = [
       `M ${sourceX} ${sourceY}`,
-      `L ${midX - dx1} ${sourceY}`,
-      `Q ${midX} ${sourceY} ${midX} ${sourceY + dy1}`,
-      `L ${midX} ${targetY - dy2}`,
-      `Q ${midX} ${targetY} ${midX + dx2} ${targetY}`,
+      `L ${midX - r} ${sourceY}`,
+      `Q ${midX} ${sourceY} ${midX} ${sourceY + r * dirY}`,
+      `L ${midX} ${targetY - r * dirY}`,
+      `Q ${midX} ${targetY} ${midX + r} ${targetY}`,
       `L ${targetX} ${targetY}`,
     ].join(' ');
   }
