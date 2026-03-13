@@ -14,7 +14,6 @@ import {
   Handle,
   useReactFlow,
   ReactFlowProvider,
-  BaseEdge,
   applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -53,17 +52,15 @@ function ArchNodeComponent({ data }: NodeProps) {
   const card: CSSProperties = {
     position: 'relative',
     display: 'flex', alignItems: 'center', gap: '8px',
-    padding: '10px 16px 10px 14px', borderRadius: '10px',
-    fontSize: '13px', fontWeight: 600, letterSpacing: '0.01em',
+    padding: '8px 14px 8px 12px', borderRadius: '8px',
+    fontSize: '12px', fontWeight: 500, letterSpacing: '0.01em',
     cursor: d.navigable ? 'pointer' : 'default',
-    background: d.disabled ? 'var(--neu-bg)' : 'var(--bg-surface)',
+    background: 'transparent',
     color: d.disabled ? 'var(--text-muted)' : 'var(--text-primary)',
-    opacity: d.disabled ? 0.4 : 1,
-    boxShadow: d.disabled
-      ? 'inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong)'
-      : '3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light)',
-    transition: 'opacity 250ms ease, box-shadow 250ms ease, transform 200ms ease',
-    border: 'none', minWidth: '140px', whiteSpace: 'nowrap' as const, overflow: 'hidden',
+    opacity: d.disabled ? 0.35 : 1,
+    border: `1px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
+    transition: 'opacity 200ms ease, border-color 200ms ease, background 200ms ease',
+    minWidth: '140px', whiteSpace: 'nowrap' as const, overflow: 'hidden',
   };
 
   const handleClick = () => {
@@ -84,71 +81,59 @@ function ArchNodeComponent({ data }: NodeProps) {
   const srcOffsets = getOffsets(srcHandles.length);
   const tgtOffsets = getOffsets(tgtHandles.length);
 
+  const handleStyle = (accent: string): CSSProperties => ({
+    background: 'var(--neu-bg)', width: 6, height: 6,
+    border: `1.5px solid ${accent}`,
+  });
+
   return (
     <div style={card} onClick={handleClick}
       onMouseEnter={(e) => {
         if (!d.disabled) {
-          const el = e.currentTarget as HTMLElement;
-          el.style.transform = 'translateY(-2px)';
-          el.style.boxShadow = '4px 4px 12px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)';
+          (e.currentTarget as HTMLElement).style.background = theme.accentMuted;
+          (e.currentTarget as HTMLElement).style.borderColor = theme.accent;
         }
       }}
       onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.transform = '';
-        el.style.boxShadow = d.disabled
-          ? 'inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong)'
-          : '3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light)';
+        (e.currentTarget as HTMLElement).style.background = 'transparent';
+        (e.currentTarget as HTMLElement).style.borderColor = d.disabled ? 'var(--border-divider)' : theme.border;
       }}
     >
       {tgtHandles.map((hId, i) => (
         <Handle key={hId} id={hId} type="target" position={Position.Left}
-          style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)', top: tgtOffsets[i] }} />
+          style={{ ...handleStyle(theme.accent), top: tgtOffsets[i] }} />
       ))}
       {tgtHandles.length === 0 && (
-        <Handle type="target" position={Position.Left}
-          style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)' }} />
+        <Handle type="target" position={Position.Left} style={handleStyle(theme.accent)} />
       )}
 
-      <div style={{
-        position: 'absolute', left: 0, top: '20%', bottom: '20%',
-        width: '3px', borderRadius: '0 3px 3px 0',
-        background: d.disabled ? 'var(--text-muted)' : theme.gradient,
-      }} />
-
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        width: '26px', height: '26px', borderRadius: '6px',
-        background: d.disabled ? 'transparent' : theme.accentMuted,
-        fontSize: '14px', flexShrink: 0,
-      }}><span>{d.icon}</span></div>
+      <span style={{ fontSize: '14px', flexShrink: 0, opacity: d.disabled ? 0.5 : 0.8 }}>{d.icon}</span>
       <span>{d.label}</span>
 
       {srcHandles.map((hId, i) => (
         <Handle key={hId} id={hId} type="source" position={Position.Right}
-          style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)', top: srcOffsets[i] }} />
+          style={{ ...handleStyle(theme.accent), top: srcOffsets[i] }} />
       ))}
       {srcHandles.length === 0 && (
-        <Handle type="source" position={Position.Right}
-          style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)' }} />
+        <Handle type="source" position={Position.Right} style={handleStyle(theme.accent)} />
       )}
 
-      {/* Left handles for intra-group source (near bottom of node) */}
+      {/* Left handles for intra-group source */}
       {(d.intraSourceHandles ?? []).map((hId, i, arr) => {
         const baseTop = 75;
         const step = arr.length > 1 ? 15 / arr.length : 0;
         return (
           <Handle key={hId} id={hId} type="source" position={Position.Left}
-            style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', top: `${baseTop + i * step}%` }} />
+            style={{ ...handleStyle(theme.accent), width: 5, height: 5, top: `${baseTop + i * step}%` }} />
         );
       })}
-      {/* Left handles for intra-group target (near top of node) */}
+      {/* Left handles for intra-group target */}
       {(d.intraTargetHandles ?? []).map((hId, i, arr) => {
         const baseTop = 25;
         const step = arr.length > 1 ? 15 / arr.length : 0;
         return (
           <Handle key={hId} id={hId} type="target" position={Position.Left}
-            style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', top: `${baseTop + i * step}%` }} />
+            style={{ ...handleStyle(theme.accent), width: 5, height: 5, top: `${baseTop + i * step}%` }} />
         );
       })}
     </div>
@@ -165,25 +150,25 @@ function GroupNodeComponent({ data }: NodeProps) {
 
   return (
     <div style={{
-      width: '100%', height: '100%', borderRadius: '14px',
-      border: `1.5px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
-      background: d.disabled ? 'transparent' : theme.bg,
-      opacity: d.disabled ? 0.5 : 1, transition: 'opacity 250ms ease', overflow: 'hidden',
+      width: '100%', height: '100%', borderRadius: '10px',
+      border: `1.5px dashed ${d.disabled ? 'var(--border-divider)' : theme.border}`,
+      background: 'transparent',
+      opacity: d.disabled ? 0.4 : 1, transition: 'opacity 200ms ease',
     }}>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
-        borderBottom: `1px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
-        background: d.disabled ? 'transparent' : theme.accentMuted,
+        display: 'inline-flex', alignItems: 'center', gap: '5px',
+        padding: '4px 10px', margin: '8px 0 0 10px',
+        borderRadius: '6px', background: theme.accentMuted,
+        border: `1px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
       }}>
-        <span style={{ fontSize: '14px' }}>{d.icon}</span>
+        <span style={{ fontSize: '11px' }}>{d.icon}</span>
         <span style={{
-          fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' as const,
-          letterSpacing: '0.06em', color: d.disabled ? 'var(--text-muted)' : theme.accent,
+          fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' as const,
+          letterSpacing: '0.08em', color: d.disabled ? 'var(--text-muted)' : theme.accent,
         }}>{d.label}</span>
         <span style={{
-          fontSize: '10px', fontWeight: 600, padding: '1px 6px', borderRadius: '8px',
-          background: d.disabled ? 'transparent' : theme.accentMuted,
-          color: d.disabled ? 'var(--text-muted)' : theme.accent, marginLeft: 'auto',
+          fontSize: '9px', fontWeight: 600, marginLeft: '2px',
+          color: d.disabled ? 'var(--text-muted)' : theme.accent, opacity: 0.6,
         }}>{d.nodeCount}</span>
       </div>
     </div>
@@ -194,7 +179,7 @@ function GroupNodeComponent({ data }: NodeProps) {
 /*  Custom orthogonal edge with FrameworkDrawer-style offset           */
 /* ------------------------------------------------------------------ */
 
-function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: EdgeProps) {
+function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps) {
   const d = data as {
     label?: string; disabled?: boolean; color?: string;
     midXOffset?: number; intraGroup?: boolean; bypassK?: number;
@@ -203,12 +188,11 @@ function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: Ed
   const color = d?.color ?? '#94a3b8';
   const offset = d?.midXOffset ?? 0;
   const intraGroup = d?.intraGroup ?? false;
+  const markerId = `arrow-${id.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
   let edgePath: string;
 
   if (intraGroup) {
-    // FrameworkDrawer algorithm: route left out → down → left back in
-    // bypassK = per-source offset distance (BASE + edgeIndex * STEP)
     const k = d?.bypassK ?? 30;
     const bypassX = Math.min(sourceX, targetX) - k;
     const r = 8;
@@ -242,23 +226,27 @@ function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: Ed
 
   return (
     <>
-      <BaseEdge id={id} path={edgePath} style={{
-        ...style, stroke: color,
-        strokeWidth: disabled ? 1 : 1.5,
-        opacity: disabled ? 0.15 : 0.5,
-      }} />
+      <defs>
+        <marker id={markerId} markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <path d="M 0 0 L 8 3 L 0 6 Z" fill={color} opacity={disabled ? 0.2 : 0.6} />
+        </marker>
+      </defs>
+      <path d={edgePath} fill="none"
+        stroke={color}
+        strokeWidth={disabled ? 0.8 : 1.2}
+        strokeDasharray={disabled ? '4 3' : intraGroup ? '3 2' : 'none'}
+        opacity={disabled ? 0.15 : 0.55}
+        markerEnd={`url(#${markerId})`}
+      />
       {!disabled && (
-        <circle r="2" fill={color} opacity="0.9">
+        <circle r="1.5" fill={color} opacity="0.8">
           <animateMotion dur="3s" repeatCount="indefinite" path={edgePath} />
         </circle>
       )}
       {d?.label && (
         <g transform={`translate(${labelX}, ${labelY})`}>
-          <rect x="-18" y="-9" width="36" height="18" rx="4"
-            fill="var(--neu-bg)" fillOpacity="0.9"
-            stroke={color} strokeWidth="0.5" strokeOpacity="0.3" />
           <text textAnchor="middle" dominantBaseline="central"
-            style={{ fontSize: '9px', fontWeight: 600, fill: color, opacity: disabled ? 0.4 : 0.8 }}>
+            style={{ fontSize: '8px', fontWeight: 500, fill: color, opacity: disabled ? 0.3 : 0.7 }}>
             {d.label}
           </text>
         </g>
