@@ -267,9 +267,31 @@ function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: Ed
   );
 }
 
+/* ------------------------------------------------------------------ */
+/*  Bypass control point node (dev mode only, drag to adjust bypassK) */
+/* ------------------------------------------------------------------ */
+
+const SNAP_GRID = 6;
+
+function BypassControlComponent({ data }: NodeProps) {
+  const d = data as { edgeId: string; color: string };
+  return (
+    <div
+      title={`Drag to adjust bypass (${d.edgeId})`}
+      style={{
+        width: 10, height: 10, borderRadius: '50%',
+        background: d.color, opacity: 0.7, cursor: 'ew-resize',
+        border: '2px solid var(--neu-bg)',
+        boxShadow: '0 0 4px rgba(0,0,0,0.3)',
+      }}
+    />
+  );
+}
+
 const nodeTypes: NodeTypes = {
   archNode: ArchNodeComponent as any,
   groupNode: GroupNodeComponent as any,
+  bypassControl: BypassControlComponent as any,
 };
 const edgeTypes = { colored: ColoredEdge as any };
 
@@ -346,6 +368,8 @@ function buildLayout(
   archData: ArchitectureData,
   mode: ViewMode,
   groupPositions: Record<string, { x: number; y: number }>,
+  edgeOverrides?: Record<string, { bypassK: number }>,
+  editorMode?: boolean,
 ): { nodes: Node[]; edges: Edge[] } {
   for (const g of archData.groups) GROUP_THEMES[g.id] = g.theme;
 
@@ -482,12 +506,33 @@ function buildLayout(
     intraTgtCounter.set(e.target, tIdx + 1);
     const srcEdgeIdx = perSourceCounter.get(e.source) ?? 0;
     perSourceCounter.set(e.source, srcEdgeIdx + 1);
-    const bypassK = e.bypassK ?? (INTRA_BASE + srcEdgeIdx * INTRA_STEP);
+    const edgeKey = `${e.source}-${e.target}`;
+    const overrideK = edgeOverrides?.[edgeKey]?.bypassK;
+    const bypassK = overrideK ?? e.bypassK ?? (INTRA_BASE + srcEdgeIdx * INTRA_STEP);
     edges.push({
-      id: `${e.source}-${e.target}`, source: e.source, target: e.target,
+      id: edgeKey, source: e.source, target: e.target,
       sourceHandle: `isrc-${sIdx}`, targetHandle: `itgt-${tIdx}`, type: 'colored',
       data: { label: e.label, disabled, color: getTheme(srcNode.group).accent, intraGroup: true, bypassK },
     });
+
+    // Add bypass control point node in editor mode
+    if (editorMode && !disabled) {
+      const groupId = srcNode.group;
+      const gPos = groupPositions[groupId] ?? { x: 0, y: 0 };
+      const srcAbsY = nodeAbsY.get(e.source) ?? 0;
+      const tgtAbsY = nodeAbsY.get(e.target) ?? 0;
+      const midY = (srcAbsY + tgtAbsY) / 2;
+      // bypassX = group left edge + GROUP_PAD (node left) - bypassK
+      const nodeLeftX = gPos.x + GROUP_PAD;
+      const controlX = nodeLeftX - bypassK;
+      nodes.push({
+        id: `bypass-${edgeKey}`, type: 'bypassControl',
+        position: { x: controlX - 5, y: midY - 5 },
+        data: { edgeId: edgeKey, color: getTheme(groupId).accent, sourceId: e.source, groupId },
+        draggable: true, selectable: false,
+        style: { width: 10, height: 10, zIndex: 100 },
+      });
+    }
   }
 
   for (const e of interGroupEdges) {
@@ -515,11 +560,14 @@ function buildLayout(
 /*  Save layout to server (editor mode only)                          */
 /* ------------------------------------------------------------------ */
 
-async function saveLayout(positions: Record<string, { x: number; y: number }>) {
+async function saveLayout(
+  positions: Record<string, { x: number; y: number }>,
+  edgeOverrides: Record<string, { bypassK: number }>,
+) {
   const res = await fetch('/api/editor/diagram-layout', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ groups: positions }),
+    body: JSON.stringify({ groups: positions, edges: edgeOverrides }),
   });
   return res.ok;
 }
@@ -543,23 +591,29 @@ function DiagramFlow({ data, savedLayout, editorMode }: DiagramRendererProps) {
     return defaultGroupPositions(data);
   });
 
+  // Track edge bypassK overrides
+  const [edgeOverrides, setEdgeOverrides] = useState<Record<string, { bypassK: number }>>(() => {
+    return savedLayout?.edges ?? {};
+  });
+
   // Rebuild layout when mode changes (not on every drag)
   useEffect(() => {
-    const result = buildLayout(data, mode, groupPositions);
+    const result = buildLayout(data, mode, groupPositions, edgeOverrides, editorMode);
     setNodes(result.nodes);
     setEdges(result.edges);
     setTimeout(() => fitView({ padding: 0.12, duration: 300 }), 50);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, mode, fitView]);
 
-  // Handle node changes (drag group nodes)
+  // Handle node changes (drag group nodes and bypass control points)
   const onNodesChange: OnNodesChange = useCallback((changes) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
 
-    // Track group position changes for save
     for (const change of changes) {
       if (change.type === 'position' && change.position) {
         const nodeId = change.id;
+
+        // Group drag end → save position
         if (nodeId.startsWith('group-') && !change.dragging) {
           const groupId = nodeId.replace('group-', '');
           setGroupPositions((prev) => ({
@@ -568,16 +622,57 @@ function DiagramFlow({ data, savedLayout, editorMode }: DiagramRendererProps) {
           }));
           setDirty(true);
         }
+
+        // Bypass control point drag → constrain to horizontal, snap, update bypassK
+        if (nodeId.startsWith('bypass-') && change.dragging) {
+          const edgeKey = nodeId.replace('bypass-', '');
+          setNodes((nds) => {
+            const ctrlNode = nds.find((n) => n.id === nodeId);
+            if (!ctrlNode) return nds;
+            const { groupId } = ctrlNode.data as { groupId: string };
+            const gPos = groupPositions[groupId] ?? { x: 0, y: 0 };
+            const nodeLeftX = gPos.x + GROUP_PAD;
+            const rawK = nodeLeftX - (change.position!.x + 5);
+            const snappedK = Math.max(12, Math.round(rawK / SNAP_GRID) * SNAP_GRID);
+            const snappedX = nodeLeftX - snappedK - 5;
+
+            // Update edge bypassK in real-time
+            setEdges((eds) => eds.map((e) =>
+              e.id === edgeKey ? { ...e, data: { ...e.data, bypassK: snappedK } } : e,
+            ));
+
+            return nds.map((n) =>
+              n.id === nodeId ? { ...n, position: { x: snappedX, y: ctrlNode.position.y } } : n,
+            );
+          });
+        }
+
+        // Bypass control point drag end → persist override
+        if (nodeId.startsWith('bypass-') && !change.dragging) {
+          const edgeKey = nodeId.replace('bypass-', '');
+          setNodes((nds) => {
+            const ctrlNode = nds.find((n) => n.id === nodeId);
+            if (!ctrlNode) return nds;
+            const { groupId } = ctrlNode.data as { groupId: string };
+            const gPos = groupPositions[groupId] ?? { x: 0, y: 0 };
+            const nodeLeftX = gPos.x + GROUP_PAD;
+            const rawK = nodeLeftX - (change.position!.x + 5);
+            const snappedK = Math.max(12, Math.round(rawK / SNAP_GRID) * SNAP_GRID);
+            setEdgeOverrides((prev) => ({ ...prev, [edgeKey]: { bypassK: snappedK } }));
+            setDirty(true);
+            return nds;
+          });
+        }
       }
     }
-  }, []);
+  }, [data, groupPositions]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
-    const ok = await saveLayout(groupPositions);
+    const ok = await saveLayout(groupPositions, edgeOverrides);
     setSaving(false);
     if (ok) setDirty(false);
-  }, [groupPositions]);
+  }, [groupPositions, edgeOverrides]);
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
