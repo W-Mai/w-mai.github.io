@@ -36,6 +36,11 @@ export interface ArchitectureData {
   edges: readonly ArchEdge[];
 }
 
+/** Persisted group positions from diagram-layout.json */
+export interface DiagramLayoutData {
+  groups?: Record<string, { x: number; y: number }>;
+}
+
 export const architectureData = {
   groups: [
     {
@@ -81,42 +86,43 @@ export const architectureData = {
   ],
 
   nodes: [
-    // Pages
-    { id: 'page-home', name: '当门', icon: '🏠', group: 'pages', url: '/', modes: ['publish', 'editor'] },
+    // Pages — ordered to align with Data sources connections
     { id: 'page-blog', name: '博客', icon: '✍️', group: 'pages', url: '/blog', modes: ['publish', 'editor'] },
+    { id: 'page-home', name: '当门', icon: '🏠', group: 'pages', url: '/', modes: ['publish', 'editor'] },
     { id: 'page-thoughts', name: '想法', icon: '🧠', group: 'pages', url: '/thoughts', modes: ['publish', 'editor'] },
-    { id: 'page-about', name: '自个儿', icon: '🙋', group: 'pages', url: '/about', modes: ['publish', 'editor'] },
-    { id: 'page-stats', name: '统计', icon: '📊', group: 'pages', url: '/stats', modes: ['publish', 'editor'] },
     { id: 'page-friends', name: '友链', icon: '🤝', group: 'pages', url: '/friends', modes: ['publish', 'editor'] },
     { id: 'page-wishes', name: '许愿', icon: '🌟', group: 'pages', url: '/wishes', modes: ['publish', 'editor'] },
+    { id: 'page-about', name: '自个儿', icon: '🙋', group: 'pages', url: '/about', modes: ['publish', 'editor'] },
     { id: 'page-projects', name: '项目', icon: '📦', group: 'pages', url: '/projects', modes: ['publish', 'editor'] },
+    { id: 'page-stats', name: '统计', icon: '📊', group: 'pages', url: '/stats', modes: ['publish', 'editor'] },
 
-    // Editor components
+    // Editor components — ordered by dependency alignment with API group
     { id: 'editor-live', name: 'Live Editor', icon: '📝', group: 'editor', url: '/admin/live-editor', modes: ['editor'] },
-    { id: 'editor-thought', name: 'Thought Editor', icon: '💭', group: 'editor', modes: ['editor'] },
     { id: 'editor-mdx', name: 'MDX Editor', icon: '📄', group: 'editor', modes: ['editor'] },
-    { id: 'editor-frontmatter', name: 'Frontmatter Panel', icon: '🏷️', group: 'editor', modes: ['editor'] },
+    { id: 'editor-thought', name: 'Thought Editor', icon: '💭', group: 'editor', modes: ['editor'] },
     { id: 'editor-asset', name: 'Asset Manager', icon: '🖼️', group: 'editor', modes: ['editor'] },
     { id: 'editor-sticker', name: 'Sticker Panel', icon: '🎨', group: 'editor', modes: ['editor'] },
-    { id: 'editor-git', name: 'Git Commit', icon: '📌', group: 'editor', modes: ['editor'] },
     { id: 'editor-ai', name: 'AI Diff Panel', icon: '🤖', group: 'editor', modes: ['editor'] },
+    { id: 'editor-git', name: 'Git Commit', icon: '📌', group: 'editor', modes: ['editor'] },
+    { id: 'editor-frontmatter', name: 'Frontmatter Panel', icon: '🏷️', group: 'editor', modes: ['editor'] },
 
-    // Data sources
-    { id: 'data-posts', name: 'Posts (MDX)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
-    { id: 'data-thoughts', name: 'Thoughts (YAML)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
-    { id: 'data-friends', name: 'Friends (YAML)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
-    { id: 'data-wishes', name: 'Wishes (YAML)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
-    { id: 'data-stickers', name: 'Stickers', icon: '🎭', group: 'data', modes: ['publish', 'editor'] },
-    { id: 'data-github', name: 'GitHub API', icon: '🐙', group: 'data', modes: ['publish', 'editor'] },
-
-    // API routes (editor only)
+    // API routes — ordered to align with editor connections
+    // editor-live has no API edge, so api-posts aligns with editor-mdx (row 1)
     { id: 'api-posts', name: 'Posts API', icon: '🔗', group: 'api', modes: ['editor'] },
     { id: 'api-thoughts', name: 'Thoughts API', icon: '🔗', group: 'api', modes: ['editor'] },
     { id: 'api-assets', name: 'Assets API', icon: '🔗', group: 'api', modes: ['editor'] },
     { id: 'api-stickers', name: 'Stickers API', icon: '🔗', group: 'api', modes: ['editor'] },
     { id: 'api-ai', name: 'AI API', icon: '🔗', group: 'api', modes: ['editor'] },
-    { id: 'api-env', name: 'Env API', icon: '🔗', group: 'api', modes: ['editor'] },
     { id: 'api-git', name: 'Git API', icon: '🔗', group: 'api', modes: ['editor'] },
+    { id: 'api-env', name: 'Env API', icon: '🔗', group: 'api', modes: ['editor'] },
+
+    // Data sources — ordered to align with API and Pages connections
+    { id: 'data-posts', name: 'Posts (MDX)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
+    { id: 'data-thoughts', name: 'Thoughts (YAML)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
+    { id: 'data-stickers', name: 'Stickers', icon: '🎭', group: 'data', modes: ['publish', 'editor'] },
+    { id: 'data-friends', name: 'Friends (YAML)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
+    { id: 'data-wishes', name: 'Wishes (YAML)', icon: '📁', group: 'data', modes: ['publish', 'editor'] },
+    { id: 'data-github', name: 'GitHub API', icon: '🐙', group: 'data', modes: ['publish', 'editor'] },
 
     // Build system
     { id: 'build-astro', name: 'Astro SSG', icon: '🚀', group: 'build', modes: ['publish', 'editor'] },

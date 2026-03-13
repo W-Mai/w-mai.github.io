@@ -1,4 +1,4 @@
-import { useState, useEffect, type FC, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback, type FC, type CSSProperties } from 'react';
 import {
   ReactFlow,
   Background,
@@ -9,19 +9,22 @@ import {
   type NodeTypes,
   type NodeProps,
   type EdgeProps,
+  type OnNodesChange,
   Position,
   Handle,
   useReactFlow,
   ReactFlowProvider,
   BaseEdge,
+  applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { ElkNode, ElkExtendedEdge } from 'elkjs';
-import type { ArchitectureData, ArchGroupTheme } from '~/data/architecture';
-import { type ViewMode } from '~/lib/diagram-layout';
+import type { ArchitectureData, ArchGroupTheme, DiagramLayoutData } from '~/data/architecture';
+import type { ViewMode } from '~/lib/diagram-layout';
 
 interface DiagramRendererProps {
   data: ArchitectureData;
+  savedLayout?: DiagramLayoutData;
+  editorMode?: boolean;
 }
 
 const GROUP_THEMES: Record<string, ArchGroupTheme> = {};
@@ -35,7 +38,7 @@ function getTheme(groupId: string): ArchGroupTheme {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Arch node with multiple offset handles                            */
+/*  Arch node                                                         */
 /* ------------------------------------------------------------------ */
 
 function ArchNodeComponent({ data }: NodeProps) {
@@ -43,6 +46,7 @@ function ArchNodeComponent({ data }: NodeProps) {
     label: string; icon: string; url?: string;
     disabled: boolean; navigable: boolean; groupId: string;
     sourceHandles: string[]; targetHandles: string[];
+    intraSourceHandles: string[]; intraTargetHandles: string[];
   };
   const theme = getTheme(d.groupId);
 
@@ -68,7 +72,6 @@ function ArchNodeComponent({ data }: NodeProps) {
     }
   };
 
-  // Compute evenly spaced handle positions (as % of node height)
   const srcHandles = d.sourceHandles ?? [];
   const tgtHandles = d.targetHandles ?? [];
 
@@ -98,28 +101,21 @@ function ArchNodeComponent({ data }: NodeProps) {
           : '3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light)';
       }}
     >
-
-      {/* Target handles (left side) with vertical offsets */}
       {tgtHandles.map((hId, i) => (
         <Handle key={hId} id={hId} type="target" position={Position.Left}
-          style={{
-            background: theme.accent, width: 6, height: 6,
-            border: '2px solid var(--neu-bg)', top: tgtOffsets[i],
-          }} />
+          style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)', top: tgtOffsets[i] }} />
       ))}
       {tgtHandles.length === 0 && (
         <Handle type="target" position={Position.Left}
           style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)' }} />
       )}
 
-      {/* Accent bar */}
       <div style={{
         position: 'absolute', left: 0, top: '20%', bottom: '20%',
         width: '3px', borderRadius: '0 3px 3px 0',
         background: d.disabled ? 'var(--text-muted)' : theme.gradient,
       }} />
 
-      {/* Icon + label */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: '26px', height: '26px', borderRadius: '6px',
@@ -128,18 +124,25 @@ function ArchNodeComponent({ data }: NodeProps) {
       }}><span>{d.icon}</span></div>
       <span>{d.label}</span>
 
-      {/* Source handles (right side) with vertical offsets */}
       {srcHandles.map((hId, i) => (
         <Handle key={hId} id={hId} type="source" position={Position.Right}
-          style={{
-            background: theme.accent, width: 6, height: 6,
-            border: '2px solid var(--neu-bg)', top: srcOffsets[i],
-          }} />
+          style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)', top: srcOffsets[i] }} />
       ))}
       {srcHandles.length === 0 && (
         <Handle type="source" position={Position.Right}
           style={{ background: theme.accent, width: 6, height: 6, border: '2px solid var(--neu-bg)' }} />
       )}
+
+      {/* Bottom handles for intra-group source (outgoing within same group) */}
+      {(d.intraSourceHandles ?? []).map((hId) => (
+        <Handle key={hId} id={hId} type="source" position={Position.Bottom}
+          style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', left: '30%' }} />
+      ))}
+      {/* Top handles for intra-group target (incoming within same group) */}
+      {(d.intraTargetHandles ?? []).map((hId) => (
+        <Handle key={hId} id={hId} type="target" position={Position.Top}
+          style={{ background: theme.accent, width: 5, height: 5, border: '2px solid var(--neu-bg)', left: '30%' }} />
+      ))}
     </div>
   );
 }
@@ -180,30 +183,37 @@ function GroupNodeComponent({ data }: NodeProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Edge with solid color stroke (no SVG gradient issues)             */
+/*  Custom orthogonal edge with FrameworkDrawer-style offset           */
 /* ------------------------------------------------------------------ */
 
-function ColoredEdge({
-  id, sourceX, sourceY, targetX, targetY,
-  sourcePosition, targetPosition, data, style,
-}: EdgeProps) {
-  const d = data as { label?: string; disabled?: boolean; color?: string; midXOffset?: number } | undefined;
+function ColoredEdge({ id, sourceX, sourceY, targetX, targetY, data, style }: EdgeProps) {
+  const d = data as {
+    label?: string; disabled?: boolean; color?: string;
+    midXOffset?: number; intraGroup?: boolean;
+  } | undefined;
   const disabled = d?.disabled ?? false;
   const color = d?.color ?? '#94a3b8';
   const offset = d?.midXOffset ?? 0;
-
-  // Custom orthogonal path with offset mid-X to separate overlapping edges
-  const midX = (sourceX + targetX) / 2 + offset;
-  const r = Math.min(10, Math.abs(targetY - sourceY) / 2, Math.abs(midX - sourceX), Math.abs(targetX - midX));
+  const intraGroup = d?.intraGroup ?? false;
 
   let edgePath: string;
-  if (Math.abs(targetY - sourceY) < 1) {
+
+  if (intraGroup) {
+    // Source is at bottom of upper node, target is at top of lower node
+    // Draw a gentle S-curve connecting them vertically
+    const dy = targetY - sourceY;
+    if (Math.abs(dy) < 1) {
+      edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
+    } else {
+      const midY = (sourceY + targetY) / 2;
+      edgePath = `M ${sourceX} ${sourceY} C ${sourceX} ${midY}, ${targetX} ${midY}, ${targetX} ${targetY}`;
+    }
+  } else if (Math.abs(targetY - sourceY) < 1) {
     edgePath = `M ${sourceX} ${sourceY} L ${targetX} ${targetY}`;
   } else {
-    // Determine vertical direction: +1 = down, -1 = up
+    const midX = (sourceX + targetX) / 2 + offset;
+    const r = Math.min(10, Math.abs(targetY - sourceY) / 2, Math.abs(midX - sourceX), Math.abs(targetX - midX));
     const dirY = targetY > sourceY ? 1 : -1;
-    // Corner 1: horizontal to vertical (at midX, sourceY)
-    // Corner 2: vertical to horizontal (at midX, targetY)
     edgePath = [
       `M ${sourceX} ${sourceY}`,
       `L ${midX - r} ${sourceY}`,
@@ -214,14 +224,13 @@ function ColoredEdge({
     ].join(' ');
   }
 
-  const labelX = midX;
+  const labelX = intraGroup ? (sourceX + targetX) / 2 + 20 : (sourceX + targetX) / 2 + offset;
   const labelY = (sourceY + targetY) / 2;
 
   return (
     <>
       <BaseEdge id={id} path={edgePath} style={{
-        ...style,
-        stroke: color,
+        ...style, stroke: color,
         strokeWidth: disabled ? 1 : 1.5,
         opacity: disabled ? 0.15 : 0.5,
       }} />
@@ -252,207 +261,299 @@ const nodeTypes: NodeTypes = {
 const edgeTypes = { colored: ColoredEdge as any };
 
 /* ------------------------------------------------------------------ */
-/*  ELK layout engine (lazy loaded for SSR compat)                    */
+/*  Layout: build nodes + edges from arch data + saved positions      */
 /* ------------------------------------------------------------------ */
-
-let elkInstance: any = null;
-async function getElk() {
-  if (!elkInstance) {
-    const ELK = (await import('elkjs/lib/elk.bundled.js')).default;
-    elkInstance = new ELK();
-  }
-  return elkInstance;
-}
 
 const NODE_W = 170;
 const NODE_H = 44;
+const NODE_GAP = 10;
+const GROUP_PAD = 16;
 const GROUP_HEADER_H = 36;
+const DEFAULT_COL_GAP = 100;
+const DEFAULT_ROW_GAP = 50;
 
-async function computeElkLayout(
+// Default grid for initial layout when no saved positions exist
+const DEFAULT_GRID: { id: string; col: number; row: number }[] = [
+  { id: 'pages', col: 0, row: 0 },
+  { id: 'data', col: 1, row: 0 },
+  { id: 'editor', col: 0, row: 1 },
+  { id: 'api', col: 1, row: 1 },
+  { id: 'build', col: 1, row: 2 },
+];
+
+function computeGroupSize(archData: ArchitectureData, groupId: string) {
+  const count = archData.nodes.filter((n) => n.group === groupId).length;
+  const contentH = count * NODE_H + Math.max(0, count - 1) * NODE_GAP;
+  return {
+    w: NODE_W + GROUP_PAD * 2,
+    h: GROUP_HEADER_H + GROUP_PAD + contentH + GROUP_PAD,
+    count,
+  };
+}
+
+/** Generate default group positions from grid layout */
+function defaultGroupPositions(archData: ArchitectureData): Record<string, { x: number; y: number }> {
+  const sizes = new Map<string, { w: number; h: number }>();
+  for (const g of archData.groups) {
+    const s = computeGroupSize(archData, g.id);
+    sizes.set(g.id, { w: s.w, h: s.h });
+  }
+
+  const rowHeights = new Map<number, number>();
+  const colWidths = new Map<number, number>();
+  for (const cell of DEFAULT_GRID) {
+    const s = sizes.get(cell.id);
+    if (!s) continue;
+    rowHeights.set(cell.row, Math.max(rowHeights.get(cell.row) ?? 0, s.h));
+    colWidths.set(cell.col, Math.max(colWidths.get(cell.col) ?? 0, s.w));
+  }
+
+  const colX = new Map<number, number>();
+  let cx = 0;
+  for (let c = 0; c <= Math.max(...colWidths.keys()); c++) {
+    colX.set(c, cx);
+    cx += (colWidths.get(c) ?? 0) + DEFAULT_COL_GAP;
+  }
+
+  const rowY = new Map<number, number>();
+  let ry = 0;
+  for (let r = 0; r <= Math.max(...rowHeights.keys()); r++) {
+    rowY.set(r, ry);
+    ry += (rowHeights.get(r) ?? 0) + DEFAULT_ROW_GAP;
+  }
+
+  const positions: Record<string, { x: number; y: number }> = {};
+  for (const cell of DEFAULT_GRID) {
+    positions[cell.id] = { x: colX.get(cell.col) ?? 0, y: rowY.get(cell.row) ?? 0 };
+  }
+  return positions;
+}
+
+function buildLayout(
   archData: ArchitectureData,
   mode: ViewMode,
-): Promise<{ nodes: Node[]; edges: Edge[] }> {
+  groupPositions: Record<string, { x: number; y: number }>,
+): { nodes: Node[]; edges: Edge[] } {
   for (const g of archData.groups) GROUP_THEMES[g.id] = g.theme;
 
   const getNodeState = (n: { modes: readonly string[] }) =>
     n.modes.includes(mode) ? 'enabled' : 'disabled';
 
   // Pre-compute handle assignments per node
+  // Separate maps for inter-group (right/left) and intra-group (bottom/top) handles
   const srcMap = new Map<string, string[]>();
   const tgtMap = new Map<string, string[]>();
-  for (const e of archData.edges) {
-    const sKey = e.source;
-    const tKey = e.target;
-    if (!srcMap.has(sKey)) srcMap.set(sKey, []);
-    if (!tgtMap.has(tKey)) tgtMap.set(tKey, []);
-    const sIdx = srcMap.get(sKey)!.length;
-    const tIdx = tgtMap.get(tKey)!.length;
-    srcMap.get(sKey)!.push(`src-${sIdx}`);
-    tgtMap.get(tKey)!.push(`tgt-${tIdx}`);
-  }
-
-  // Build ELK graph
-  const elkChildren: ElkNode[] = [];
-  for (const group of archData.groups) {
-    const groupNodes = archData.nodes.filter((n) => n.group === group.id);
-    elkChildren.push({
-      id: `group-${group.id}`,
-      layoutOptions: {
-        'elk.padding': `[top=${GROUP_HEADER_H + 14},left=16,bottom=14,right=16]`,
-        'elk.spacing.nodeNode': '10',
-      },
-      children: groupNodes.map((n) => ({ id: n.id, width: NODE_W, height: NODE_H })),
-    });
-  }
-
-  const elkEdges: ElkExtendedEdge[] = archData.edges.map((e) => ({
-    id: `${e.source}-${e.target}`,
-    sources: [e.source],
-    targets: [e.target],
-  }));
-
-  const elkGraph: ElkNode = {
-    id: 'root',
-    layoutOptions: {
-      'elk.algorithm': 'layered',
-      'elk.direction': 'RIGHT',
-      'elk.spacing.nodeNode': '60',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-      'elk.spacing.edgeEdge': '20',
-      'elk.spacing.edgeNode': '30',
-      'elk.layered.spacing.edgeEdgeBetweenLayers': '25',
-      'elk.layered.spacing.edgeNodeBetweenLayers': '30',
-      'elk.edgeRouting': 'ORTHOGONAL',
-      'elk.layered.mergeEdges': 'false',
-      'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-    },
-    children: elkChildren,
-    edges: elkEdges,
-  };
-
-  const elk = await getElk();
-  const layout = await elk.layout(elkGraph);
-
-  // Convert ELK layout to React Flow nodes
-  const nodes: Node[] = [];
-  for (const elkGroup of layout.children ?? []) {
-    const groupId = elkGroup.id.replace('group-', '');
-    const group = archData.groups.find((g) => g.id === groupId);
-    if (!group) continue;
-    const groupNodes = archData.nodes.filter((n) => n.group === groupId);
-    const allDisabled = groupNodes.every((n) => getNodeState(n) === 'disabled');
-
-    nodes.push({
-      id: elkGroup.id, type: 'groupNode',
-      position: { x: elkGroup.x ?? 0, y: elkGroup.y ?? 0 },
-      data: { label: group.name, icon: group.icon, disabled: allDisabled, groupId, nodeCount: groupNodes.length },
-      style: { width: elkGroup.width, height: elkGroup.height },
-      draggable: false, selectable: false,
-    });
-
-    for (const elkChild of elkGroup.children ?? []) {
-      const archNode = archData.nodes.find((n) => n.id === elkChild.id);
-      if (!archNode) continue;
-      const disabled = getNodeState(archNode) === 'disabled';
-      const navigable = !disabled && typeof archNode.url === 'string' && archNode.url.length > 0;
-      nodes.push({
-        id: elkChild.id, type: 'archNode',
-        position: { x: elkChild.x ?? 0, y: elkChild.y ?? 0 },
-        parentId: elkGroup.id, extent: 'parent' as const,
-        data: {
-          label: archNode.name, icon: archNode.icon, url: archNode.url,
-          disabled, navigable, groupId,
-          sourceHandles: srcMap.get(elkChild.id) ?? [],
-          targetHandles: tgtMap.get(elkChild.id) ?? [],
-        },
-        draggable: false,
-      });
-    }
-  }
-
-  // Build edges with handle assignments, solid colors, and mid-X offsets
-  const edges: Edge[] = [];
-  const srcCounter = new Map<string, number>();
-  const tgtCounter = new Map<string, number>();
-
-  // Group edges by source-group → target-group pair to compute mid-X offsets
-  const pairCounter = new Map<string, number>();
-  const OFFSET_STEP = 12;
+  const intraSrcMap = new Map<string, string[]>();
+  const intraTgtMap = new Map<string, string[]>();
 
   for (const e of archData.edges) {
     const srcNode = archData.nodes.find((n) => n.id === e.source);
     const tgtNode = archData.nodes.find((n) => n.id === e.target);
     if (!srcNode || !tgtNode) continue;
-    const disabled = getNodeState(srcNode) === 'disabled' || getNodeState(tgtNode) === 'disabled';
-    const srcTheme = getTheme(srcNode.group);
 
+    if (srcNode.group === tgtNode.group) {
+      if (!intraSrcMap.has(e.source)) intraSrcMap.set(e.source, []);
+      if (!intraTgtMap.has(e.target)) intraTgtMap.set(e.target, []);
+      intraSrcMap.get(e.source)!.push(`isrc-${intraSrcMap.get(e.source)!.length}`);
+      intraTgtMap.get(e.target)!.push(`itgt-${intraTgtMap.get(e.target)!.length}`);
+    } else {
+      if (!srcMap.has(e.source)) srcMap.set(e.source, []);
+      if (!tgtMap.has(e.target)) tgtMap.set(e.target, []);
+      srcMap.get(e.source)!.push(`src-${srcMap.get(e.source)!.length}`);
+      tgtMap.get(e.target)!.push(`tgt-${tgtMap.get(e.target)!.length}`);
+    }
+  }
+
+  // Place groups and child nodes
+  const nodes: Node[] = [];
+  for (const group of archData.groups) {
+    const pos = groupPositions[group.id] ?? { x: 0, y: 0 };
+    const size = computeGroupSize(archData, group.id);
+    const groupNodes = archData.nodes.filter((n) => n.group === group.id);
+    const allDisabled = groupNodes.every((n) => getNodeState(n) === 'disabled');
+
+    nodes.push({
+      id: `group-${group.id}`, type: 'groupNode',
+      position: { x: pos.x, y: pos.y },
+      data: { label: group.name, icon: group.icon, disabled: allDisabled, groupId: group.id, nodeCount: size.count },
+      style: { width: size.w, height: size.h },
+      draggable: true, selectable: false,
+    });
+
+    groupNodes.forEach((archNode, i) => {
+      const disabled = getNodeState(archNode) === 'disabled';
+      const navigable = !disabled && typeof archNode.url === 'string' && archNode.url.length > 0;
+      nodes.push({
+        id: archNode.id, type: 'archNode',
+        position: { x: GROUP_PAD, y: GROUP_HEADER_H + GROUP_PAD + i * (NODE_H + NODE_GAP) },
+        parentId: `group-${group.id}`, extent: 'parent' as const,
+        data: {
+          label: archNode.name, icon: archNode.icon, url: archNode.url,
+          disabled, navigable, groupId: group.id,
+          sourceHandles: srcMap.get(archNode.id) ?? [],
+          targetHandles: tgtMap.get(archNode.id) ?? [],
+          intraSourceHandles: intraSrcMap.get(archNode.id) ?? [],
+          intraTargetHandles: intraTgtMap.get(archNode.id) ?? [],
+        },
+        draggable: false,
+      });
+    });
+  }
+
+  // Separate intra-group vs inter-group edges
+  const interGroupEdges: typeof archData.edges[number][] = [];
+  const intraGroupEdges: typeof archData.edges[number][] = [];
+  for (const e of archData.edges) {
+    const srcNode = archData.nodes.find((n) => n.id === e.source);
+    const tgtNode = archData.nodes.find((n) => n.id === e.target);
+    if (!srcNode || !tgtNode) continue;
+    (srcNode.group === tgtNode.group ? intraGroupEdges : interGroupEdges).push(e);
+  }
+
+  // Compute absolute Y for each node (for FrameworkDrawer-style offset sorting)
+  const nodeAbsY = new Map<string, number>();
+  for (const group of archData.groups) {
+    const gy = groupPositions[group.id]?.y ?? 0;
+    archData.nodes.filter((n) => n.group === group.id).forEach((n, i) => {
+      nodeAbsY.set(n.id, gy + GROUP_HEADER_H + GROUP_PAD + i * (NODE_H + NODE_GAP) + NODE_H / 2);
+    });
+  }
+
+  // FrameworkDrawer-style offset: sort by source Y within each lane
+  // Top source → largest offset (rightmost), bottom → smallest (leftmost)
+  const LANE_STEP = 8;
+  const laneMap = new Map<string, typeof interGroupEdges>();
+  for (const e of interGroupEdges) {
+    const srcNode = archData.nodes.find((n) => n.id === e.source)!;
+    const tgtNode = archData.nodes.find((n) => n.id === e.target)!;
+    const srcX = groupPositions[srcNode.group]?.x ?? 0;
+    const tgtX = groupPositions[tgtNode.group]?.x ?? 0;
+    // Lane key based on which two groups the edge connects
+    const laneKey = srcX < tgtX ? `${srcNode.group}-${tgtNode.group}` : `${tgtNode.group}-${srcNode.group}`;
+    if (!laneMap.has(laneKey)) laneMap.set(laneKey, []);
+    laneMap.get(laneKey)!.push(e);
+  }
+
+  const edgeOffsets = new Map<string, number>();
+  for (const [, laneEdgeList] of laneMap) {
+    laneEdgeList.sort((a, b) => (nodeAbsY.get(a.source) ?? 0) - (nodeAbsY.get(b.source) ?? 0));
+    const count = laneEdgeList.length;
+    laneEdgeList.forEach((e, i) => {
+      const offset = ((count - 1) / 2 - i) * LANE_STEP;
+      edgeOffsets.set(`${e.source}-${e.target}`, offset);
+    });
+  }
+
+  // Build edge objects
+  const edges: Edge[] = [];
+  const srcCounter = new Map<string, number>();
+  const tgtCounter = new Map<string, number>();
+  const intraSrcCounter = new Map<string, number>();
+  const intraTgtCounter = new Map<string, number>();
+
+  for (const e of intraGroupEdges) {
+    const srcNode = archData.nodes.find((n) => n.id === e.source)!;
+    const tgtNode = archData.nodes.find((n) => n.id === e.target)!;
+    const disabled = getNodeState(srcNode) === 'disabled' || getNodeState(tgtNode) === 'disabled';
+    const sIdx = intraSrcCounter.get(e.source) ?? 0;
+    const tIdx = intraTgtCounter.get(e.target) ?? 0;
+    intraSrcCounter.set(e.source, sIdx + 1);
+    intraTgtCounter.set(e.target, tIdx + 1);
+    edges.push({
+      id: `${e.source}-${e.target}`, source: e.source, target: e.target,
+      sourceHandle: `isrc-${sIdx}`, targetHandle: `itgt-${tIdx}`, type: 'colored',
+      data: { label: e.label, disabled, color: getTheme(srcNode.group).accent, intraGroup: true },
+    });
+  }
+
+  for (const e of interGroupEdges) {
+    const srcNode = archData.nodes.find((n) => n.id === e.source)!;
+    const tgtNode = archData.nodes.find((n) => n.id === e.target)!;
+    const disabled = getNodeState(srcNode) === 'disabled' || getNodeState(tgtNode) === 'disabled';
     const sIdx = srcCounter.get(e.source) ?? 0;
     const tIdx = tgtCounter.get(e.target) ?? 0;
     srcCounter.set(e.source, sIdx + 1);
     tgtCounter.set(e.target, tIdx + 1);
-
-    // Compute offset for edges between same group pairs
-    const pairKey = `${srcNode.group}->${tgtNode.group}`;
-    const pairIdx = pairCounter.get(pairKey) ?? 0;
-    pairCounter.set(pairKey, pairIdx + 1);
-    const midXOffset = (pairIdx - (pairCounter.get(pairKey)! - 1) / 2) * OFFSET_STEP;
-
     edges.push({
-      id: `${e.source}-${e.target}`,
-      source: e.source,
-      target: e.target,
-      sourceHandle: `src-${sIdx}`,
-      targetHandle: `tgt-${tIdx}`,
-      type: 'colored',
-      data: { label: e.label, disabled, color: srcTheme.accent, midXOffset },
+      id: `${e.source}-${e.target}`, source: e.source, target: e.target,
+      sourceHandle: `src-${sIdx}`, targetHandle: `tgt-${tIdx}`, type: 'colored',
+      data: {
+        label: e.label, disabled, color: getTheme(srcNode.group).accent,
+        midXOffset: edgeOffsets.get(`${e.source}-${e.target}`) ?? 0,
+      },
     });
-  }
-
-  // Re-center offsets per pair (now that we know total count)
-  const pairTotals = new Map<string, number>();
-  for (const e of archData.edges) {
-    const srcNode = archData.nodes.find((n) => n.id === e.source);
-    const tgtNode = archData.nodes.find((n) => n.id === e.target);
-    if (!srcNode || !tgtNode) continue;
-    const pairKey = `${srcNode.group}->${tgtNode.group}`;
-    pairTotals.set(pairKey, (pairTotals.get(pairKey) ?? 0) + 1);
-  }
-
-  const pairIdx2 = new Map<string, number>();
-  for (const edge of edges) {
-    const srcNode = archData.nodes.find((n) => n.id === edge.source);
-    const tgtNode = archData.nodes.find((n) => n.id === edge.target);
-    if (!srcNode || !tgtNode) continue;
-    const pairKey = `${srcNode.group}->${tgtNode.group}`;
-    const total = pairTotals.get(pairKey) ?? 1;
-    const idx = pairIdx2.get(pairKey) ?? 0;
-    pairIdx2.set(pairKey, idx + 1);
-    (edge.data as any).midXOffset = (idx - (total - 1) / 2) * OFFSET_STEP;
   }
 
   return { nodes, edges };
 }
 
 /* ------------------------------------------------------------------ */
+/*  Save layout to server (editor mode only)                          */
+/* ------------------------------------------------------------------ */
+
+async function saveLayout(positions: Record<string, { x: number; y: number }>) {
+  const res = await fetch('/api/editor/diagram-layout', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ groups: positions }),
+  });
+  return res.ok;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main flow component                                               */
 /* ------------------------------------------------------------------ */
 
-function DiagramFlow({ data }: DiagramRendererProps) {
+function DiagramFlow({ data, savedLayout, editorMode }: DiagramRendererProps) {
   const [mode, setMode] = useState<ViewMode>('publish');
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
   const { fitView } = useReactFlow();
 
+  // Track current group positions (mutable ref to avoid re-renders on every drag)
+  const [groupPositions, setGroupPositions] = useState<Record<string, { x: number; y: number }>>(() => {
+    const saved = savedLayout?.groups;
+    if (saved && Object.keys(saved).length > 0) return saved;
+    return defaultGroupPositions(data);
+  });
+
+  // Rebuild layout when mode changes (not on every drag)
   useEffect(() => {
-    let cancelled = false;
-    computeElkLayout(data, mode).then((result) => {
-      if (cancelled) return;
-      setNodes(result.nodes);
-      setEdges(result.edges);
-      setTimeout(() => fitView({ padding: 0.12, duration: 300 }), 50);
-    });
-    return () => { cancelled = true; };
+    const result = buildLayout(data, mode, groupPositions);
+    setNodes(result.nodes);
+    setEdges(result.edges);
+    setTimeout(() => fitView({ padding: 0.12, duration: 300 }), 50);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, mode, fitView]);
+
+  // Handle node changes (drag group nodes)
+  const onNodesChange: OnNodesChange = useCallback((changes) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+
+    // Track group position changes for save
+    for (const change of changes) {
+      if (change.type === 'position' && change.position) {
+        const nodeId = change.id;
+        if (nodeId.startsWith('group-') && !change.dragging) {
+          const groupId = nodeId.replace('group-', '');
+          setGroupPositions((prev) => ({
+            ...prev,
+            [groupId]: { x: change.position!.x, y: change.position!.y },
+          }));
+          setDirty(true);
+        }
+      }
+    }
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    const ok = await saveLayout(groupPositions);
+    setSaving(false);
+    if (ok) setDirty(false);
+  }, [groupPositions]);
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
@@ -474,10 +575,24 @@ function DiagramFlow({ data }: DiagramRendererProps) {
             </button>
           ))}
         </div>
-        <p className="diagram-mobile-hint" style={{
-          display: 'none', textAlign: 'center', fontSize: '0.75rem',
-          color: 'var(--text-muted)', margin: 0,
-        }}>👆 捏合缩放 · 拖动平移</p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {editorMode && (
+            <button className="neu-editor-btn" onClick={handleSave}
+              disabled={saving || !dirty}
+              style={{
+                padding: '0.4rem 1rem', fontSize: '0.85rem',
+                border: 'none', cursor: dirty ? 'pointer' : 'default',
+                fontFamily: 'inherit', opacity: dirty ? 1 : 0.4,
+              }}>
+              {saving ? '💾 保存中...' : dirty ? '💾 保存布局' : '✅ 已保存'}
+            </button>
+          )}
+          <p className="diagram-mobile-hint" style={{
+            display: 'none', textAlign: 'center', fontSize: '0.75rem',
+            color: 'var(--text-muted)', margin: 0,
+          }}>👆 捏合缩放 · 拖动平移</p>
+        </div>
       </div>
 
       <div style={{
@@ -486,9 +601,10 @@ function DiagramFlow({ data }: DiagramRendererProps) {
       }}>
         <ReactFlow
           nodes={nodes} edges={edges}
+          onNodesChange={onNodesChange}
           nodeTypes={nodeTypes} edgeTypes={edgeTypes}
           fitView fitViewOptions={{ padding: 0.12 }}
-          nodesDraggable={false} nodesConnectable={false} elementsSelectable={false}
+          nodesConnectable={false} elementsSelectable={false}
           panOnScroll zoomOnScroll={false} zoomOnPinch
           minZoom={0.2} maxZoom={2}
           proOptions={{ hideAttribution: true }}
@@ -536,9 +652,9 @@ function DiagramFlow({ data }: DiagramRendererProps) {
   );
 }
 
-const DiagramRenderer: FC<DiagramRendererProps> = ({ data }) => (
+const DiagramRenderer: FC<DiagramRendererProps> = ({ data, savedLayout, editorMode }) => (
   <ReactFlowProvider>
-    <DiagramFlow data={data} />
+    <DiagramFlow data={data} savedLayout={savedLayout} editorMode={editorMode} />
   </ReactFlowProvider>
 );
 

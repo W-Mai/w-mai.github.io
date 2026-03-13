@@ -4,7 +4,10 @@ import Header from '~/components/Header.astro'
 import Footer from '~/components/Footer.astro'
 import DiagramRenderer from '~/components/DiagramRenderer'
 import { architectureData } from '~/data/architecture'
+import savedLayoutRaw from '~/data/diagram-layout.json'
 import { NICK_NAME, SITE_DESCRIPTION } from '~/consts'
+
+const isEditor = import.meta.env.DEV
 ---
 
 <html>
@@ -20,7 +23,10 @@ import { NICK_NAME, SITE_DESCRIPTION } from '~/consts'
     <p class="page-subtitle anim-fade" style="--delay:1">项目的模块结构与数据流</p>
 
     <div class="anim-fade" style="--delay:2">
-        <DiagramRenderer client:load data={architectureData} />
+        <DiagramRenderer client:load
+          data={architectureData}
+          savedLayout={savedLayoutRaw}
+          editorMode={isEditor} />
     </div>
 </main>
 

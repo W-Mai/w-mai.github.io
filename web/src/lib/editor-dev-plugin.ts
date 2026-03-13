@@ -130,6 +130,10 @@ export default function editorDevIntegration(): AstroIntegration {
           pattern: '/api/editor/thoughts/[id]',
           entrypoint: './src/lib/editor-routes/thoughts/[id].ts',
         });
+        injectRoute({
+          pattern: '/api/editor/diagram-layout',
+          entrypoint: './src/lib/editor-routes/diagram/layout.ts',
+        });
 
         updateConfig({
           vite: {
