@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, type FC, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback, type FC, type CSSProperties } from 'react';
 import {
   ReactFlow,
   Background,
@@ -17,6 +17,7 @@ import {
   getSmoothStepPath,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import type { ElkNode, ElkExtendedEdge } from 'elkjs';
 import type { ArchitectureData, ArchGroupTheme } from '~/data/architecture';
 import { type ViewMode } from '~/lib/diagram-layout';
 
@@ -45,21 +46,15 @@ function getTheme(groupId: string): ArchGroupTheme {
 function ArchNodeComponent({ data }: NodeProps) {
   const d = data as {
     label: string; icon: string; url?: string;
-    disabled: boolean; navigable: boolean;
-    groupId: string;
+    disabled: boolean; navigable: boolean; groupId: string;
   };
   const theme = getTheme(d.groupId);
 
   const card: CSSProperties = {
     position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '10px 16px 10px 14px',
-    borderRadius: '10px',
-    fontSize: '13px',
-    fontWeight: 600,
-    letterSpacing: '0.01em',
+    display: 'flex', alignItems: 'center', gap: '8px',
+    padding: '10px 16px 10px 14px', borderRadius: '10px',
+    fontSize: '13px', fontWeight: 600, letterSpacing: '0.01em',
     cursor: d.navigable ? 'pointer' : 'default',
     background: d.disabled ? 'var(--neu-bg)' : 'var(--bg-surface)',
     color: d.disabled ? 'var(--text-muted)' : 'var(--text-primary)',
@@ -68,32 +63,7 @@ function ArchNodeComponent({ data }: NodeProps) {
       ? 'inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong)'
       : '3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light)',
     transition: 'opacity 250ms ease, box-shadow 250ms ease, transform 200ms ease',
-    border: 'none',
-    minWidth: '140px',
-    whiteSpace: 'nowrap' as const,
-    overflow: 'hidden',
-  };
-
-  const accentBar: CSSProperties = {
-    position: 'absolute',
-    left: 0,
-    top: '20%',
-    bottom: '20%',
-    width: '3px',
-    borderRadius: '0 3px 3px 0',
-    background: d.disabled ? 'var(--text-muted)' : theme.gradient,
-  };
-
-  const iconWrap: CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '26px',
-    height: '26px',
-    borderRadius: '6px',
-    background: d.disabled ? 'transparent' : theme.accentMuted,
-    fontSize: '14px',
-    flexShrink: 0,
+    border: 'none', minWidth: '140px', whiteSpace: 'nowrap' as const, overflow: 'hidden',
   };
 
   const handleClick = () => {
@@ -108,7 +78,7 @@ function ArchNodeComponent({ data }: NodeProps) {
         if (!d.disabled) {
           const el = e.currentTarget as HTMLElement;
           el.style.transform = 'translateY(-2px)';
-          el.style.boxShadow = `4px 4px 12px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)`;
+          el.style.boxShadow = '4px 4px 12px var(--neu-shadow-dark), -4px -4px 12px var(--neu-shadow-light)';
         }
       }}
       onMouseLeave={(e) => {
@@ -121,8 +91,17 @@ function ArchNodeComponent({ data }: NodeProps) {
     >
       <Handle type="target" position={Position.Left}
         style={{ background: theme.accent, width: 7, height: 7, border: '2px solid var(--neu-bg)' }} />
-      <div style={accentBar} />
-      <div style={iconWrap}><span>{d.icon}</span></div>
+      <div style={{
+        position: 'absolute', left: 0, top: '20%', bottom: '20%',
+        width: '3px', borderRadius: '0 3px 3px 0',
+        background: d.disabled ? 'var(--text-muted)' : theme.gradient,
+      }} />
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: '26px', height: '26px', borderRadius: '6px',
+        background: d.disabled ? 'transparent' : theme.accentMuted,
+        fontSize: '14px', flexShrink: 0,
+      }}><span>{d.icon}</span></div>
       <span>{d.label}</span>
       <Handle type="source" position={Position.Right}
         style={{ background: theme.accent, width: 7, height: 7, border: '2px solid var(--neu-bg)' }} />
@@ -138,57 +117,35 @@ function GroupNodeComponent({ data }: NodeProps) {
   const d = data as { label: string; icon: string; disabled: boolean; groupId: string; nodeCount: number };
   const theme = getTheme(d.groupId);
 
-  const container: CSSProperties = {
-    width: '100%',
-    height: '100%',
-    borderRadius: '14px',
-    border: `1.5px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
-    background: d.disabled ? 'transparent' : theme.bg,
-    opacity: d.disabled ? 0.5 : 1,
-    transition: 'opacity 250ms ease',
-    overflow: 'hidden',
-  };
-
-  const header: CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '8px 14px',
-    borderBottom: `1px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
-    background: d.disabled ? 'transparent' : theme.accentMuted,
-  };
-
-  const title: CSSProperties = {
-    fontSize: '12px',
-    fontWeight: 700,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.06em',
-    color: d.disabled ? 'var(--text-muted)' : theme.accent,
-  };
-
-  const badge: CSSProperties = {
-    fontSize: '10px',
-    fontWeight: 600,
-    padding: '1px 6px',
-    borderRadius: '8px',
-    background: d.disabled ? 'transparent' : theme.accentMuted,
-    color: d.disabled ? 'var(--text-muted)' : theme.accent,
-    marginLeft: 'auto',
-  };
-
   return (
-    <div style={container}>
-      <div style={header}>
+    <div style={{
+      width: '100%', height: '100%', borderRadius: '14px',
+      border: `1.5px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
+      background: d.disabled ? 'transparent' : theme.bg,
+      opacity: d.disabled ? 0.5 : 1, transition: 'opacity 250ms ease', overflow: 'hidden',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px',
+        borderBottom: `1px solid ${d.disabled ? 'var(--border-divider)' : theme.border}`,
+        background: d.disabled ? 'transparent' : theme.accentMuted,
+      }}>
         <span style={{ fontSize: '14px' }}>{d.icon}</span>
-        <span style={title}>{d.label}</span>
-        <span style={badge}>{d.nodeCount}</span>
+        <span style={{
+          fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' as const,
+          letterSpacing: '0.06em', color: d.disabled ? 'var(--text-muted)' : theme.accent,
+        }}>{d.label}</span>
+        <span style={{
+          fontSize: '10px', fontWeight: 600, padding: '1px 6px', borderRadius: '8px',
+          background: d.disabled ? 'transparent' : theme.accentMuted,
+          color: d.disabled ? 'var(--text-muted)' : theme.accent, marginLeft: 'auto',
+        }}>{d.nodeCount}</span>
       </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  Custom gradient edge with animated flow                           */
+/*  Custom gradient edge with animated flow dot                       */
 /* ------------------------------------------------------------------ */
 
 function GradientEdge({
@@ -201,8 +158,7 @@ function GradientEdge({
 
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX, sourceY, targetX, targetY,
-    sourcePosition, targetPosition,
-    borderRadius: 16,
+    sourcePosition, targetPosition, borderRadius: 16,
   });
 
   return (
@@ -214,9 +170,7 @@ function GradientEdge({
         </linearGradient>
       </defs>
       <BaseEdge id={id} path={edgePath} style={{
-        ...style,
-        stroke: `url(#${gradientId})`,
-        strokeWidth: disabled ? 1 : 1.5,
+        ...style, stroke: `url(#${gradientId})`, strokeWidth: disabled ? 1 : 1.5,
       }} />
       {!disabled && (
         <circle r="2.5" fill={d?.sourceAccent ?? 'var(--text-muted)'} opacity="0.8">
@@ -226,8 +180,8 @@ function GradientEdge({
       {d?.label && (
         <g transform={`translate(${labelX}, ${labelY})`}>
           <rect x="-18" y="-9" width="36" height="18" rx="4"
-            fill="var(--neu-bg)" fillOpacity="0.9" stroke={d?.sourceAccent ?? 'var(--border-divider)'}
-            strokeWidth="0.5" strokeOpacity="0.4" />
+            fill="var(--neu-bg)" fillOpacity="0.9"
+            stroke={d?.sourceAccent ?? 'var(--border-divider)'} strokeWidth="0.5" strokeOpacity="0.4" />
           <text textAnchor="middle" dominantBaseline="central"
             style={{ fontSize: '9px', fontWeight: 600, fill: disabled ? 'var(--text-muted)' : 'var(--text-secondary)' }}>
             {d.label}
@@ -242,97 +196,121 @@ const nodeTypes: NodeTypes = {
   archNode: ArchNodeComponent as any,
   groupNode: GroupNodeComponent as any,
 };
-
-const edgeTypes = {
-  gradient: GradientEdge as any,
-};
+const edgeTypes = { gradient: GradientEdge as any };
 
 /* ------------------------------------------------------------------ */
-/*  Layout constants                                                  */
+/*  ELK layout engine                                                 */
 /* ------------------------------------------------------------------ */
 
+let elkInstance: any = null;
+async function getElk() {
+  if (!elkInstance) {
+    const ELK = (await import('elkjs/lib/elk.bundled.js')).default;
+    elkInstance = new ELK();
+  }
+  return elkInstance;
+}
 const NODE_W = 170;
 const NODE_H = 44;
-const NODE_GAP_Y = 12;
-const GROUP_PAD_X = 20;
-const GROUP_PAD_TOP = 46;
-const GROUP_PAD_BOTTOM = 18;
-const GROUP_GAP_X = 100;
-const GROUP_GAP_Y = 50;
+const GROUP_HEADER_H = 36;
 
-const GROUP_ROWS: string[][] = [
-  ['pages', 'editor', 'api', 'data'],
-  ['build'],
-];
+async function computeElkLayout(
+  archData: ArchitectureData,
+  mode: ViewMode,
+): Promise<{ nodes: Node[]; edges: Edge[] }> {
+  for (const g of archData.groups) GROUP_THEMES[g.id] = g.theme;
 
-/* ------------------------------------------------------------------ */
-/*  Build flow data with themed nodes and gradient edges              */
-/* ------------------------------------------------------------------ */
+  const getNodeState = (n: { modes: readonly string[] }) =>
+    n.modes.includes(mode) ? 'enabled' : 'disabled';
 
-function buildFlowData(archData: ArchitectureData, mode: ViewMode) {
-  // Cache group themes
-  for (const g of archData.groups) {
-    GROUP_THEMES[g.id] = g.theme;
+  // Build ELK graph with compound nodes (groups contain children)
+  const elkChildren: ElkNode[] = [];
+  for (const group of archData.groups) {
+    const groupNodes = archData.nodes.filter((n) => n.group === group.id);
+    elkChildren.push({
+      id: `group-${group.id}`,
+      layoutOptions: {
+        'elk.padding': `[top=${GROUP_HEADER_H + 14},left=16,bottom=14,right=16]`,
+        'elk.spacing.nodeNode': '10',
+      },
+      children: groupNodes.map((n) => ({
+        id: n.id,
+        width: NODE_W,
+        height: NODE_H,
+      })),
+    });
   }
 
+  const elkEdges: ElkExtendedEdge[] = archData.edges.map((e) => ({
+    id: `${e.source}-${e.target}`,
+    sources: [e.source],
+    targets: [e.target],
+  }));
+
+  const elkGraph: ElkNode = {
+    id: 'root',
+    layoutOptions: {
+      'elk.algorithm': 'layered',
+      'elk.direction': 'RIGHT',
+      'elk.spacing.nodeNode': '60',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+      'elk.spacing.edgeEdge': '20',
+      'elk.spacing.edgeNode': '30',
+      'elk.layered.spacing.edgeEdgeBetweenLayers': '25',
+      'elk.layered.spacing.edgeNodeBetweenLayers': '30',
+      'elk.edgeRouting': 'ORTHOGONAL',
+      'elk.layered.mergeEdges': 'false',
+      'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    },
+    children: elkChildren,
+    edges: elkEdges,
+  };
+
+  const elk = await getElk();
+  const layout = await elk.layout(elkGraph);
+
+  // Convert ELK layout to React Flow nodes
   const nodes: Node[] = [];
-  const edges: Edge[] = [];
-  const getNodeState = (n: { modes: readonly string[] }) => n.modes.includes(mode) ? 'enabled' : 'disabled';
+  for (const elkGroup of layout.children ?? []) {
+    const groupId = elkGroup.id.replace('group-', '');
+    const group = archData.groups.find((g) => g.id === groupId);
+    if (!group) continue;
+    const groupNodes = archData.nodes.filter((n) => n.group === groupId);
+    const allDisabled = groupNodes.every((n) => getNodeState(n) === 'disabled');
 
-  let groupY = 0;
+    nodes.push({
+      id: elkGroup.id,
+      type: 'groupNode',
+      position: { x: elkGroup.x ?? 0, y: elkGroup.y ?? 0 },
+      data: { label: group.name, icon: group.icon, disabled: allDisabled, groupId, nodeCount: groupNodes.length },
+      style: { width: elkGroup.width, height: elkGroup.height },
+      draggable: false, selectable: false,
+    });
 
-  for (const row of GROUP_ROWS) {
-    let maxRowHeight = 0;
-    let rowX = 0;
-
-    for (const groupId of row) {
-      const group = archData.groups.find((g) => g.id === groupId);
-      if (!group) continue;
-      const groupNodes = archData.nodes.filter((n) => n.group === groupId);
-      const contentH = groupNodes.length * (NODE_H + NODE_GAP_Y) - NODE_GAP_Y;
-      const gW = NODE_W + GROUP_PAD_X * 2;
-      const gH = GROUP_PAD_TOP + contentH + GROUP_PAD_BOTTOM;
-      const allDisabled = groupNodes.every((n) => getNodeState(n) === 'disabled');
-
+    for (const elkChild of elkGroup.children ?? []) {
+      const archNode = archData.nodes.find((n) => n.id === elkChild.id);
+      if (!archNode) continue;
+      const disabled = getNodeState(archNode) === 'disabled';
+      const navigable = !disabled && typeof archNode.url === 'string' && archNode.url.length > 0;
       nodes.push({
-        id: `group-${groupId}`,
-        type: 'groupNode',
-        position: { x: rowX, y: groupY },
-        data: { label: group.name, icon: group.icon, disabled: allDisabled, groupId: groupId, nodeCount: groupNodes.length },
-        style: { width: gW, height: gH },
+        id: elkChild.id,
+        type: 'archNode',
+        position: { x: elkChild.x ?? 0, y: elkChild.y ?? 0 },
+        parentId: elkGroup.id,
+        extent: 'parent' as const,
+        data: { label: archNode.name, icon: archNode.icon, url: archNode.url, disabled, navigable, groupId },
         draggable: false,
-        selectable: false,
       });
-
-      groupNodes.forEach((n, i) => {
-        const disabled = getNodeState(n) === 'disabled';
-        const navigable = !disabled && typeof n.url === 'string' && n.url.length > 0;
-        nodes.push({
-          id: n.id,
-          type: 'archNode',
-          position: { x: GROUP_PAD_X, y: GROUP_PAD_TOP + i * (NODE_H + NODE_GAP_Y) },
-          parentId: `group-${groupId}`,
-          extent: 'parent' as const,
-          data: { label: n.name, icon: n.icon, url: n.url, disabled, navigable, groupId: groupId },
-          draggable: false,
-        });
-      });
-
-      rowX += gW + GROUP_GAP_X;
-      maxRowHeight = Math.max(maxRowHeight, gH);
     }
-
-    groupY += maxRowHeight + GROUP_GAP_Y;
   }
 
-  // Edges with gradient colors
+  // Convert ELK edges to React Flow edges
+  const edges: Edge[] = [];
   for (const e of archData.edges) {
     const srcNode = archData.nodes.find((n) => n.id === e.source);
     const tgtNode = archData.nodes.find((n) => n.id === e.target);
     if (!srcNode || !tgtNode) continue;
-    const srcDisabled = getNodeState(srcNode) === 'disabled';
-    const tgtDisabled = getNodeState(tgtNode) === 'disabled';
-    const disabled = srcDisabled || tgtDisabled;
+    const disabled = getNodeState(srcNode) === 'disabled' || getNodeState(tgtNode) === 'disabled';
     const srcTheme = getTheme(srcNode.group);
     const tgtTheme = getTheme(tgtNode.group);
 
@@ -342,10 +320,8 @@ function buildFlowData(archData: ArchitectureData, mode: ViewMode) {
       target: e.target,
       type: 'gradient',
       data: {
-        label: e.label,
-        disabled,
-        sourceAccent: srcTheme.accent,
-        targetAccent: tgtTheme.accent,
+        label: e.label, disabled,
+        sourceAccent: srcTheme.accent, targetAccent: tgtTheme.accent,
       },
     });
   }
@@ -354,17 +330,25 @@ function buildFlowData(archData: ArchitectureData, mode: ViewMode) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main flow component                                               */
+/*  Main flow component with async ELK layout                        */
 /* ------------------------------------------------------------------ */
 
 function DiagramFlow({ data }: DiagramRendererProps) {
   const [mode, setMode] = useState<ViewMode>('publish');
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
   const { fitView } = useReactFlow();
-  const { nodes, edges } = useMemo(() => buildFlowData(data, mode), [data, mode]);
 
   useEffect(() => {
-    setTimeout(() => fitView({ padding: 0.12, duration: 300 }), 50);
-  }, [mode, fitView]);
+    let cancelled = false;
+    computeElkLayout(data, mode).then((result) => {
+      if (cancelled) return;
+      setNodes(result.nodes);
+      setEdges(result.edges);
+      setTimeout(() => fitView({ padding: 0.12, duration: 300 }), 50);
+    });
+    return () => { cancelled = true; };
+  }, [data, mode, fitView]);
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
@@ -390,41 +374,29 @@ function DiagramFlow({ data }: DiagramRendererProps) {
         <p className="diagram-mobile-hint" style={{
           display: 'none', textAlign: 'center', fontSize: '0.75rem',
           color: 'var(--text-muted)', margin: 0,
-        }}>
-          👆 捏合缩放 · 拖动平移
-        </p>
+        }}>👆 捏合缩放 · 拖动平移</p>
       </div>
 
       {/* React Flow canvas */}
       <div style={{
-        width: '100%', height: '70vh', borderRadius: '1rem',
-        overflow: 'hidden',
+        width: '100%', height: '70vh', borderRadius: '1rem', overflow: 'hidden',
         boxShadow: 'inset 6px 6px 10px var(--neu-shadow-dark-strong), inset -6px -6px 10px var(--neu-shadow-light-strong)',
       }}>
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.12 }}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          panOnScroll
-          zoomOnScroll={false}
-          zoomOnPinch
-          minZoom={0.2}
-          maxZoom={2}
+          nodes={nodes} edges={edges}
+          nodeTypes={nodeTypes} edgeTypes={edgeTypes}
+          fitView fitViewOptions={{ padding: 0.12 }}
+          nodesDraggable={false} nodesConnectable={false} elementsSelectable={false}
+          panOnScroll zoomOnScroll={false} zoomOnPinch
+          minZoom={0.2} maxZoom={2}
           proOptions={{ hideAttribution: true }}
           style={{ background: 'var(--neu-bg)' }}
         >
           <Background color="var(--border-subtle)" gap={24} size={1} />
-          <Controls showInteractive={false}
-            style={{
-              borderRadius: '12px', overflow: 'hidden',
-              boxShadow: '4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light)',
-            }} />
+          <Controls showInteractive={false} style={{
+            borderRadius: '12px', overflow: 'hidden',
+            boxShadow: '4px 4px 8px var(--neu-shadow-dark), -4px -4px 8px var(--neu-shadow-light)',
+          }} />
           <MiniMap
             nodeColor={(n) => {
               if (n.type === 'groupNode') return 'transparent';
