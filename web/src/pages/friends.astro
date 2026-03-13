@@ -4,9 +4,10 @@ import ProfileSidebar from '../components/ProfileSidebar.astro'
 import FriendCard from '../components/FriendCard.astro'
 import Giscus from '../components/Giscus.astro'
 import { fetchGitHubProfile } from '../lib/github'
-import { FRIENDS } from '../data/friends'
+import { loadFriends } from '../data/friends'
 
 const profile = await fetchGitHubProfile()
+const friends = await loadFriends()
 ---
 
 <WithSidebar>
@@ -19,7 +20,7 @@ const profile = await fetchGitHubProfile()
 
     <section class="board-container neu-board anim-fade" style="--delay:2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {FRIENDS.map((friend) => (
+            {friends.map((friend) => (
                 <FriendCard
                     name={friend.name}
                     url={friend.url}

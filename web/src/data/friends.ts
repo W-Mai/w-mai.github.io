@@ -1,6 +1,11 @@
-// Friend link data definitions with compile-time type safety
+// Friend link data — loaded from YAML files in friends/ directory
+
+import { readdir, readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { parse } from 'yaml';
 
 export interface FriendLink {
+  id: string;
   name: string;
   url: string;
   avatar: string;
@@ -8,89 +13,64 @@ export interface FriendLink {
   tags?: string[];
 }
 
-export const FRIENDS: readonly FriendLink[] = [
-  {
-    name: 'LVY NEKO',
-    url: 'https://lvyovo-wiki.tech',
-    avatar: 'https://avatars.githubusercontent.com/lvy010',
-    description: '休闲码农 & 开源爱好者，CS 本科在读，喜欢 VS Code TvT，乐于为有趣的项目贡献代码。',
-    tags: ['开源', 'CS', 'LVGL', 'openvela', 'VSCode'],
-  },
-  {
-    name: 'Wcowin',
-    url: 'https://wcowin.work',
-    avatar: 'https://avatars.githubusercontent.com/Wcowin',
-    description: '循此苦旅，以达星辰。技术博客作者，OneClip 开发者，MkDocs 主题爱好者。',
-    tags: ['博客', '开源', 'OneClip'],
-  },
-  {
-    name: 'MickeyMiao',
-    url: 'https://blog.mickeymiao.cn',
-    avatar: 'https://avatars.githubusercontent.com/WangSimiao2000',
-    description: 'Leeds 图形学硕士，热爱 Minecraft 和图形渲染，擅长 C++/OpenGL 体素引擎与光线追踪。',
-    tags: ['图形学', '渲染', 'C++', 'Minecraft'],
-  },
-  {
-    name: 'Lazy_V',
-    url: 'https://zzxzzk115.github.io/blog/',
-    avatar: 'https://avatars.githubusercontent.com/zzxzzk115',
-    description: 'Leeds PhD，研究感知图形学（VR & 高性能图形），游戏引擎与图形学爱好者。',
-    tags: ['图形学', 'VR', 'C++', '游戏引擎'],
-  },
-  {
-    name: 'KevinHz',
-    url: 'https://kevinhz.dev',
-    avatar: 'https://avatars.githubusercontent.com/XTM722',
-    description: 'UTSC 统计学 & 经济学 & 语言学，将严谨的数据分析与现代软件工程结合，构建可靠高性能系统。',
-    tags: ['统计学', '数据分析', '软件工程'],
-  },
-  {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
-  },
-  {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
-  },
-  {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
-  },
-  {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
-  },
-  {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
-  },
-  {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
-  },
-  {
-    name: '虚位以待',
-    url: '#',
-    avatar: '',
-    description: '这里空着一个位置，等你来填～',
-    tags: ['占位'],
-  },
-] as const;
+const friendsDir = resolve(process.cwd(), '..', 'friends');
+
+/** Parse a single YAML file into a FriendLink (without id) */
+function yamlToFriend(yaml: string): Omit<FriendLink, 'id'> | null {
+  try {
+    const data = parse(yaml);
+    if (!data || typeof data.name !== 'string') return null;
+    return {
+      name: data.name,
+      url: typeof data.url === 'string' ? data.url : '#',
+      avatar: typeof data.avatar === 'string' ? data.avatar : '',
+      description: typeof data.description === 'string' ? data.description : '',
+      tags: Array.isArray(data.tags) ? data.tags.filter((t: unknown) => typeof t === 'string') : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Placeholder entries for empty slots */
+const PLACEHOLDER: Omit<FriendLink, 'id'> = {
+  name: '虚位以待',
+  url: '#',
+  avatar: '',
+  description: '这里空着一个位置，等你来填～',
+  tags: ['占位'],
+};
+
+const PLACEHOLDER_COUNT = 7;
+
+/** Load all friends from YAML files, sorted by filename, with placeholder padding */
+export async function loadFriends(): Promise<FriendLink[]> {
+  let files: string[];
+  try {
+    files = (await readdir(friendsDir)).filter(f => f.endsWith('.yaml')).sort();
+  } catch {
+    return [];
+  }
+
+  const friends: FriendLink[] = [];
+  for (const file of files) {
+    try {
+      const raw = await readFile(resolve(friendsDir, file), 'utf-8');
+      const data = yamlToFriend(raw);
+      if (data) {
+        friends.push({ id: file.replace(/\.yaml$/, ''), ...data });
+      }
+    } catch {
+      console.warn(`[friends] Failed to read: ${file}`);
+    }
+  }
+
+  // Pad with placeholders to fill the grid
+  const totalSlots = Math.max(PLACEHOLDER_COUNT, friends.length);
+  const placeholderCount = totalSlots - friends.length;
+  for (let i = 0; i < placeholderCount; i++) {
+    friends.push({ id: `placeholder-${i}`, ...PLACEHOLDER });
+  }
+
+  return friends;
+}
