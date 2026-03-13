@@ -15,10 +15,19 @@ export interface ArchEdge {
   label?: string;
 }
 
+export interface ArchGroupTheme {
+  accent: string;      // primary accent color
+  accentMuted: string; // softer version for backgrounds
+  border: string;      // border color for group container
+  bg: string;          // semi-transparent background
+  gradient: string;    // gradient for node left-bar
+}
+
 export interface ArchGroup {
   id: string;
   name: string;
   icon: string;
+  theme: ArchGroupTheme;
 }
 
 export interface ArchitectureData {
@@ -29,11 +38,46 @@ export interface ArchitectureData {
 
 export const architectureData = {
   groups: [
-    { id: 'pages', name: 'Pages', icon: '📄' },
-    { id: 'editor', name: 'Editor', icon: '✏️' },
-    { id: 'data', name: 'Data Sources', icon: '💾' },
-    { id: 'api', name: 'API Routes', icon: '🔌' },
-    { id: 'build', name: 'Build & Styles', icon: '🏗️' },
+    {
+      id: 'pages', name: 'Pages', icon: '📄',
+      theme: {
+        accent: '#3b82f6', accentMuted: 'rgba(59,130,246,0.08)',
+        border: 'rgba(59,130,246,0.3)', bg: 'rgba(59,130,246,0.04)',
+        gradient: 'linear-gradient(135deg, #3b82f6, #60a5fa)',
+      },
+    },
+    {
+      id: 'editor', name: 'Editor', icon: '✏️',
+      theme: {
+        accent: '#f59e0b', accentMuted: 'rgba(245,158,11,0.08)',
+        border: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.04)',
+        gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
+      },
+    },
+    {
+      id: 'api', name: 'API Routes', icon: '🔌',
+      theme: {
+        accent: '#8b5cf6', accentMuted: 'rgba(139,92,246,0.08)',
+        border: 'rgba(139,92,246,0.3)', bg: 'rgba(139,92,246,0.04)',
+        gradient: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+      },
+    },
+    {
+      id: 'data', name: 'Data Sources', icon: '💾',
+      theme: {
+        accent: '#10b981', accentMuted: 'rgba(16,185,129,0.08)',
+        border: 'rgba(16,185,129,0.3)', bg: 'rgba(16,185,129,0.04)',
+        gradient: 'linear-gradient(135deg, #10b981, #34d399)',
+      },
+    },
+    {
+      id: 'build', name: 'Build & Styles', icon: '🏗️',
+      theme: {
+        accent: '#06b6d4', accentMuted: 'rgba(6,182,212,0.08)',
+        border: 'rgba(6,182,212,0.3)', bg: 'rgba(6,182,212,0.04)',
+        gradient: 'linear-gradient(135deg, #06b6d4, #22d3ee)',
+      },
+    },
   ],
 
   nodes: [
