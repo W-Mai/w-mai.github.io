@@ -31,10 +31,17 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
   )}
 
   {allTags.length > 0 && (
-    <div class="flex flex-wrap gap-2 mb-6 anim-fade" style={`--delay:${isEditorMode ? 3 : 2}`}>
-      {allTags.map((tag) => (
-        <button class="neu-btn neu-filter-btn" data-tag={tag}>{tag}</button>
-      ))}
+    <div class="mb-6 anim-fade" style={`--delay:${isEditorMode ? 3 : 2}`}>
+      <button id="tag-toggle" class="neu-btn neu-filter-btn mb-2" aria-expanded="false">
+        🏷️ TAGS <span class="tag-toggle-arrow">▸</span>
+      </button>
+      <div id="tag-panel" class="tag-panel-collapsed">
+        <div class="neu-tag-filter-capsule">
+          {allTags.map((tag) => (
+            <button class="neu-tag-filter-item" data-tag={tag}>{tag}</button>
+          ))}
+        </div>
+      </div>
     </div>
   )}
 
@@ -56,6 +63,18 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
 
 <script>
   function initThoughtPage() {
+    // Tag panel toggle
+    const tagToggle = document.getElementById('tag-toggle')
+    const tagPanel = document.getElementById('tag-panel')
+    if (tagToggle && tagPanel) {
+      tagToggle.addEventListener('click', () => {
+        const expanded = tagPanel.classList.toggle('tag-panel-expanded')
+        tagPanel.classList.toggle('tag-panel-collapsed', !expanded)
+        tagToggle.setAttribute('aria-expanded', String(expanded))
+        tagToggle.querySelector('.tag-toggle-arrow')!.textContent = expanded ? '▾' : '▸'
+      })
+    }
+
     // Tag filter
     const buttons = document.querySelectorAll<HTMLButtonElement>('[data-tag]')
     let activeTag: string | null = null

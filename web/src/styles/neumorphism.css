@@ -180,6 +180,67 @@ html:not(.no-transitions) .neu-tag-chip {
   }
 }
 
+/* Tag filter capsule — inset container with flat tag items, mirrors mood-capsule pattern */
+.neu-tag-filter-capsule {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  border-radius: 1rem;
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+}
+.neu-tag-filter-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  box-shadow: none;
+  transition: box-shadow 200ms ease, background 200ms ease, transform 200ms ease, color 200ms ease;
+}
+.neu-tag-filter-item:hover {
+  background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+  transform: translateY(-1px);
+  color: var(--text-primary);
+}
+.neu-tag-filter-item:active {
+  background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+  transform: translateY(0);
+}
+.neu-tag-filter-item.neu-filter-active {
+  background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+              inset -2px -2px 4px var(--neu-shadow-light-strong);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Tag panel — collapsible tag filter area */
+.tag-panel-collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
+}
+.tag-panel-expanded {
+  max-height: 20rem;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease 0.05s;
+}
+.tag-toggle-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  font-size: 0.75em;
+}
+
 /* Card section: raised card used as page section container */
 .neu-card-section {
   border-radius: 1rem;
