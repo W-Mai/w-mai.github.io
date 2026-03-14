@@ -66,7 +66,9 @@ function resolveHeroImageUrl(heroImage: string, slug?: string): string {
 const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) => {
   const [local, setLocal] = useState<FrontmatterData>(data);
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const [pickerClosing, setPickerClosing] = useState(false);
   const [assets, setAssets] = useState<{ name: string; ext: string }[]>([]);
+  const [postImages, setPostImages] = useState<{ name: string; ext: string }[]>([]);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   // Sync from external prop when the document changes (e.g. page switch)
@@ -74,7 +76,7 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) =
     setLocal(data);
   }, [data]);
 
-  // Fetch image assets when picker opens
+  // Fetch global assets and post co-located images when picker opens
   useEffect(() => {
     if (!showImagePicker) return;
     fetch('/api/editor/assets')
@@ -83,19 +85,37 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) =
         setAssets(list.filter((a) => IMAGE_EXTS.has(a.ext)));
       })
       .catch(() => {});
-  }, [showImagePicker]);
+    if (slug) {
+      fetch(`/api/editor/posts/${slug}/images`)
+        .then((r) => r.json())
+        .then((list: { name: string; ext: string }[]) => {
+          setPostImages(list.filter((a) => IMAGE_EXTS.has(a.ext)));
+        })
+        .catch(() => {});
+    }
+  }, [showImagePicker, slug]);
+
+  // Animate-then-close helper
+  const closePicker = useCallback(() => {
+    if (!showImagePicker || pickerClosing) return;
+    setPickerClosing(true);
+    setTimeout(() => {
+      setShowImagePicker(false);
+      setPickerClosing(false);
+    }, 200);
+  }, [showImagePicker, pickerClosing]);
 
   // Close picker on outside click
   useEffect(() => {
     if (!showImagePicker) return;
     const handler = (e: MouseEvent) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-        setShowImagePicker(false);
+        closePicker();
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [showImagePicker]);
+  }, [showImagePicker, closePicker]);
 
   const handleChange = useCallback(
     (field: keyof FrontmatterData, value: FrontmatterData[keyof FrontmatterData]) => {
@@ -198,7 +218,7 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) =
           <label style={{ ...labelStyle, marginBottom: 0 }}>Hero Image</label>
           {local.heroImage && (
             <button
-              onClick={() => { handleChange('heroImage', undefined); setShowImagePicker(false); }}
+              onClick={() => { handleChange('heroImage', undefined); closePicker(); }}
               aria-label="Clear hero image"
               style={clearBtnStyle}
             >×</button>
@@ -234,70 +254,191 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) =
             )}
           </button>
 
-          {/* Image picker dropdown */}
-          {showImagePicker && (
+          {/* Image picker dropdown — neumorphism style */}
+          {(showImagePicker || pickerClosing) && (
             <div style={{
               position: 'absolute',
               top: '100%',
               left: 0,
               right: 0,
               zIndex: 100,
-              marginTop: '4px',
+              marginTop: T.spacingSm,
               background: T.colorBg,
-              border: `1px solid ${T.colorBorder}`,
-              borderRadius: T.radiusMd,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              maxHeight: '240px',
+              border: 'none',
+              borderRadius: T.radiusLg,
+              boxShadow: T.shadowRaised,
+              maxHeight: '280px',
               overflow: 'auto',
-              padding: T.spacingSm,
+              padding: T.spacingMd,
+              animation: pickerClosing
+                ? 'heroPickerOut 0.2s ease both'
+                : 'heroPickerIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both',
             }}>
-              {assets.length === 0 ? (
-                <div style={{ padding: T.spacingMd, color: T.colorTextMuted, fontSize: T.fontSizeSm, textAlign: 'center' }}>
+              <style>{`
+                @keyframes heroPickerOut {
+                  from { opacity: 1; transform: scale(1) translateY(0); }
+                  to { opacity: 0; transform: scale(0.92) translateY(-4px); }
+                }
+                @keyframes heroPickerIn {
+                  from { opacity: 0; transform: scale(0.92) translateY(-4px); }
+                  to { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes heroThumbIn {
+                  from { opacity: 0; transform: scale(0.85); }
+                  to { opacity: 1; transform: scale(1); }
+                }
+                .hero-thumb {
+                  transition: all 150ms ease;
+                }
+                .hero-thumb:hover {
+                  transform: translateY(-2px);
+                  box-shadow: ${T.shadowBtnHover};
+                }
+                .hero-thumb:active {
+                  transform: translateY(0);
+                  box-shadow: ${T.shadowInset};
+                }
+              `}</style>
+              {postImages.length === 0 && assets.length === 0 ? (
+                <div style={{
+                  padding: T.spacingLg, color: T.colorTextMuted,
+                  fontSize: T.fontSizeSm, textAlign: 'center',
+                  borderRadius: T.radiusSm,
+                  boxShadow: T.shadowInset,
+                }}>
                   No images found
                 </div>
               ) : (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
-                  gap: '6px',
-                }}>
-                  {assets.map((a) => {
-                    const isSelected = local.heroImage === `./assets/${a.name}`;
-                    return (
-                      <button
-                        key={a.name}
-                        type="button"
-                        onClick={() => {
-                          handleChange('heroImage', `./assets/${a.name}`);
-                          setShowImagePicker(false);
-                        }}
-                        title={a.name}
-                        style={{
-                          padding: '3px',
-                          border: isSelected ? `2px solid ${T.colorAccent}` : `1px solid ${T.colorBorderLight}`,
-                          borderRadius: T.radiusSm,
-                          background: isSelected ? T.colorBgSecondary : 'transparent',
-                          cursor: 'pointer',
-                          overflow: 'hidden',
-                          aspectRatio: '1',
-                        }}
-                      >
-                        <img
-                          src={`/api/editor/assets/${encodeURIComponent(a.name)}`}
-                          alt={a.name}
-                          loading="lazy"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            borderRadius: '2px',
-                            display: 'block',
-                          }}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
+                <>
+                  {/* Post co-located images */}
+                  {postImages.length > 0 && (
+                    <>
+                      <div style={{
+                        fontSize: T.fontSizeXs, color: T.colorTextMuted,
+                        padding: `${T.spacingXs} ${T.spacingSm}`,
+                        fontWeight: 600, letterSpacing: '0.02em',
+                      }}>
+                        📁 Post Images
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
+                        gap: T.spacingSm,
+                        padding: T.spacingSm,
+                        marginBottom: assets.length > 0 ? T.spacingSm : 0,
+                        borderRadius: T.radiusSm,
+                        boxShadow: T.shadowInset,
+                      }}>
+                        {postImages.map((a, idx) => {
+                          const ref = `./${a.name}`;
+                          const isSelected = local.heroImage === ref;
+                          return (
+                            <button
+                              className={isSelected ? '' : 'hero-thumb'}
+                              key={`post-${a.name}`}
+                              type="button"
+                              onClick={() => {
+                                handleChange('heroImage', ref);
+                                closePicker();
+                              }}
+                              title={a.name}
+                              style={{
+                                padding: '3px',
+                                border: 'none',
+                                borderRadius: T.radiusSm,
+                                background: isSelected
+                                  ? 'linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light))'
+                                  : T.colorBg,
+                                cursor: 'pointer',
+                                overflow: 'hidden',
+                                aspectRatio: '1',
+                                boxShadow: isSelected ? T.shadowInset : T.shadowBtn,
+                                animation: `heroThumbIn 0.2s ease both`,
+                                animationDelay: `${Math.min(idx * 30, 300)}ms`,
+                              }}
+                            >
+                              <img
+                                src={`/api/editor/posts/${slug}/images/${encodeURIComponent(a.name)}`}
+                                alt={a.name}
+                                loading="lazy"
+                                style={{
+                                  width: '100%', height: '100%',
+                                  objectFit: 'cover',
+                                  borderRadius: '4px',
+                                  display: 'block',
+                                }}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                  {/* Global assets */}
+                  {assets.length > 0 && (
+                    <>
+                      <div style={{
+                        fontSize: T.fontSizeXs, color: T.colorTextMuted,
+                        padding: `${T.spacingXs} ${T.spacingSm}`,
+                        fontWeight: 600, letterSpacing: '0.02em',
+                      }}>
+                        🌐 Global Assets
+                      </div>
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))',
+                        gap: T.spacingSm,
+                        padding: T.spacingSm,
+                        borderRadius: T.radiusSm,
+                        boxShadow: T.shadowInset,
+                      }}>
+                        {assets.map((a, idx) => {
+                          const ref = `./assets/${a.name}`;
+                          const isSelected = local.heroImage === ref;
+                          const delay = postImages.length * 30 + idx * 30;
+                          return (
+                            <button
+                              className={isSelected ? '' : 'hero-thumb'}
+                              key={`global-${a.name}`}
+                              type="button"
+                              onClick={() => {
+                                handleChange('heroImage', ref);
+                                closePicker();
+                              }}
+                              title={a.name}
+                              style={{
+                                padding: '3px',
+                                border: 'none',
+                                borderRadius: T.radiusSm,
+                                background: isSelected
+                                  ? 'linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light))'
+                                  : T.colorBg,
+                                cursor: 'pointer',
+                                overflow: 'hidden',
+                                aspectRatio: '1',
+                                boxShadow: isSelected ? T.shadowInset : T.shadowBtn,
+                                animation: `heroThumbIn 0.2s ease both`,
+                                animationDelay: `${Math.min(delay, 600)}ms`,
+                              }}
+                            >
+                              <img
+                                src={`/api/editor/assets/${encodeURIComponent(a.name)}`}
+                                alt={a.name}
+                                loading="lazy"
+                                style={{
+                                  width: '100%', height: '100%',
+                                  objectFit: 'cover',
+                                  borderRadius: '4px',
+                                  display: 'block',
+                                }}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </>
               )}
             </div>
           )}

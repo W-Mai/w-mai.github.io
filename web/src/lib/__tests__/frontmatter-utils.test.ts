@@ -103,7 +103,7 @@ describe('parseFrontmatter', () => {
       "description: 'A complete post'",
       "pubDate: '2024-06-15'",
       "updatedDate: '2024-07-01'",
-      "heroImage: './assets/hero.png'",
+      "heroImage: '../../assets/images/hero.png'",
       'tags: ["typescript", "astro"]',
       "category: 'Programming'",
     ].join('\n');
@@ -192,7 +192,7 @@ describe('serializeFrontmatter', () => {
     expect(output).toContain("title: 'Using MDX'");
     expect(output).toContain("description: 'Lorem ipsum dolor sit amet'");
     expect(output).toContain("pubDate: 'Jan 4 1145'");
-    expect(output).toContain("heroImage: './assets/my_hero_img.png'");
+    expect(output).toContain("heroImage: '../../assets/images/my_hero_img.png'");
     expect(output).toContain('tags: ["mdx", "astro"]');
     expect(output).toContain("category: 'Programming'");
   });

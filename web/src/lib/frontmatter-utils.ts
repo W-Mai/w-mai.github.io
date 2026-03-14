@@ -84,7 +84,7 @@ export function parseFrontmatter(yaml: string): ParseResult {
       description: String(parsed.description ?? ''),
       pubDate: String(parsed.pubDate ?? ''),
       updatedDate: parsed.updatedDate != null ? String(parsed.updatedDate) : undefined,
-      heroImage: parsed.heroImage != null ? String(parsed.heroImage) : undefined,
+      heroImage: parsed.heroImage != null ? editorHeroImagePath(String(parsed.heroImage)) : undefined,
       tags: Array.isArray(parsed.tags) ? parsed.tags.map(String) : [],
       category: parsed.category != null ? String(parsed.category) : undefined,
       series: parsed.series != null ? String(parsed.series) : undefined,
@@ -134,6 +134,31 @@ function escapeDQ(s: string): string {
 }
 
 /**
+ * Convert editor-internal heroImage path to Astro-compatible relative path.
+ * Editor uses `./assets/xxx` for global assets and `./xxx` for co-located images.
+ * Astro needs `../../assets/images/xxx` for global assets (relative to post dir).
+ * Co-located `./xxx` stays unchanged.
+ */
+function normalizeHeroImagePath(editorPath: string): string {
+  if (editorPath.startsWith('./assets/')) {
+    const name = editorPath.replace('./assets/', '');
+    return `../../assets/images/${name}`;
+  }
+  return editorPath;
+}
+
+/**
+ * Convert Astro-compatible heroImage path back to editor-internal format.
+ * `../../assets/images/xxx` → `./assets/xxx`
+ * `./xxx` (co-located) stays unchanged.
+ */
+export function editorHeroImagePath(astroPath: string): string {
+  const match = astroPath.match(/^(?:\.\.\/)+assets\/images\/(.+)$/);
+  if (match) return `./assets/${match[1]}`;
+  return astroPath;
+}
+
+/**
  * Serialize a FrontmatterData object to YAML text wrapped in `---` delimiters.
  * Field order: title → description → pubDate → updatedDate → heroImage → tags → category.
  * String values use single quotes; tags use inline bracket notation with double-quoted elements.
@@ -143,11 +168,15 @@ export function serializeFrontmatter(data: FrontmatterData): string {
   const lines: string[] = ['---'];
 
   for (const key of FIELD_ORDER) {
-    const value = data[key];
+    let value = data[key];
 
     // Omit optional fields when empty or undefined
     if (OPTIONAL_FIELDS.has(key) && (value === undefined || value === '')) {
       continue;
+    }
+
+    if (key === 'heroImage' && typeof value === 'string') {
+      value = normalizeHeroImagePath(value);
     }
 
     if (key === 'tags') {
