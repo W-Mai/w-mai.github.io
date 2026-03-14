@@ -1,7 +1,14 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { EDITOR_TOKENS as T } from './editor-tokens';
-import { WECHAT_TEMPLATES, applyTemplate } from '../../lib/wechat-templates';
+import WechatSettingsPanel from './WechatSettingsPanel';
+import {
+  WECHAT_TEMPLATES, applyTemplate,
+  FONT_FAMILY_OPTIONS,
+  getTemplateBaseFontSize, toStyleOverrides,
+  loadSettings, saveSettings, clearSettings,
+  type StyleOverrides, type PersistedSettings,
+} from '../../lib/wechat-templates';
 
 const STORAGE_KEY = 'editor:wechatTemplateId';
 
@@ -46,7 +53,11 @@ const WechatExportModal: FC<WechatExportModalProps> = ({
   const [closing, setClosing] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [settings, setSettings] = useState<PersistedSettings>(() => loadSettings());
+
   const currentTemplate = WECHAT_TEMPLATES.find((t) => t.id === templateId) ?? WECHAT_TEMPLATES[0];
+  const templateBaseFontSize = getTemplateBaseFontSize(currentTemplate);
+  const styleOverrides = toStyleOverrides(settings, templateBaseFontSize);
 
   // Fetch tagged HTML when modal opens
   useEffect(() => {
@@ -111,7 +122,36 @@ const WechatExportModal: FC<WechatExportModalProps> = ({
     persistTemplateId(id);
   }, []);
 
-  const styledHtml = taggedHtml ? applyTemplate(taggedHtml, currentTemplate) : '';
+  const handleSettingsChange = useCallback((newOverrides: StyleOverrides) => {
+    const newSettings: PersistedSettings = {};
+
+    if (newOverrides.fontFamily) {
+      const opt = FONT_FAMILY_OPTIONS.find(o => o.value === newOverrides.fontFamily);
+      if (opt) newSettings.fontFamilyId = opt.id;
+    }
+
+    if (newOverrides.fontSizeRatio != null) {
+      newSettings.fontSize = Math.round(newOverrides.fontSizeRatio * templateBaseFontSize);
+    }
+
+    if (newOverrides.themeColor) {
+      newSettings.themeColor = newOverrides.themeColor;
+    }
+
+    if (newOverrides.textIndent != null) {
+      newSettings.textIndent = newOverrides.textIndent;
+    }
+
+    setSettings(newSettings);
+    saveSettings(newSettings);
+  }, [templateBaseFontSize]);
+
+  const handleSettingsReset = useCallback(() => {
+    setSettings({});
+    clearSettings();
+  }, []);
+
+  const styledHtml = taggedHtml ? applyTemplate(taggedHtml, currentTemplate, styleOverrides) : '';
 
   const handleCopy = useCallback(async () => {
     if (!styledHtml) return;
@@ -200,6 +240,14 @@ const WechatExportModal: FC<WechatExportModalProps> = ({
             </button>
           ))}
         </div>
+
+        {/* Settings panel */}
+        <WechatSettingsPanel
+          overrides={styleOverrides}
+          onChange={handleSettingsChange}
+          onReset={handleSettingsReset}
+          templateBaseFontSize={templateBaseFontSize}
+        />
 
         {/* Preview area */}
         <div style={{

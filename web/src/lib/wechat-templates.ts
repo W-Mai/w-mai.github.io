@@ -187,22 +187,274 @@ export const WECHAT_TEMPLATES: WechatTemplate[] = [
   },
 ];
 
+// --- Style override types and constants ---
+
+export interface StyleOverrides {
+  fontFamily?: string;
+  fontSizeRatio?: number;
+  themeColor?: string;
+  textIndent?: boolean;
+}
+
+export const FONT_FAMILY_OPTIONS = [
+  {
+    id: 'sans-serif',
+    label: '无衬线',
+    value: `-apple-system-font,BlinkMacSystemFont, Helvetica Neue, PingFang SC, Hiragino Sans GB, Microsoft YaHei UI, Microsoft YaHei, Arial, sans-serif`,
+  },
+  {
+    id: 'serif',
+    label: '衬线',
+    value: `Optima-Regular, Optima, PingFangSC-light, PingFangTC-light, 'PingFang SC', Cambria, Cochin, Georgia, Times, 'Times New Roman', serif`,
+  },
+  {
+    id: 'monospace',
+    label: '等宽',
+    value: `Menlo, Monaco, 'Courier New', monospace`,
+  },
+] as const;
+
+export const FONT_SIZE_OPTIONS = [14, 15, 16, 17, 18] as const;
+
+export const PRESET_COLORS = [
+  { label: '经典蓝', value: '#0F4C81' },
+  { label: '翡翠绿', value: '#009874' },
+  { label: '活力橘', value: '#FA5151' },
+  { label: '柠檬黄', value: '#FECE00' },
+  { label: '薰衣紫', value: '#92617E' },
+  { label: '天空蓝', value: '#55C9EA' },
+  { label: '玫瑰金', value: '#B76E79' },
+  { label: '橄榄绿', value: '#556B2F' },
+  { label: '石墨黑', value: '#333333' },
+  { label: '雾烟灰', value: '#A9A9A9' },
+  { label: '樱花粉', value: '#FFB7C5' },
+] as const;
+
+// Tags where font-family override applies
+export const TEXT_BEARING_TAGS = ['p', 'li', 'blockquote', 'h1', 'h2', 'h3', 'h4'];
+
+// Tags where theme color replaces the `color` property
+export const ACCENT_COLOR_TAGS = ['h1', 'h2', 'h3', 'h4', 'a', 'strong'];
+
+// Tags where theme color replaces border color
+export const ACCENT_BORDER_TAGS = ['blockquote', 'h2'];
+
+// Tags where text-indent applies
+export const INDENT_TAGS = ['p', 'li'];
+
+// Parse an inline style string into a Map of property→value pairs.
+// Handles empty strings, trailing semicolons, whitespace, and
+// values containing colons (e.g. "border-left: 4px solid #1a6fb5").
+export function parseInlineStyle(style: string): Map<string, string> {
+  const map = new Map<string, string>();
+  if (!style.trim()) return map;
+
+  const declarations = style.split(';');
+  for (const decl of declarations) {
+    const trimmed = decl.trim();
+    if (!trimmed) continue;
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx === -1) continue;
+    const prop = trimmed.slice(0, colonIdx).trim();
+    const value = trimmed.slice(colonIdx + 1).trim();
+    if (prop) map.set(prop, value);
+  }
+  return map;
+}
+
+// Serialize a Map of property→value pairs back to an inline style string.
+// Each entry becomes "property: value;" separated by spaces.
+// Empty maps return an empty string.
+export function serializeInlineStyle(map: Map<string, string>): string {
+  if (map.size === 0) return '';
+  const parts: string[] = [];
+  for (const [prop, value] of map) {
+    parts.push(`${prop}: ${value};`);
+  }
+  return parts.join(' ');
+}
+
+// Extract the base paragraph font-size (in px) from a template.
+// Parses the 'p' style key's font-size value. Falls back to 15 if not found.
+export function getTemplateBaseFontSize(template: WechatTemplate): number {
+  const pStyle = template.styles['p'];
+  if (!pStyle) return 15;
+  const parsed = parseInlineStyle(pStyle);
+  const fontSize = parsed.get('font-size');
+  if (!fontSize) return 15;
+  const match = fontSize.match(/^(\d+(?:\.\d+)?)px$/);
+  return match ? parseFloat(match[1]) : 15;
+}
+
+// Apply style overrides to a parsed style map for a given tag.
+// Returns a new Map — the input map is never mutated.
+export function applyOverridesToStyle(
+  styleMap: Map<string, string>,
+  tag: string,
+  overrides: StyleOverrides,
+): Map<string, string> {
+  const result = new Map(styleMap);
+
+  // 1. fontFamily: replace font-family on text-bearing tags
+  if (overrides.fontFamily && TEXT_BEARING_TAGS.includes(tag)) {
+    result.set('font-family', overrides.fontFamily);
+  }
+
+  // 2. fontSizeRatio: scale existing px font-size values
+  if (overrides.fontSizeRatio != null) {
+    const fs = result.get('font-size');
+    if (fs) {
+      const match = fs.match(/^(\d+(?:\.\d+)?)px$/);
+      if (match) {
+        const scaled = Math.max(1, Math.round(parseFloat(match[1]) * overrides.fontSizeRatio));
+        result.set('font-size', `${scaled}px`);
+      }
+    }
+  }
+
+  // 3. themeColor: replace accent colors and border colors
+  if (overrides.themeColor) {
+    if (ACCENT_COLOR_TAGS.includes(tag)) {
+      result.set('color', overrides.themeColor);
+    }
+    if (ACCENT_BORDER_TAGS.includes(tag)) {
+      const hexPattern = /\#[0-9a-fA-F]{3,8}/g;
+      for (const prop of ['border-left', 'border-left-color', 'border-bottom', 'border-bottom-color']) {
+        const val = result.get(prop);
+        if (val) {
+          result.set(prop, val.replace(hexPattern, overrides.themeColor));
+        }
+      }
+    }
+  }
+
+  // 4. textIndent: add text-indent on indent-eligible tags when enabled;
+  // when false or undefined, preserve the template's original value.
+  if (overrides.textIndent === true && INDENT_TAGS.includes(tag)) {
+    result.set('text-indent', '2em');
+  }
+
+  return result;
+}
+
+const SETTINGS_STORAGE_KEY = 'editor:wechatExportSettings';
+
+export interface PersistedSettings {
+  fontFamilyId?: string;    // 'sans-serif' | 'serif' | 'monospace'
+  fontSize?: number;        // 14-18
+  themeColor?: string;      // hex color
+  textIndent?: boolean;
+}
+
+// Validate a hex color string: #RGB, #RGBA, #RRGGBB, or #RRGGBBAA
+export function isValidHexColor(color: string): boolean {
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(color);
+}
+
+// Load persisted settings from localStorage. Returns defaults on error or missing data.
+export function loadSettings(): PersistedSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) {
+      localStorage.removeItem(SETTINGS_STORAGE_KEY);
+      return {};
+    }
+    // Validate and sanitize each field
+    const result: PersistedSettings = {};
+    if (typeof parsed.fontFamilyId === 'string' && FONT_FAMILY_OPTIONS.some(o => o.id === parsed.fontFamilyId)) {
+      result.fontFamilyId = parsed.fontFamilyId;
+    }
+    if (typeof parsed.fontSize === 'number' && FONT_SIZE_OPTIONS.includes(parsed.fontSize as any)) {
+      result.fontSize = parsed.fontSize;
+    }
+    if (typeof parsed.themeColor === 'string' && isValidHexColor(parsed.themeColor)) {
+      result.themeColor = parsed.themeColor;
+    }
+    if (typeof parsed.textIndent === 'boolean') {
+      result.textIndent = parsed.textIndent;
+    }
+    return result;
+  } catch {
+    try { localStorage.removeItem(SETTINGS_STORAGE_KEY); } catch { /* ignore */ }
+    return {};
+  }
+}
+
+// Persist settings to localStorage.
+export function saveSettings(settings: PersistedSettings): void {
+  try {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  } catch { /* localStorage unavailable */ }
+}
+
+// Clear all persisted settings.
+export function clearSettings(): void {
+  try {
+    localStorage.removeItem(SETTINGS_STORAGE_KEY);
+  } catch { /* ignore */ }
+}
+
+// Convert persisted settings to StyleOverrides for use with applyTemplate.
+export function toStyleOverrides(
+  persisted: PersistedSettings,
+  templateBaseFontSize: number,
+): StyleOverrides {
+  const overrides: StyleOverrides = {};
+
+  if (persisted.fontFamilyId) {
+    const opt = FONT_FAMILY_OPTIONS.find(o => o.id === persisted.fontFamilyId);
+    if (opt) overrides.fontFamily = opt.value;
+  }
+
+  if (persisted.fontSize) {
+    overrides.fontSizeRatio = persisted.fontSize / templateBaseFontSize;
+  }
+
+  if (persisted.themeColor) {
+    overrides.themeColor = persisted.themeColor;
+  }
+
+  if (persisted.textIndent != null) {
+    overrides.textIndent = persisted.textIndent;
+  }
+
+  return overrides;
+}
+
 // Apply a style template to tagged HTML (client-side, uses DOMParser).
 // Walks all elements with data-wechat-tag, writes inline styles from the
 // template, then strips class attributes, data-wechat-tag markers, and
 // any <style> tags so the output is pure inline-styled HTML.
+// When overrides are provided with at least one field set, merges them
+// into each element's template style via parseInlineStyle/applyOverridesToStyle.
 export function applyTemplate(
   taggedHtml: string,
   template: WechatTemplate,
+  overrides?: StyleOverrides,
 ): string {
   const doc = new DOMParser().parseFromString(taggedHtml, 'text/html');
+
+  const hasOverrides = overrides && (
+    overrides.fontFamily != null ||
+    overrides.fontSizeRatio != null ||
+    overrides.themeColor != null ||
+    overrides.textIndent != null
+  );
 
   // Apply inline styles based on data-wechat-tag
   const tagged = doc.querySelectorAll('[data-wechat-tag]');
   for (const el of tagged) {
     const tag = el.getAttribute('data-wechat-tag');
     if (tag && template.styles[tag]) {
-      el.setAttribute('style', template.styles[tag]);
+      if (hasOverrides) {
+        const styleMap = parseInlineStyle(template.styles[tag]);
+        const merged = applyOverridesToStyle(styleMap, tag, overrides);
+        el.setAttribute('style', serializeInlineStyle(merged));
+      } else {
+        el.setAttribute('style', template.styles[tag]);
+      }
     }
     el.removeAttribute('data-wechat-tag');
   }
