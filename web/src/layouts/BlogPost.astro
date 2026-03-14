@@ -21,6 +21,8 @@ type Props = CollectionEntry<'blog'>['data'] & {
 };
 
 const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount, tags = [], category, seriesData, postId } = Astro.props;
+
+const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 ---
 
 <html lang="en">
@@ -120,12 +122,22 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, read
 
 		<main class="max-w-3xl mx-auto px-4 py-10">
 			<!-- Back link -->
-			<a href="/blog"
-			   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
-			          mb-8 group">
-				<span class="group-hover:-translate-x-0.5 transition-transform">←</span>
-				<span>返回文章列表</span>
-			</a>
+			<div class="flex items-center gap-2 mb-8">
+				<a href="/blog"
+				   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
+				          group">
+					<span class="group-hover:-translate-x-0.5 transition-transform">←</span>
+					<span>返回文章列表</span>
+				</a>
+				{isEditorMode && postId && (
+					<a href={`/admin/live-editor?slug=${postId}`}
+					   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
+					          group">
+						<span>✏️</span>
+						<span>编辑</span>
+					</a>
+				)}
+			</div>
 
 			<article>
 				{seriesData && postId && (

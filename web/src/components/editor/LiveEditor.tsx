@@ -121,9 +121,10 @@ const LiveEditor: FC = () => {
       .catch(() => { setAiEnabled(false); });
   }, []);
 
-  // Restore selected slug from localStorage
+  // Restore selected slug from localStorage or URL query param
   useEffect(() => {
-    const savedSlug = restoreEditorState('selectedSlug');
+    const urlSlug = new URLSearchParams(window.location.search).get('slug');
+    const savedSlug = urlSlug || restoreEditorState('selectedSlug');
     fetch('/api/editor/posts?detail')
       .then((res) => res.json())
       .then((posts: PostInfo[]) => {
@@ -755,6 +756,18 @@ const LiveEditor: FC = () => {
           <span style={{ color: T.colorTextSecondary, fontSize: T.fontSizeMd }}>
             {state.selectedSlug ? `${state.selectedSlug}.mdx` : 'Select a post to edit'}
           </span>
+          {state.selectedSlug && (
+            <a
+              href={`/blog/${state.selectedSlug}`}
+              style={{
+                color: T.colorTextMuted, fontSize: T.fontSizeSm,
+                textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px',
+              }}
+              title="View post"
+            >
+              ↗ 查看文章
+            </a>
+          )}
           {state.isDirty && (
             <span style={{
               width: '8px', height: '8px', borderRadius: '50%',
