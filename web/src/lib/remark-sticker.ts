@@ -44,10 +44,12 @@ export default function remarkSticker() {
         const text = child.value;
         let lastIndex = 0;
         let m: RegExpExecArray | null;
+        let childChanged = false;
         INLINE_RE.lastIndex = 0;
 
         while ((m = INLINE_RE.exec(text)) !== null) {
           changed = true;
+          childChanged = true;
           if (m.index > lastIndex) {
             newChildren.push({ type: 'text', value: text.slice(lastIndex, m.index) });
           }
@@ -59,10 +61,10 @@ export default function remarkSticker() {
           lastIndex = INLINE_RE.lastIndex;
         }
 
-        if (lastIndex < text.length) {
+        if (childChanged && lastIndex < text.length) {
           newChildren.push({ type: 'text', value: text.slice(lastIndex) });
         }
-        if (!changed) {
+        if (!childChanged) {
           newChildren.push(child);
         }
       }
