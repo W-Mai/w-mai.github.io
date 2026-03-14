@@ -37,9 +37,9 @@ const tutorialStyles: Record<string, string> = {
   del: 'text-decoration: line-through; color: #999999;',
   sup: 'font-size: 80%; color: #1a6fb5; vertical-align: super; line-height: 0;',
   a: 'color: #1a6fb5; text-decoration: none; border-bottom: 1px solid #1a6fb5;',
-  ul: 'list-style-type: disc; padding-left: 24px; margin: 10px 0; color: #333333;',
-  ol: 'list-style-type: decimal; padding-left: 24px; margin: 10px 0; color: #333333;',
-  li: 'font-size: 15px; line-height: 1.8; margin: 4px 0; color: #333333; text-align: justify;',
+  ul: 'list-style: none; padding-left: 1.5em; margin: 10px 0; color: #333333;',
+  ol: 'list-style: none; padding-left: 1.5em; margin: 10px 0; color: #333333;',
+  li: 'display: block; font-size: 15px; line-height: 1.8; margin: 4px 0; color: #333333; text-align: justify;',
   blockquote: 'border-left: 4px solid #1a6fb5; padding: 10px 16px; margin: 16px 0; background-color: #f0f7ff; color: #555555; font-size: 14px; line-height: 1.6;',
   hr: 'border: none; border-top: 1px solid #d0d7de; margin: 24px 0;',
   'code-block': 'display: block; background-color: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 6px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 16px 0; white-space: pre; word-wrap: normal;',
@@ -71,9 +71,9 @@ const narrativeStyles: Record<string, string> = {
   del: 'text-decoration: line-through; color: #999999;',
   sup: 'font-size: 80%; color: #a0522d; vertical-align: super; line-height: 0;',
   a: 'color: #a0522d; text-decoration: none; border-bottom: 1px dashed #a0522d;',
-  ul: 'list-style-type: disc; padding-left: 24px; margin: 12px 0; color: #3b3b3b;',
-  ol: 'list-style-type: decimal; padding-left: 24px; margin: 12px 0; color: #3b3b3b;',
-  li: 'font-size: 17px; line-height: 2; margin: 6px 0; color: #3b3b3b; text-align: justify;',
+  ul: 'list-style: none; padding-left: 1.5em; margin: 12px 0; color: #3b3b3b;',
+  ol: 'list-style: none; padding-left: 1.5em; margin: 12px 0; color: #3b3b3b;',
+  li: 'display: block; font-size: 17px; line-height: 2; margin: 6px 0; color: #3b3b3b; text-align: justify;',
   blockquote: 'border-left: 3px solid #d4b896; padding: 12px 20px; margin: 18px 0; background-color: #fdf8f0; color: #6b5b4b; font-style: italic; font-size: 16px; line-height: 1.8;',
   hr: 'border: none; border-top: 1px dashed #d4b896; margin: 28px auto; width: 60%;',
   'code-block': 'display: block; background-color: #faf6f0; color: #5b4636; padding: 14px; border-radius: 8px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.6; overflow-x: auto; margin: 16px 0; white-space: pre; word-wrap: normal; border: 1px solid #e8ddd0;',
@@ -105,9 +105,9 @@ const opinionStyles: Record<string, string> = {
   del: 'text-decoration: line-through; color: #999999;',
   sup: 'font-size: 80%; color: #c0392b; vertical-align: super; line-height: 0;',
   a: 'color: #c0392b; text-decoration: none; font-weight: bold; border-bottom: 2px solid #c0392b;',
-  ul: 'list-style-type: square; padding-left: 24px; margin: 10px 0; color: #2c2c2c;',
-  ol: 'list-style-type: decimal; padding-left: 24px; margin: 10px 0; color: #2c2c2c;',
-  li: 'font-size: 16px; line-height: 1.8; margin: 4px 0; color: #2c2c2c; text-align: justify;',
+  ul: 'list-style: none; padding-left: 1.5em; margin: 10px 0; color: #2c2c2c;',
+  ol: 'list-style: none; padding-left: 1.5em; margin: 10px 0; color: #2c2c2c;',
+  li: 'display: block; font-size: 16px; line-height: 1.8; margin: 4px 0; color: #2c2c2c; text-align: justify;',
   blockquote: 'border-left: 5px solid #c0392b; padding: 12px 18px; margin: 18px 0; background-color: #fdf2f2; color: #1a1a1a; font-weight: bold; font-size: 15px; line-height: 1.7;',
   hr: 'border: none; border-top: 3px solid #333333; margin: 28px 0;',
   'code-block': 'display: block; background-color: #2d2d2d; color: #f8f8f2; padding: 16px; border-radius: 4px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 16px 0; white-space: pre; word-wrap: normal;',
@@ -139,9 +139,9 @@ const editorialStyles: Record<string, string> = {
   del: 'text-decoration: line-through; color: #999999;',
   sup: 'font-size: 80%; color: #2b6cb0; vertical-align: super; line-height: 0;',
   a: 'color: #2b6cb0; text-decoration: none;',
-  ul: 'list-style-type: disc; padding-left: 24px; margin: 12px 0; color: #333333;',
-  ol: 'list-style-type: decimal; padding-left: 24px; margin: 12px 0; color: #333333;',
-  li: 'font-size: 15px; line-height: 1.75; margin: 4px 0; color: #333333; text-align: justify;',
+  ul: 'list-style: none; padding-left: 1.5em; margin: 12px 0; color: #333333;',
+  ol: 'list-style: none; padding-left: 1.5em; margin: 12px 0; color: #333333;',
+  li: 'display: block; font-size: 15px; line-height: 1.75; margin: 4px 0; color: #333333; text-align: justify;',
   blockquote: 'border-left: 3px solid #d0d0d0; padding: 10px 16px; margin: 16px 0; color: #666666; font-size: 14px; line-height: 1.7; background-color: #fafafa;',
   hr: 'border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;',
   'code-block': 'display: block; background-color: #f6f8fa; color: #24292e; padding: 16px; border-radius: 6px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.6; overflow-x: auto; margin: 18px 0; white-space: pre; word-wrap: normal; border: 1px solid #e1e4e8;',
@@ -457,6 +457,20 @@ export function applyTemplate(
       }
     }
     el.removeAttribute('data-wechat-tag');
+  }
+
+  // Inline list markers: WeChat strips list-style, so prepend bullet/number as text
+  const lists = doc.querySelectorAll('ul, ol');
+  for (const list of lists) {
+    const isOrdered = list.tagName.toLowerCase() === 'ol';
+    const startAttr = list.getAttribute('start');
+    let counter = startAttr ? Number(startAttr) : 1;
+    for (const child of list.children) {
+      if (child.tagName.toLowerCase() !== 'li') continue;
+      const prefix = isOrdered ? `${counter}. ` : `• `;
+      child.insertBefore(doc.createTextNode(prefix), child.firstChild);
+      counter++;
+    }
   }
 
   // Remove all class attributes (WeChat doesn't support them)
