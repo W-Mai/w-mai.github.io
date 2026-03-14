@@ -64,7 +64,7 @@ export default function rehypeBase64Embed(options: RehypeBase64EmbedOptions) {
         filePath = resolve(PROJECT_ROOT, 'assets', 'stickers', name);
       } else {
         // Relative path → posts/<slug>/<path>
-        const relPath = src.startsWith('./') ? src.slice(2) : src;
+        const relPath = decodeURIComponent(src.startsWith('./') ? src.slice(2) : src);
         filename = relPath;
         filePath = resolve(PROJECT_ROOT, 'posts', slug, relPath);
       }

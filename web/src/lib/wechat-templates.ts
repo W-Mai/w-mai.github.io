@@ -17,6 +17,7 @@ export const REQUIRED_STYLE_KEYS = [
   'blockquote', 'hr',
   'code-block', 'inline-code',
   'image',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td',
   'sticker-inline', 'sticker-block',
   'formula-inline', 'formula-block', 'diagram',
 ] as const;
@@ -42,11 +43,17 @@ const tutorialStyles: Record<string, string> = {
   'code-block': 'display: block; background-color: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 6px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 16px 0; white-space: pre-wrap; word-wrap: break-word;',
   'inline-code': 'background-color: #f0f2f5; color: #d14; padding: 2px 6px; border-radius: 3px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 90%;',
   image: 'max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 4px;',
+  table: 'border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; line-height: 1.6;',
+  thead: '',
+  tbody: '',
+  tr: 'border-bottom: 1px solid #d0d7de;',
+  th: 'border: 1px solid #d0d7de; padding: 8px 12px; background-color: #f0f7ff; font-weight: bold; color: #1a6fb5; text-align: left;',
+  td: 'border: 1px solid #d0d7de; padding: 8px 12px; color: #333333;',
   'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
   'sticker-block': 'text-align: center; margin: 16px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
-  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
-  'formula-block': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
-  'diagram': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
+  'formula-inline': 'display: inline-block; vertical-align: middle; line-height: 0;',
+  'formula-block': 'display: block; text-align: center; margin: 16px auto; max-width: 100%; overflow-x: auto;',
+  'diagram': 'display: block; text-align: center; margin: 16px auto; max-width: 100%; overflow-x: auto;',
 };
 
 // ---------- Narrative template (记叙抒情类) ----------
@@ -68,11 +75,17 @@ const narrativeStyles: Record<string, string> = {
   'code-block': 'display: block; background-color: #faf6f0; color: #5b4636; padding: 14px; border-radius: 8px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.6; overflow-x: auto; margin: 16px 0; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #e8ddd0;',
   'inline-code': 'background-color: #faf6f0; color: #8b5e3c; padding: 2px 6px; border-radius: 3px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 90%;',
   image: 'max-width: 100%; height: auto; display: block; margin: 20px auto; border-radius: 8px;',
+  table: 'border-collapse: collapse; width: 100%; margin: 18px 0; font-size: 16px; line-height: 1.8;',
+  thead: '',
+  tbody: '',
+  tr: 'border-bottom: 1px solid #e8ddd0;',
+  th: 'border: 1px solid #e8ddd0; padding: 10px 14px; background-color: #fdf8f0; font-weight: bold; color: #8b5e3c; text-align: left;',
+  td: 'border: 1px solid #e8ddd0; padding: 10px 14px; color: #3b3b3b;',
   'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
   'sticker-block': 'text-align: center; margin: 20px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
-  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
-  'formula-block': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
-  'diagram': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
+  'formula-inline': 'display: inline-block; vertical-align: middle; line-height: 0;',
+  'formula-block': 'display: block; text-align: center; margin: 16px auto; max-width: 100%; overflow-x: auto;',
+  'diagram': 'display: block; text-align: center; margin: 16px auto; max-width: 100%; overflow-x: auto;',
 };
 
 // ---------- Opinion template (议论批判类) ----------
@@ -94,11 +107,17 @@ const opinionStyles: Record<string, string> = {
   'code-block': 'display: block; background-color: #2d2d2d; color: #f8f8f2; padding: 16px; border-radius: 4px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 16px 0; white-space: pre-wrap; word-wrap: break-word;',
   'inline-code': 'background-color: #f2e6e6; color: #c0392b; padding: 2px 6px; border-radius: 3px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 90%; font-weight: bold;',
   image: 'max-width: 100%; height: auto; display: block; margin: 16px auto;',
+  table: 'border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 15px; line-height: 1.6;',
+  thead: '',
+  tbody: '',
+  tr: 'border-bottom: 2px solid #333333;',
+  th: 'border: 1px solid #333333; padding: 8px 12px; background-color: #2d2d2d; font-weight: 900; color: #f8f8f2; text-align: left;',
+  td: 'border: 1px solid #666666; padding: 8px 12px; color: #2c2c2c;',
   'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
   'sticker-block': 'text-align: center; margin: 16px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
-  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
-  'formula-block': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
-  'diagram': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
+  'formula-inline': 'display: inline-block; vertical-align: middle; line-height: 0;',
+  'formula-block': 'display: block; text-align: center; margin: 16px auto; max-width: 100%; overflow-x: auto;',
+  'diagram': 'display: block; text-align: center; margin: 16px auto; max-width: 100%; overflow-x: auto;',
 };
 
 // ---------- Editorial template (媒体资讯类) ----------
@@ -120,11 +139,17 @@ const editorialStyles: Record<string, string> = {
   'code-block': 'display: block; background-color: #f6f8fa; color: #24292e; padding: 16px; border-radius: 6px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.6; overflow-x: auto; margin: 18px 0; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #e1e4e8;',
   'inline-code': 'background-color: #f0f2f5; color: #476582; padding: 2px 6px; border-radius: 3px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 90%;',
   image: 'max-width: 100%; height: auto; display: block; margin: 18px auto;',
+  table: 'border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; line-height: 1.6;',
+  thead: '',
+  tbody: '',
+  tr: 'border-bottom: 1px solid #e5e5e5;',
+  th: 'border: 1px solid #e1e4e8; padding: 8px 12px; background-color: #f6f8fa; font-weight: 600; color: #1a1a1a; text-align: left;',
+  td: 'border: 1px solid #e1e4e8; padding: 8px 12px; color: #333333;',
   'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
   'sticker-block': 'text-align: center; margin: 16px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
-  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
-  'formula-block': 'display: block; margin: 14px auto; max-width: 100%; height: auto;',
-  'diagram': 'display: block; margin: 14px auto; max-width: 100%; height: auto;',
+  'formula-inline': 'display: inline-block; vertical-align: middle; line-height: 0;',
+  'formula-block': 'display: block; text-align: center; margin: 14px auto; max-width: 100%; overflow-x: auto;',
+  'diagram': 'display: block; text-align: center; margin: 14px auto; max-width: 100%; overflow-x: auto;',
 };
 
 export const WECHAT_TEMPLATES: WechatTemplate[] = [

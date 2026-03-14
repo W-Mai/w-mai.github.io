@@ -23,6 +23,12 @@ const TAG_MAP: Record<string, string> = {
   li: 'li',
   blockquote: 'blockquote',
   hr: 'hr',
+  table: 'table',
+  thead: 'thead',
+  tbody: 'tbody',
+  tr: 'tr',
+  th: 'th',
+  td: 'td',
 };
 
 function hasClass(node: Element, className: string): boolean {
@@ -37,10 +43,6 @@ function isPreWithCode(node: Element): boolean {
   return node.children.some(
     (child) => child.type === 'element' && child.tagName === 'code',
   );
-}
-
-function isInsidePre(ancestors: Element[]): boolean {
-  return ancestors.some((a) => a.tagName === 'pre');
 }
 
 export default function rehypeWechatTag() {
@@ -83,22 +85,22 @@ export default function rehypeWechatTag() {
         return;
       }
 
-      // img with formula-inline class → formula-inline tag
-      if (node.tagName === 'img' && hasClass(node, 'formula-inline')) {
+      // span with formula-inline class → formula-inline tag
+      if (node.tagName === 'span' && hasClass(node, 'formula-inline')) {
         node.properties ??= {};
         node.properties['dataWechatTag'] = 'formula-inline';
         return;
       }
 
-      // img with formula-block class → formula-block tag
-      if (node.tagName === 'img' && hasClass(node, 'formula-block')) {
+      // section with formula-block class → formula-block tag
+      if (node.tagName === 'section' && hasClass(node, 'formula-block')) {
         node.properties ??= {};
         node.properties['dataWechatTag'] = 'formula-block';
         return;
       }
 
-      // img with diagram class → diagram tag
-      if (node.tagName === 'img' && hasClass(node, 'diagram')) {
+      // section with diagram class → diagram tag
+      if (node.tagName === 'section' && hasClass(node, 'diagram')) {
         node.properties ??= {};
         node.properties['dataWechatTag'] = 'diagram';
         return;

@@ -1,13 +1,11 @@
-// Rehype plugin: convert Mermaid code blocks to PNG base64 images.
+// Rehype plugin: convert Mermaid code blocks to inline SVG.
 // Finds <pre><code class="language-mermaid"> elements, renders via
-// beautiful-mermaid → SVG → resvg PNG, replaces with <img> tags.
+// beautiful-mermaid → SVG, replaces with inline SVG (no PNG needed).
 
 import { visit } from 'unist-util-visit';
 import type { Root, Element, Text } from 'hast';
 import { renderMermaidSVG } from 'beautiful-mermaid';
-import { svgToPngDataUri } from './svg-to-png.js';
 
-/** Check if an element has a specific CSS class. */
 function hasClass(node: Element, className: string): boolean {
   const cls = node.properties?.className;
   if (Array.isArray(cls)) return cls.some((c) => String(c) === className);
@@ -15,7 +13,6 @@ function hasClass(node: Element, className: string): boolean {
   return false;
 }
 
-/** Recursively extract text content from a HAST node. */
 function textContent(node: Element | Text): string {
   if (node.type === 'text') return node.value;
   if ('children' in node) {
@@ -27,7 +24,6 @@ function textContent(node: Element | Text): string {
   return '';
 }
 
-/** Build a red-bordered error placeholder div for Mermaid failures. */
 function errorPlaceholder(source: string, error: string): Element {
   return {
     type: 'element',
@@ -40,9 +36,8 @@ function errorPlaceholder(source: string, error: string): Element {
   };
 }
 
-export default function rehypeMermaidPng() {
+export default function rehypeMermaidSvg() {
   return async (tree: Root) => {
-    // Collect <pre> nodes whose child is <code class="language-mermaid">
     const tasks: Array<{
       node: Element;
       index: number;
@@ -64,12 +59,10 @@ export default function rehypeMermaidPng() {
       }
     });
 
-    // Process in reverse order to preserve indices during replacement
     for (const task of tasks.reverse()) {
       const { node, index, parent } = task;
 
       try {
-        // Extract Mermaid source from the code element
         const codeChild = node.children.find(
           (c): c is Element => c.type === 'element' && c.tagName === 'code',
         )!;
@@ -80,7 +73,6 @@ export default function rehypeMermaidPng() {
           continue;
         }
 
-        // Render Mermaid → SVG via beautiful-mermaid
         let svg: string;
         try {
           svg = renderMermaidSVG(source);
@@ -90,37 +82,19 @@ export default function rehypeMermaidPng() {
           continue;
         }
 
-        // Convert SVG → PNG base64
-        let pngDataUri: string;
-        try {
-          pngDataUri = await svgToPngDataUri(svg, { scale: 2 });
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          parent.children.splice(
-            index,
-            1,
-            errorPlaceholder(source, `PNG conversion failed: ${msg}`),
-          );
-          continue;
-        }
-
-        // Build replacement <img> element
-        const firstLine = source.split('\n')[0].trim();
-        const img: Element = {
+        // Wrap SVG in a section with diagram class
+        const wrapper: Element = {
           type: 'element',
-          tagName: 'img',
+          tagName: 'section',
           properties: {
-            src: pngDataUri,
-            alt: `Diagram: ${firstLine}`,
             className: ['diagram'],
-            style: 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
           },
-          children: [],
+          children: [{ type: 'raw', value: svg } as any],
         };
 
-        parent.children.splice(index, 1, img);
+        parent.children.splice(index, 1, wrapper);
       } catch {
-        // Catch-all: keep original node, don't break pipeline
+        // Catch-all: keep original node
       }
     }
   };
