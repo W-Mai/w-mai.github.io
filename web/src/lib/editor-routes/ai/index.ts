@@ -47,8 +47,13 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const { action, content, context, language } = body;
-  if (!action || !content) {
+  if (!action || content == null) {
     return json({ error: 'Missing required fields: action, content' }, 400);
+  }
+
+  // Health check — empty content returns immediately
+  if (content === '') {
+    return json({ ok: true });
   }
 
   let systemPrompt = AI_PROMPTS[action];
