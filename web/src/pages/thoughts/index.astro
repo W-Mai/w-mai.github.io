@@ -203,6 +203,31 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
     }, { rootMargin: '100px' })
 
     observer.observe(sentinel)
+
+    // If URL has a thought anchor, load all chunks then scroll to target
+    const hash = window.location.hash
+    if (hash && hash.startsWith('#thought-')) {
+      ;(async () => {
+        loading = true
+        try {
+          while (await loadChunk()) { /* keep loading */ }
+          sentinel.textContent = ''
+          observer.disconnect()
+        } catch { /* ignore */ } finally {
+          loading = false
+        }
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const target = document.getElementById(hash.slice(1))
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            target.classList.add('neu-highlight-pulse')
+            target.addEventListener('animationend', () => {
+              target.classList.remove('neu-highlight-pulse')
+            }, { once: true })
+          }
+        }))
+      })()
+    }
   }
 
   document.addEventListener('astro:page-load', initThoughtPage)

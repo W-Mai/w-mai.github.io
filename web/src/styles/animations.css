@@ -36,3 +36,15 @@
     transition: none;
   }
 }
+
+/* Neumorphism pulse highlight — float up then press down then restore */
+@keyframes neu-highlight-pulse {
+  0%   { transform: translateY(0);    box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light); }
+  25%  { transform: translateY(-6px); box-shadow: 12px 12px 20px var(--neu-shadow-dark), -12px -12px 20px var(--neu-shadow-light); }
+  50%  { transform: translateY(0);    box-shadow: inset 4px 4px 8px var(--neu-shadow-dark-strong), inset -4px -4px 8px var(--neu-shadow-light-strong); }
+  75%  { transform: translateY(-3px); box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light); }
+  100% { transform: translateY(0);    box-shadow: 9px 9px 16px var(--neu-shadow-dark), -9px -9px 16px var(--neu-shadow-light); }
+}
+.neu-highlight-pulse {
+  animation: neu-highlight-pulse 1.2s ease;
+}

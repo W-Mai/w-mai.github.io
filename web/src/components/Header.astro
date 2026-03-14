@@ -1,6 +1,7 @@
 ---
 import {SITE_TITLE, SOCIALS} from '../consts';
 import HeaderLink from './HeaderLink.astro';
+import SearchTrigger from './SearchTrigger';
 import ThemeToggle from './ThemeToggle.astro';
 
 const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
@@ -64,6 +65,7 @@ const moreBtnLabel = activeDropdown?.label ?? activeCollapse?.label ?? '瞅瞅';
 			</div>
 		</div>
 		<div class="social-links">
+			<SearchTrigger client:idle />
 			<ThemeToggle />
 			<div class="social-capsule neu-btn">
 				{
