@@ -29,6 +29,7 @@ const TAG_MAP: Record<string, string> = {
   tr: 'tr',
   th: 'th',
   td: 'td',
+  sup: 'sup',
 };
 
 function hasClass(node: Element, className: string): boolean {
