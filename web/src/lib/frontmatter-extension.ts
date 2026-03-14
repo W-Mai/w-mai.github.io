@@ -23,6 +23,14 @@ import { EDITOR_TOKENS as T } from '../components/editor/editor-tokens';
 // StateEffect to inject the EditorView reference into the state field
 const setViewEffect = StateEffect.define<EditorView>();
 
+// Current post slug for co-located image resolution
+let activeSlug: string | null = null;
+
+/** Update the active slug for frontmatter panel image resolution */
+export function setFrontmatterSlug(slug: string | null): void {
+  activeSlug = slug;
+}
+
 // ── FrontmatterWidget ────────────────────────────────────────────────
 
 class FrontmatterWidget extends WidgetType {
@@ -76,6 +84,7 @@ class FrontmatterWidget extends WidgetType {
     if (!this.root) return;
     this.root.render(
       createElement(FrontmatterPanel, {
+        slug: activeSlug ?? undefined,
         data: this.data,
         onChange: this.handleFieldChange,
       }),

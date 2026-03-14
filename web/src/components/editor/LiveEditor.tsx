@@ -7,7 +7,6 @@ import PreviewPanel from './PreviewPanel';
 import Toolbar from './Toolbar';
 import ContextMenu from './ContextMenu';
 import CreatePostModal from './CreatePostModal';
-import AssetNameDialog from './AssetNameDialog';
 import ShortcutPanel from './ShortcutPanel';
 import AIDiffPanel from './AIDiffPanel';
 import GitCommitModal from './GitCommitModal';
@@ -18,6 +17,7 @@ import StickerPicker from './StickerPicker';
 import EnvConfigPanel from './EnvConfigPanel';
 import PostImageManager from './PostImageManager';
 import WechatExportModal from './WechatExportModal';
+import { setFrontmatterSlug } from '../../lib/frontmatter-extension';
 
 interface PostInfo {
   slug: string;
@@ -67,8 +67,7 @@ const LiveEditor: FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
-  const [pendingUploadFile, setPendingUploadFile] = useState<File | null>(null);
-  const [assetNames, setAssetNames] = useState<Set<string>>(new Set());
+
   const [sidebarTab, setSidebarTab] = useState<'posts' | 'assets'>(() => {
     return (restoreEditorState('sidebarTab') as 'posts' | 'assets') || 'posts';
   });
@@ -151,15 +150,6 @@ const LiveEditor: FC = () => {
   // Persist sidebar tab
   useEffect(() => { persistEditorState('sidebarTab', sidebarTab); }, [sidebarTab]);
 
-  // Fetch asset names for upload naming dialog
-  const refreshAssetNames = useCallback(() => {
-    fetch('/api/editor/assets')
-      .then((res) => res.json())
-      .then((data: { name: string }[]) => setAssetNames(new Set(data.map((a) => a.name))))
-      .catch(() => {});
-  }, []);
-  useEffect(() => { refreshAssetNames(); }, [refreshAssetNames]);
-
   // Fetch pending git posts and poll periodically (pause while modal is open)
   const refreshGitPending = useCallback(() => {
     fetch('/api/editor/git')
@@ -204,29 +194,24 @@ const LiveEditor: FC = () => {
     }
   }, [refreshGitPending]);
 
-  const handleFileUpload = useCallback((file: File) => {
-    refreshAssetNames();
-    setPendingUploadFile(file);
-  }, [refreshAssetNames]);
-
-  const handleUploadConfirm = useCallback(async (file: File, finalName: string) => {
-    setPendingUploadFile(null);
+  const handleFileUpload = useCallback(async (file: File) => {
+    const slug = state.selectedSlug;
+    if (!slug) return;
     try {
-      const res = await fetch(`/api/editor/assets/${encodeURIComponent(finalName)}`, {
-        method: 'POST', body: file,
-      });
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch(`/api/editor/posts/${slug}/images`, { method: 'POST', body: form });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Upload failed: ${finalName}`);
+        throw new Error(data.error || `Upload failed: ${file.name}`);
       }
-      const data = await res.json().catch(() => ({ name: finalName }));
-      const savedName = data.name || finalName;
-      refreshAssetNames();
-      editorRef.current?.insertText(`![${savedName}](./assets/${savedName})`);
+      const data = await res.json();
+      const savedName = data.name || file.name;
+      editorRef.current?.insertText(`![${savedName}](./${savedName})`);
     } catch (err: any) {
       setState((s) => ({ ...s, error: err.message }));
     }
-  }, [refreshAssetNames]);
+  }, [state.selectedSlug]);
 
   const selectPost = useCallback(async (slug: string) => {
     setState((s) => ({ ...s, isLoading: true, error: null }));
@@ -239,6 +224,7 @@ const LiveEditor: FC = () => {
         throw new Error(msg);
       }
       const content = await res.text();
+      setFrontmatterSlug(slug);
       setState((s) => ({
         ...s, selectedSlug: slug, content, savedContent: content,
         isDirty: false, isLoading: false,
@@ -953,15 +939,6 @@ const LiveEditor: FC = () => {
         aiEnabled={aiEnabled}
         onConfirm={createPost}
         onCancel={() => setShowCreateModal(false)}
-      />
-
-      {/* Asset Upload Naming Dialog (for editor drag/paste) */}
-      <AssetNameDialog
-        file={pendingUploadFile}
-        aiEnabled={aiEnabled}
-        existingNames={assetNames}
-        onConfirm={handleUploadConfirm}
-        onCancel={() => setPendingUploadFile(null)}
       />
 
       {/* Shortcut Panel */}

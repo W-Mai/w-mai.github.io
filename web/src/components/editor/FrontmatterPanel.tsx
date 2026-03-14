@@ -5,6 +5,7 @@ import DateTimePicker from './DateTimePicker';
 import type { FrontmatterData } from '../../lib/frontmatter-utils';
 
 interface FrontmatterPanelProps {
+  slug?: string;
   data: FrontmatterData;
   onChange: (field: keyof FrontmatterData, value: FrontmatterData[keyof FrontmatterData]) => void;
 }
@@ -49,7 +50,20 @@ const clearBtnStyle: React.CSSProperties = {
 
 const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif']);
 
-const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
+/** Resolve heroImage path to editor preview URL */
+function resolveHeroImageUrl(heroImage: string, slug?: string): string {
+  if (heroImage.startsWith('./assets/')) {
+    return `/api/editor/assets/${encodeURIComponent(heroImage.replace('./assets/', ''))}`;
+  }
+  // Co-located image (e.g. ./strange-bug.jpg)
+  const name = heroImage.replace('./', '');
+  if (slug) {
+    return `/api/editor/posts/${slug}/images/${encodeURIComponent(name)}`;
+  }
+  return `/api/editor/assets/${encodeURIComponent(name)}`;
+}
+
+const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) => {
   const [local, setLocal] = useState<FrontmatterData>(data);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [assets, setAssets] = useState<{ name: string; ext: string }[]>([]);
@@ -207,7 +221,7 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ data, onChange }) => {
             {local.heroImage ? (
               <>
                 <img
-                  src={`/api/editor/assets/${encodeURIComponent(local.heroImage.replace('./assets/', ''))}`}
+                  src={resolveHeroImageUrl(local.heroImage, slug)}
                   alt=""
                   style={{ width: '24px', height: '24px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0 }}
                 />
