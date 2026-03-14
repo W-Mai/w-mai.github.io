@@ -137,6 +137,94 @@ html.dark .prose blockquote { border-left-color: var(--accent); }
 html.dark .prose hr         { border-top-color: rgb(var(--gray-light)); }
 html.dark .prose code       { background-color: var(--bg-code); }
 
+/* Prose table — thead keeps prose defaults, tbody gets neumorphism inset */
+.prose table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: none;
+  overflow: visible;
+}
+
+/* thead: let Tailwind prose defaults handle color/weight, just ensure padding */
+.prose thead {
+  border-bottom: none;
+}
+
+.prose thead th {
+  padding: 0.6rem 1rem;
+  border: none;
+  text-align: center;
+}
+
+/* tbody: neumorphism inset container */
+.prose tbody {
+  background: var(--neu-bg);
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 4px 4px 8px var(--neu-shadow-dark-strong),
+    inset -4px -4px 8px var(--neu-shadow-light-strong);
+}
+
+.prose tbody tr {
+  border: none;
+}
+
+.prose tbody td {
+  padding: 0.6rem 1rem;
+  border: none;
+  color: var(--text-primary);
+  background: transparent;
+  vertical-align: middle;
+}
+
+/* Vertical groove between columns */
+.prose tbody td:not(:last-child) {
+  box-shadow:
+    inset -2px 0 2px -1px var(--neu-shadow-dark),
+    1px 0 1px 0 var(--neu-shadow-light);
+}
+
+/* Horizontal groove between rows */
+.prose tbody tr + tr td {
+  box-shadow:
+    inset 0 2px 2px -1px var(--neu-shadow-dark),
+    0 -1px 1px 0 var(--neu-shadow-light);
+}
+
+/* Both grooves: non-last-column cells in non-first rows */
+.prose tbody tr + tr td:not(:last-child) {
+  box-shadow:
+    inset 0 2px 2px -1px var(--neu-shadow-dark),
+    0 -1px 1px 0 var(--neu-shadow-light),
+    inset -2px 0 2px -1px var(--neu-shadow-dark),
+    1px 0 1px 0 var(--neu-shadow-light);
+}
+
+/* Round bottom corners of tbody */
+.prose tbody tr:first-child td:first-child { border-top-left-radius: 0.75rem; }
+.prose tbody tr:first-child td:last-child  { border-top-right-radius: 0.75rem; }
+.prose tbody tr:last-child td:first-child  { border-bottom-left-radius: 0.75rem; }
+.prose tbody tr:last-child td:last-child   { border-bottom-right-radius: 0.75rem; }
+
+/* Override Tailwind prose border on tbody rows */
+.prose :where(tbody tr):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
+  border-bottom: none;
+}
+
+/* Override Tailwind prose thead border */
+.prose :where(thead):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
+  border-bottom: none;
+}
+
+/* Ensure all td/th get consistent padding (override prose first/last-child 0 padding) */
+.prose :where(thead th:first-child):not(:where([class~="not-prose"],[class~="not-prose"] *)),
+.prose :where(thead th:last-child):not(:where([class~="not-prose"],[class~="not-prose"] *)),
+.prose :where(tbody td:first-child, tfoot td:first-child):not(:where([class~="not-prose"],[class~="not-prose"] *)),
+.prose :where(tbody td:last-child, tfoot td:last-child):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
+  padding-inline-start: 1rem;
+  padding-inline-end: 1rem;
+}
+
 
 /* ==========================================================================
    § 5b  HETI DARK MODE COMPATIBILITY
@@ -173,6 +261,14 @@ html.dark .prose code       { background-color: var(--bg-code); }
 html.dark .heti {
   --heti-color-default: var(--text-primary);
   --heti-color-light: var(--text-secondary);
+}
+
+/* Prevent heti from overriding prose table styles */
+.heti table,
+.heti th,
+.heti td {
+  border-color: transparent !important;
+  border-style: none !important;
 }
 
 
