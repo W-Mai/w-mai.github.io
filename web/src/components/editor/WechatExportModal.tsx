@@ -187,6 +187,7 @@ const WechatExportModal: FC<WechatExportModalProps> = ({
           boxShadow: T.shadowRaised,
           padding: T.spacingXl, width: '480px', maxWidth: '95vw',
           maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+          overflowY: 'auto' as const,
           fontFamily: T.fontSans,
         }}
       >
@@ -249,10 +250,12 @@ const WechatExportModal: FC<WechatExportModalProps> = ({
           templateBaseFontSize={templateBaseFontSize}
         />
 
-        {/* Preview area */}
+        {/* Preview area — padding keeps iframe below the inset shadow arc */}
         <div style={{
-          flex: 1, minHeight: 0, borderRadius: T.radiusMd,
+          flex: 'none', height: '50vh', borderRadius: T.radiusMd,
           boxShadow: T.shadowInset, overflow: 'hidden',
+          padding: T.spacingMd,
+          display: 'flex', flexDirection: 'column' as const,
           marginBottom: T.spacingLg,
         }}>
           {loading && (
@@ -278,8 +281,8 @@ const WechatExportModal: FC<WechatExportModalProps> = ({
               srcDoc={buildSrcdoc(styledHtml)}
               sandbox="allow-same-origin"
               style={{
-                width: '100%', height: '700px', border: 'none',
-                borderRadius: T.radiusMd, background: '#fff',
+                width: '100%', flex: 1, border: 'none',
+                borderRadius: T.radiusSm, background: '#fff',
               }}
             />
           )}
