@@ -212,34 +212,20 @@ const WechatExportModal: FC<WechatExportModalProps> = ({
           </button>
         </div>
 
-        {/* Template selector tabs */}
-        <div style={{
-          display: 'flex', gap: T.spacingSm,
-          padding: T.spacingSm, borderRadius: T.radiusMd,
-          boxShadow: T.shadowInset, marginBottom: T.spacingLg,
-        }}>
-          {WECHAT_TEMPLATES.map((tpl) => (
-            <button
-              key={tpl.id}
-              onClick={() => handleTemplateChange(tpl.id)}
-              title={tpl.description}
-              className={templateId !== tpl.id ? 'editor-btn' : ''}
-              style={{
-                flex: 1, padding: `${T.spacingSm} ${T.spacingMd}`,
-                border: 'none', borderRadius: T.radiusSm,
-                fontSize: T.fontSizeSm, cursor: 'pointer',
-                fontWeight: templateId === tpl.id ? 600 : 400,
-                color: templateId === tpl.id ? T.colorText : T.colorTextSecondary,
-                background: templateId === tpl.id
-                  ? 'linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light))'
-                  : 'transparent',
-                boxShadow: templateId === tpl.id ? T.shadowInset : 'none',
-                transition: `all ${T.transitionFast}`,
-              }}
-            >
-              {tpl.name}
-            </button>
-          ))}
+        {/* Template selector — inset capsule matching Header .tab-bar */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: T.spacingLg }}>
+          <div className="editor-tab-bar">
+            {WECHAT_TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.id}
+                onClick={() => handleTemplateChange(tpl.id)}
+                title={tpl.description}
+                className={`editor-tab${templateId === tpl.id ? ' active' : ''}`}
+              >
+                {tpl.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Settings panel */}

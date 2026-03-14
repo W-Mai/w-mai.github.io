@@ -560,6 +560,155 @@ const LiveEditor: FC = () => {
           box-shadow: ${T.shadowInset} !important;
           transform: translateY(0);
         }
+        .editor-btn-pill {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: ${T.spacingSm};
+          width: 100%;
+          padding: ${T.spacingSm} ${T.spacingMd};
+          border: none;
+          border-radius: 9999px;
+          font-size: ${T.fontSizeSm};
+          color: var(--text-secondary);
+          background: var(--neu-bg);
+          cursor: pointer;
+          box-shadow: ${T.shadowBtn};
+          transition: all ${T.transitionFast};
+        }
+        .editor-btn-pill:hover {
+          box-shadow: ${T.shadowBtnHover};
+          transform: translateY(1px);
+        }
+        .editor-btn-pill:active {
+          box-shadow: ${T.shadowInset};
+          transform: translateY(0);
+        }
+        .editor-tab-bar {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25em;
+          padding: 0.4em;
+          border-radius: 9999px;
+          box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong),
+                      inset -2px -2px 5px var(--neu-shadow-light-strong);
+        }
+        .editor-tab {
+          padding: 0.45em 1.1em;
+          color: var(--text-secondary);
+          border: none;
+          border-radius: 9999px;
+          font-size: 0.75em;
+          font-weight: 500;
+          cursor: pointer;
+          white-space: nowrap;
+          background: transparent;
+          box-shadow: none;
+          transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease, transform 200ms ease;
+        }
+        .editor-tab:hover:not(.active) {
+          color: var(--text-primary);
+          background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+          transform: translateY(-1px);
+        }
+        .editor-tab.active {
+          color: var(--text-primary);
+          font-weight: 700;
+          background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+          box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong),
+                      inset -2px -2px 4px var(--neu-shadow-light-strong);
+        }
+        /* Settings panel — collapsible inset container */
+        .editor-settings-body {
+          padding: ${T.spacingXl};
+          margin-top: ${T.spacingSm};
+          border-radius: ${T.radiusMd};
+          box-shadow: ${T.shadowInset};
+          display: flex;
+          flex-direction: column;
+          gap: ${T.spacingMd};
+        }
+        .editor-settings-label {
+          font-size: ${T.fontSizeXs};
+          color: var(--text-muted);
+          margin-bottom: ${T.spacingXs};
+          user-select: none;
+        }
+        .editor-settings-row {
+          display: flex;
+          gap: ${T.spacingSm};
+        }
+        /* Option chip — toggle button inside settings (font/size/indent) */
+        .editor-option-chip {
+          flex: 1;
+          padding: ${T.spacingXs} ${T.spacingSm};
+          border: none;
+          border-radius: ${T.radiusSm};
+          font-size: ${T.fontSizeXs};
+          cursor: pointer;
+          color: var(--text-secondary);
+          font-weight: 400;
+          background: transparent;
+          box-shadow: none;
+          transition: all ${T.transitionFast};
+        }
+        .editor-option-chip.active {
+          color: var(--text-primary);
+          font-weight: 600;
+          background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+          box-shadow: ${T.shadowInset};
+        }
+        .editor-option-chip:hover:not(.active) {
+          box-shadow: ${T.shadowBtnHover};
+          transform: translateY(1px);
+        }
+        /* Color swatch — circular color picker button */
+        .editor-color-swatch {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 2px solid transparent;
+          cursor: pointer;
+          padding: 0;
+          flex-shrink: 0;
+          transition: border-color ${T.transitionFast};
+        }
+        .editor-color-swatch.active {
+          border-color: var(--text-primary);
+        }
+        /* Hex color input */
+        .editor-hex-input {
+          width: 72px;
+          padding: ${T.spacingXs} ${T.spacingSm};
+          border: none;
+          border-radius: ${T.radiusSm};
+          font-size: ${T.fontSizeXs};
+          color: var(--text-primary);
+          background: var(--neu-bg);
+          box-shadow: ${T.shadowInset};
+          outline: none;
+          font-family: ${T.fontMono};
+        }
+        /* Small reset button */
+        .editor-btn-sm {
+          padding: ${T.spacingXs} ${T.spacingLg};
+          border: none;
+          border-radius: ${T.radiusSm};
+          font-size: ${T.fontSizeXs};
+          color: var(--text-secondary);
+          background: var(--neu-bg);
+          cursor: pointer;
+          box-shadow: ${T.shadowBtn};
+          transition: all ${T.transitionFast};
+        }
+        .editor-btn-sm:hover {
+          box-shadow: ${T.shadowBtnHover};
+          transform: translateY(1px);
+        }
+        .editor-btn-sm:active {
+          box-shadow: ${T.shadowInset};
+          transform: translateY(0);
+        }
         .editor-scrollbar-hide::-webkit-scrollbar { display: none; }
         .editor-scrollbar-hide { scrollbar-width: none; }
         .cm-editor { position: relative; border-radius: ${T.radiusXl}; overflow: hidden; flex: 1; min-height: 0; }
