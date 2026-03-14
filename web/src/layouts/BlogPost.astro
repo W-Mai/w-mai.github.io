@@ -199,7 +199,7 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, read
 				</header>
 
 				<!-- Article body -->
-				<div class="prose prose-slate prose-lg max-w-none
+				<div class="prose heti prose-slate prose-lg max-w-none
 				            dark:prose-invert
 				            prose-headings:font-bold prose-headings:text-[var(--text-heading)]
 				            prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
@@ -234,6 +234,26 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, read
 		</main>
 
 		<Footer />
+
+		<script>
+			async function initTypography() {
+				const article = document.querySelector('article .prose');
+				if (!article) return;
+
+				try {
+					const { default: Heti } = await import('heti/js/heti-addon');
+					const heti = new Heti('.prose');
+					heti.autoSpacing();
+				} catch { /* graceful degradation */ }
+
+				try {
+					// Vite resolves to browser bundle which has spacingNode()
+					const { default: pangu } = await import('pangu') as any;
+					pangu.spacingNode(article);
+				} catch { /* graceful degradation */ }
+			}
+			document.addEventListener('astro:page-load', initTypography);
+		</script>
 
 		<script>
 			function initProgressBar() {

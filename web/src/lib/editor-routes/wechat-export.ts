@@ -18,6 +18,7 @@ import rehypeBase64Embed from '../rehype-base64-embed';
 import rehypeCodeHighlight from '../rehype-code-highlight';
 import rehypeKatexSvg from '../rehype-katex-svg.js';
 import rehypeMermaidSvg from '../rehype-mermaid-svg.js';
+import rehypePangu from '../rehype-pangu';
 import rehypeWechatTag from '../rehype-wechat-tag';
 
 export const prerender = false;
@@ -51,6 +52,7 @@ function createWechatProcessor(slug: string) {
     .use(rehypeKatexSvg)
     .use(rehypeMermaidSvg)
     .use(rehypeBase64Embed, { slug })
+    .use(rehypePangu)
     .use(rehypeWechatTag)
     .use(rehypeStringify, { allowDangerousHtml: true });
 }

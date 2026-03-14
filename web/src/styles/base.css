@@ -138,6 +138,22 @@ html.dark .prose code       { background-color: var(--bg-code); }
 
 
 /* ==========================================================================
+   § 5b  HETI DARK MODE COMPATIBILITY
+   ========================================================================== */
+
+/* Override heti font-family to preserve site's custom pixel font */
+.heti, .heti--sans {
+  font-family: inherit;
+}
+
+/* Heti dark mode compatibility */
+html.dark .heti {
+  --heti-color-default: var(--text-primary);
+  --heti-color-light: var(--text-secondary);
+}
+
+
+/* ==========================================================================
    § 6  SCROLLBAR
    ========================================================================== */
 

@@ -14,6 +14,8 @@
   --color-accent-board-dark:  #4b5563;
 }
 
+@import "heti/umd/heti.min.css";
+
 /* Split files */
 @import "./tokens.css";
 @import "./base.css";
