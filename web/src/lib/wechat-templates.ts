@@ -18,6 +18,7 @@ export const REQUIRED_STYLE_KEYS = [
   'code-block', 'inline-code',
   'image',
   'sticker-inline', 'sticker-block',
+  'formula-inline', 'formula-block', 'diagram',
 ] as const;
 
 export type RequiredStyleKey = (typeof REQUIRED_STYLE_KEYS)[number];
@@ -43,6 +44,9 @@ const tutorialStyles: Record<string, string> = {
   image: 'max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 4px;',
   'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
   'sticker-block': 'text-align: center; margin: 16px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
+  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
+  'formula-block': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
+  'diagram': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
 };
 
 // ---------- Narrative template (记叙抒情类) ----------
@@ -66,6 +70,9 @@ const narrativeStyles: Record<string, string> = {
   image: 'max-width: 100%; height: auto; display: block; margin: 20px auto; border-radius: 8px;',
   'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
   'sticker-block': 'text-align: center; margin: 20px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
+  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
+  'formula-block': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
+  'diagram': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
 };
 
 // ---------- Opinion template (议论批判类) ----------
@@ -89,6 +96,9 @@ const opinionStyles: Record<string, string> = {
   image: 'max-width: 100%; height: auto; display: block; margin: 16px auto;',
   'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
   'sticker-block': 'text-align: center; margin: 16px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
+  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
+  'formula-block': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
+  'diagram': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
 };
 
 export const WECHAT_TEMPLATES: WechatTemplate[] = [

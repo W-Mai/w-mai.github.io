@@ -12,6 +12,8 @@ import rehypeKatex from 'rehype-katex';
 import rehypeStringify from 'rehype-stringify';
 import remarkSticker from '../remark-sticker';
 import rehypeBase64Embed from '../rehype-base64-embed';
+import rehypeKatexPng from '../rehype-katex-png.js';
+import rehypeMermaidPng from '../rehype-mermaid-png.js';
 import rehypeWechatTag from '../rehype-wechat-tag';
 
 export const prerender = false;
@@ -38,6 +40,8 @@ function createWechatProcessor(slug: string) {
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeKatex)
+    .use(rehypeKatexPng)
+    .use(rehypeMermaidPng)
     .use(rehypeBase64Embed, { slug })
     .use(rehypeWechatTag)
     .use(rehypeStringify);

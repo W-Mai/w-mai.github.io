@@ -83,7 +83,28 @@ export default function rehypeWechatTag() {
         return;
       }
 
-      // Regular img (not sticker) → image
+      // img with formula-inline class → formula-inline tag
+      if (node.tagName === 'img' && hasClass(node, 'formula-inline')) {
+        node.properties ??= {};
+        node.properties['dataWechatTag'] = 'formula-inline';
+        return;
+      }
+
+      // img with formula-block class → formula-block tag
+      if (node.tagName === 'img' && hasClass(node, 'formula-block')) {
+        node.properties ??= {};
+        node.properties['dataWechatTag'] = 'formula-block';
+        return;
+      }
+
+      // img with diagram class → diagram tag
+      if (node.tagName === 'img' && hasClass(node, 'diagram')) {
+        node.properties ??= {};
+        node.properties['dataWechatTag'] = 'diagram';
+        return;
+      }
+
+      // Regular img (not sticker, not formula, not diagram) → image
       if (node.tagName === 'img') {
         node.properties ??= {};
         node.properties['dataWechatTag'] = 'image';
