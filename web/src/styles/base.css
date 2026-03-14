@@ -129,7 +129,8 @@ html.dark blockquote { border-left-color: var(--accent); }
 
 html.dark .prose .expressive-code,
 html.dark .prose .expressive-code figure {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
 }
 
 html.dark .prose blockquote { border-left-color: var(--accent); }
@@ -144,6 +145,28 @@ html.dark .prose code       { background-color: var(--bg-code); }
 /* Override heti font-family to preserve site's custom pixel font */
 .heti, .heti--sans {
   font-family: inherit;
+}
+
+/* Prevent heti from overriding expressive-code blocks.
+   Only reset heti-specific overrides; let expressive-code's own styles take effect. */
+.heti .expressive-code pre {
+  background-color: var(--ec-codeBg) !important;
+  text-align: left !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: var(--ec-codeFontFml) !important;
+  border-radius: calc(var(--ec-brdRad) + var(--ec-brdWd)) !important;
+  white-space: pre !important;
+  word-wrap: normal !important;
+}
+
+.heti .expressive-code pre code {
+  background-color: transparent !important;
+  color: var(--ec-codeFg) !important;
+  margin: 0 !important;
+  padding: var(--ec-codePadBlk) 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
 }
 
 /* Heti dark mode compatibility */

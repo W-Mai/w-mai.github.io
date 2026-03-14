@@ -26,6 +26,12 @@ export default defineConfig({
     editorDev(),
     astroMermaid(),
     astroExpressiveCode({
+      themes: ['github-light', 'github-dark'],
+      themeCssSelector: (theme) => {
+        if (theme.type === 'dark') return '.dark';
+        return false;
+      },
+      useDarkModeMediaQuery: false,
       styleOverrides: {
         borderRadius: '0.5rem',
         borderColor: 'transparent',

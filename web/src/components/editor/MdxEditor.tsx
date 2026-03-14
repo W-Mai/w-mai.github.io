@@ -1,12 +1,13 @@
 import { useEffect, useRef, useCallback, useImperativeHandle, forwardRef, useState, type FC } from 'react';
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
+import { oneDark } from '@codemirror/theme-one-dark';
 import { editorKeymap } from '../../lib/editor-shortcuts';
 import { detectActiveFormats } from '../../lib/editor-formatting';
 import { editorAutocomplete } from '../../lib/editor-autocomplete';
@@ -30,6 +31,19 @@ interface MdxEditorProps {
 }
 
 const ALLOWED_EXT = /\.(png|jpe?g|gif|svg|webp|avif|ico|pdf)$/i;
+
+// Compartment for dynamic light/dark syntax theme switching
+const themeCompartment = new Compartment();
+
+function isDarkMode(): boolean {
+  return document.documentElement.classList.contains('dark');
+}
+
+function getSyntaxTheme() {
+  return isDarkMode()
+    ? oneDark
+    : syntaxHighlighting(defaultHighlightStyle);
+}
 
 const editorTheme = EditorView.theme({
   '&': { height: '100%', fontSize: '14px' },
@@ -148,6 +162,7 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
           bracketMatching(),
           highlightSelectionMatches(),
           syntaxHighlighting(defaultHighlightStyle),
+          themeCompartment.of(getSyntaxTheme()),
           markdown({ codeLanguages: languages }),
           shortcuts,
           keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
@@ -176,7 +191,18 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
       };
       scroller?.addEventListener('scroll', handleScroll, { passive: true });
 
+      // Watch for dark mode toggle and reconfigure syntax theme
+      const observer = new MutationObserver(() => {
+        if (viewRef.current) {
+          viewRef.current.dispatch({
+            effects: themeCompartment.reconfigure(getSyntaxTheme()),
+          });
+        }
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
       return () => {
+        observer.disconnect();
         scroller?.removeEventListener('scroll', handleScroll);
         view.destroy();
         viewRef.current = null;
