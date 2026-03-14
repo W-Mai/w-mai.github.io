@@ -101,6 +101,32 @@ const opinionStyles: Record<string, string> = {
   'diagram': 'display: block; margin: 16px auto; max-width: 100%; height: auto;',
 };
 
+// ---------- Editorial template (媒体资讯类) ----------
+// Magazine-style: clean headings, large body text, generous spacing, muted palette
+const editorialStyles: Record<string, string> = {
+  h1: 'font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 32px 0 14px 0; line-height: 1.4; letter-spacing: 0.5px;',
+  h2: 'font-size: 20px; font-weight: 700; color: #1a1a1a; margin: 24px 0 12px 0; line-height: 1.4; letter-spacing: 0.3px;',
+  h3: 'font-size: 17px; font-weight: 600; color: #333333; margin: 20px 0 8px 0; line-height: 1.4;',
+  h4: 'font-size: 15px; font-weight: 600; color: #444444; margin: 16px 0 6px 0; line-height: 1.4;',
+  p: 'font-size: 15px; color: #333333; line-height: 1.75; margin: 10px 0; text-align: justify; letter-spacing: 0.3px;',
+  strong: 'font-weight: 700; color: #1a1a1a;',
+  em: 'font-style: italic; color: #555555;',
+  a: 'color: #2b6cb0; text-decoration: none;',
+  ul: 'list-style-type: disc; padding-left: 24px; margin: 12px 0; color: #333333;',
+  ol: 'list-style-type: decimal; padding-left: 24px; margin: 12px 0; color: #333333;',
+  li: 'font-size: 15px; line-height: 1.75; margin: 4px 0; color: #333333; text-align: justify;',
+  blockquote: 'border-left: 3px solid #d0d0d0; padding: 10px 16px; margin: 16px 0; color: #666666; font-size: 14px; line-height: 1.7; background-color: #fafafa;',
+  hr: 'border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;',
+  'code-block': 'display: block; background-color: #f6f8fa; color: #24292e; padding: 16px; border-radius: 6px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.6; overflow-x: auto; margin: 18px 0; white-space: pre-wrap; word-wrap: break-word; border: 1px solid #e1e4e8;',
+  'inline-code': 'background-color: #f0f2f5; color: #476582; padding: 2px 6px; border-radius: 3px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 90%;',
+  image: 'max-width: 100%; height: auto; display: block; margin: 18px auto;',
+  'sticker-inline': 'height: 1.5em; vertical-align: middle; display: inline;',
+  'sticker-block': 'text-align: center; margin: 16px 0; max-width: 200px; display: block; margin-left: auto; margin-right: auto;',
+  'formula-inline': 'vertical-align: middle; height: 1.2em; display: inline;',
+  'formula-block': 'display: block; margin: 14px auto; max-width: 100%; height: auto;',
+  'diagram': 'display: block; margin: 14px auto; max-width: 100%; height: auto;',
+};
+
 export const WECHAT_TEMPLATES: WechatTemplate[] = [
   {
     id: 'tutorial',
@@ -119,6 +145,12 @@ export const WECHAT_TEMPLATES: WechatTemplate[] = [
     name: '议论批判类',
     description: '粗体和强调更醒目，引用块和分割线风格鲜明，适合观点输出、评论、分析类文章',
     styles: opinionStyles,
+  },
+  {
+    id: 'editorial',
+    name: '媒体资讯类',
+    description: '杂志风格，标题简洁无装饰，正文大字号宽行距，配色低调专业，适合新闻、资讯、深度报道',
+    styles: editorialStyles,
   },
 ];
 
