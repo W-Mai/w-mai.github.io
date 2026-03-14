@@ -59,12 +59,23 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
   const [recognizing, setRecognizing] = useState<Set<string>>(new Set());
   const [recognizeAll, setRecognizeAll] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [closing, setClosing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDragging = useRef(false);
   const abortRef = useRef(false);
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+
+  // Animated close: play exit animation then call onClose
+  const handleClose = useCallback(() => {
+    setClosing(true);
+    setSheetVisible(false);
+    setTimeout(() => {
+      setClosing(false);
+      onClose();
+    }, 200);
+  }, [onClose]);
 
   const fetchStickers = useCallback(async () => {
     setIsLoading(true);
@@ -126,12 +137,12 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
   // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
-    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
     document.addEventListener('keydown', handleKey);
     return () => {
       document.removeEventListener('keydown', handleKey);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   const handleUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -242,12 +253,12 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
       {/* Backdrop (visible on mobile) */}
       <div
         className={`sticker-backdrop${sheetVisible ? ' visible' : ''}`}
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Panel — desktop: floating, mobile: bottom sheet */}
       <div ref={panelRef}
-        className={`sticker-panel${panelPos && !isMobile ? ' has-pos' : ''}${sheetVisible ? ' sheet-visible' : ' sheet-entering'}`}
+        className={`sticker-panel${panelPos && !isMobile ? ' has-pos' : ''}${closing ? ' closing' : ''}${sheetVisible ? ' sheet-visible' : ' sheet-entering'}`}
         style={panelPos && !isMobile ? { top: panelPos.y, left: panelPos.x } : undefined}
       >
         {/* Sheet handle (mobile only) */}
@@ -264,7 +275,7 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
             cursor: isMobile ? 'default' : 'grab', userSelect: 'none',
           }}>
           <span style={{ fontSize: T.fontSizeBase, fontWeight: 600, color: T.colorText }}>😀 Stickers</span>
-          <button onClick={onClose} style={{
+          <button onClick={handleClose} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             fontSize: T.fontSizeBase, color: T.colorTextMuted, padding: '2px 6px',
           }}>✕</button>
@@ -385,7 +396,7 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
                     </div>
                     <div style={{ display: 'flex', gap: '2px', marginTop: '2px' }}>
                       <button
-                        onClick={() => { onInsertInline?.(`:sticker[${s.name}]:`); onClose(); }}
+                        onClick={() => { onInsertInline?.(`:sticker[${s.name}]:`); handleClose(); }}
                         title="Insert inline" style={{
                           background: 'none', border: `1px solid ${T.colorBorder}`,
                           borderRadius: '3px', cursor: 'pointer', padding: '1px 4px',
@@ -393,7 +404,7 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
                         }}
                       >行内</button>
                       <button
-                        onClick={() => { onInsertBlock?.(`\n::sticker[${s.name}]::\n`); onClose(); }}
+                        onClick={() => { onInsertBlock?.(`\n::sticker[${s.name}]::\n`); handleClose(); }}
                         title="Insert block" style={{
                           background: 'none', border: `1px solid ${T.colorBorder}`,
                           borderRadius: '3px', cursor: 'pointer', padding: '1px 4px',

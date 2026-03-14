@@ -730,6 +730,10 @@ a.neu-tag-chip:active {
     max-width: 90vw;
     max-height: 70vh;
     border-radius: 1rem;
+    animation: editorPanelIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .sticker-panel.closing {
+    animation: editorPanelOut 0.2s ease both;
   }
   .sticker-panel:not(.has-pos) {
     top: 50%;
