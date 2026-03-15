@@ -1,5 +1,5 @@
 ---
-// Popular tags cloud — displays top 12 tags as clickable chips
+// Popular tags cloud — inset container with tag chips
 import TagChip from './TagChip.astro'
 
 interface Props {
@@ -7,24 +7,22 @@ interface Props {
 }
 
 const { tags } = Astro.props
-
-// Do not render if no tags
 if (tags.length === 0) return
 
-// Take top 12 (assume pre-sorted by count descending from caller)
 const top = tags.slice(0, 12)
 ---
 
 <nav aria-label="Popular tags">
-  <!-- Section heading -->
   <h3 class="neu-section-title mb-3">
     标签
     <span class="neu-section-divider"></span>
   </h3>
 
-  <div class="flex flex-wrap gap-2">
-    {top.map(({ tag }) => (
-      <TagChip tag={tag} />
-    ))}
+  <div class="neu-inset rounded-xl p-3">
+    <div class="flex flex-wrap gap-2">
+      {top.map(({ tag }) => (
+        <TagChip tag={tag} />
+      ))}
+    </div>
   </div>
 </nav>
