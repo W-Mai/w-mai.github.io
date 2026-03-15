@@ -1,0 +1,22 @@
+---
+title: 'VirtualBox设置Ubuntu与Windows共享文件夹'
+description: '- 设备——安装增强功能 - 如果失败，一种情况是 提示安装 - 执行 - 若提示无权限访问 - 执行'
+pubDate: '2019-09-21T21:23+08:00'
+tags: []
+category: "计算机科学"
+---
+
+### 一、在VBox的该虚拟机设置里的共享文件夹设置里添加共享文件夹
+
+### 二、在菜单栏选择 
+
+- 设备——安装增强功能
+- 如果失败，一种情况是 提示安装 ```gcc make perl```
+- 执行 ```sudo apt-get install gcc make perl```
+
+### 三、再次安装增强功能，此时发现文件管理器中出现了sf_shared，完成。
+
+- 若提示无权限访问
+- 执行```sudo adduser “你的用户名” vboxsf```
+
+### 四、完成

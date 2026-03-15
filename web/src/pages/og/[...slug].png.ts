@@ -179,8 +179,9 @@ export const GET: APIRoute = async ({ props }) => {
       props: {
         style: {
           width: '100%', height: '55%', display: 'flex',
-          backgroundImage: `url(${heroDataUri})`,
-          backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+          ...(heroDataUri
+            ? { backgroundImage: `url(${heroDataUri})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }
+            : { background: `linear-gradient(135deg, hsl(${hue},55%,92%) 0%, hsl(${hue + 30},45%,87%) 50%, hsl(${hue + 60},35%,90%) 100%)` }),
         } as any,
       },
     },

@@ -1,0 +1,38 @@
+---
+title: '荔枝Pi开发环境搭建'
+description: '- 载入镜像后查看镜像ID - 通过 id 运行某个命令 - 后台运行 docker 并使用 ssh 去连接到镜像6666端口'
+pubDate: '2019-09-29T23:01+08:00'
+tags: []
+category: "荔枝Pi"
+---
+
+### 安装Docker
+```bash
+sudo apt-get install docker.io
+docker version
+```
+
+### 添加镜像
+```bash
+gunzip nano.tar.gz
+docker import nano.tar
+```
+
+### 使用镜像
+
+- 载入镜像后查看镜像ID ```docker images```
+- 通过 id 运行某个命令 ```docker run xxxx-IMAGE-ID-xxx ls```
+- 后台运行 docker 并使用 ssh 去连接到镜像(6666端口) ```docker run -d -p 6666:22 xxxx-IMAGE-ID-xxx /usr/sbin/sshd -D```
+
+### 连接
+```bash
+ssh -p 6666 root@127.0.0.1
+```
+
+### 停止
+```bash
+# 查看正在运行的容器
+docker ps
+# 根据 容器ID 进行停止
+docker stop xxx-CONTAINER-ID-xxx
+```

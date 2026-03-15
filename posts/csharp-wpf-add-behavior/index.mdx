@@ -1,0 +1,19 @@
+---
+title: 'C# WPF给控件添加行为'
+description: 'C# WPF给控件添加行为'
+pubDate: '2019-12-26T23:15+08:00'
+tags: ['C#', 'WPF']
+category: "代码"
+---
+
+```csharp
+Button btn = new Button();
+ToolTipBehavior behavior = new ToolTipBehavior();
+behavior.Category = "Informational";
+Interaction.GetBehaviors(btn).Add(behavior);
+```
+
+#### 拖动行为
+```csharp
+new MouseDragElementBehavior() { ConstrainToParentBounds = true }
+```

@@ -1,0 +1,51 @@
+---
+title: '创建服务加载VHDX'
+description: '我需要的只是一个【系统服务的壳子】。幸运的是，这种外壳在Microsoft Windows Resource Kits工具集中被找到，有两个小文件 instsrv.exe 和 srvany.ex...'
+pubDate: '2019-11-21T23:06+08:00'
+tags: []
+category: "计算机科学"
+---
+
+### 创建服务加载VHDX
+
+#### 准备
+我需要的只是一个【系统服务的壳子】。幸运的是，这种外壳在Microsoft Windows Resource Kits工具集中被找到，有两个小文件 instsrv.exe 和 srvany.exe，其中前者是装入器，后者则是我们的【壳子】。
+
+#### STEP - 1
+以管理员打开 CMD，进入instsrv.exe 和 srvany.exe的目录,假设这两个文件在E:\，键入instsrv.exe MountVHDX e:\srvany.exe 命令以装载服务。
+
+#### STEP - 2
+开注册表编辑器，会看到 MountVHDX 服务已装好：
+在注册表的路径为：
+```[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\MountVHDX]```
+不过此时，MountVHDX还仅仅只是与 Windows 系统通过【壳子】连接好了，还没有任何功能，仍须我们进一步
+
+#### STEP - 3
+建立这样的注册表
+```text
+Windows Registry Editor Version 5.00
+ 
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\MountVHDX\Parameters]
+"Application"="diskpart"
+"AppParameters"="/s e:\\mount.txt"
+"AppDirectory"="c:\\windows\\system32\\"
+```
+保存为```MountVHDX.reg```
+
+然后mount.txt文件中要写上要挂载的磁盘信息
+```text
+select vdisk file=E:\CodingWorkSpace.vhdx
+attach vdisk
+exit
+```
+//当然可以有很多个仿照着前两行写就okk啦
+
+然后执行。
+
+#### STEP - 4
+启动服务，
+命令行回显成功的同时也听见系统发出"咚咚"，虚拟磁盘成功挂载的声音。
+重启后，服务随系统一同启动，VHD挂载成功！
+
+#### END
+没啦。

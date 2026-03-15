@@ -1,0 +1,11 @@
+---
+title: 'C++fstream读取文件全部内容'
+description: 'C++fstream读取文件全部内容'
+pubDate: '2020-02-02T21:34+08:00'
+tags: ['C++', 'fstream']
+category: "代码"
+---
+
+```cpp
+string buffer((istreambuf_iterator<char>(fs)), (istreambuf_iterator<char>()));
+```

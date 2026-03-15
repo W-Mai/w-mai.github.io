@@ -1,0 +1,85 @@
+---
+title: 'C语言 计算某年某月某日在该年的第几天'
+description: '废话不多说，上代码 首先定义一个Date结构体'
+pubDate: '2019-09-21T21:01+08:00'
+tags: []
+category: "代码"
+---
+
+### C语言 计算某年某月某日在该年的第几天
+
+废话不多说，上代码
+
+#### 通过传入year，month，day来获取天数
+
+```cpp
+int getDay(int y, int m, int d) {
+	int rtnDay = d;
+	int day[] = { 31, 28, 31, 30, 31, 30, 31, 31,30, 31, 30 };
+	int moon = !(y % 4) && y % 100 || !(y % 400);
+	day[1] = 28 + moon;
+	for (size_t i = 0; i < m - 1; i++) {
+		rtnDay += day[i];
+	}
+	return rtnDay;
+}
+```
+
+#### 通过定义结构体返回天数
+首先定义一个Date结构体
+
+```cpp
+typedef struct Date {
+	int year;
+	int month;
+	int day;
+} Date;
+```
+
+#### 然后是结构体版的代码
+
+```cpp
+int getDay(Date * d) {
+	int rtnDay = d->day;
+	int day[] = { 31, 28, 31, 30, 31, 30, 31, 31,30, 31, 30 };
+	int moon = !(d->year % 4) && d->year % 100 || !(d->year % 400);
+	day[1] = 28 + moon;
+	for (size_t i = 0; i < d->month - 1; i++) {
+		rtnDay += day[i];
+	}
+	return rtnDay;
+}
+```
+
+#### 总代码
+
+```cpp
+#include <stdio.h>
+
+typedef struct Date {
+	int year;
+	int month;
+	int day;
+} Date;
+
+int getDay(Date * d);
+
+int main() {
+	Date d = { 2013, 3, 1 };
+	printf("%d\
+", getDay(&d));
+
+	return 0;
+}
+
+int getDay(Date * d) {
+	int rtnDay = d->day;
+	int day[] = { 31, 28, 31, 30, 31, 30, 31, 31,30, 31, 30 };
+	int moon = !(d->year % 4) && d->year % 100 || !(d->year % 400);
+	day[1] = 28 + moon;
+	for (size_t i = 0; i < d->month - 1; i++) {
+		rtnDay += day[i];
+	}
+	return rtnDay;
+}
+```

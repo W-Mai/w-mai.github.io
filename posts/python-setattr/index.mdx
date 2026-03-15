@@ -1,0 +1,24 @@
+---
+title: 'Python的__setattr__'
+description: 'Python的setattr是拦截数据成员赋值的魔法函数。 如果在setattr内直接对数据成员进行赋值，会再次触发setattr即造成无限递归，StackOverflow。 即可。'
+pubDate: '2019-09-26T16:29+08:00'
+tags: []
+category: "代码"
+---
+
+### __setattr__
+
+#### 定义
+```python
+def __setattr__(self, attrname, val):
+    pass
+```
+
+Python的__setattr__是#拦截#数据成员赋值的魔法函数。
+如果在__setattr__内直接对数据成员进行赋值，会再次触发__setattr__即造成无限递归，StackOverflow。
+
+#### 赋值
+```python
+self.__dict__[attrname] = val
+```
+即可。
