@@ -87,6 +87,10 @@ html:not(.no-transitions) .neu-tag-chip {
     inset -2px -2px 5px var(--neu-shadow-light);
   border: none;
 }
+.neu-inset-subtle ul,
+.neu-inset-subtle ol {
+  list-style: none;
+}
 
 /* Avatar ring */
 .neu-avatar-ring {
