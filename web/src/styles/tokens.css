@@ -111,6 +111,10 @@
   /* ---- Interactive surface ---- */
   --hover-bg: rgba(255, 255, 255, 0.3);
 
+  /* ---- Archive heatmap ---- */
+  --archive-cell-light: #bbf7d0;
+  --archive-cell-dark:  #22c55e;
+
   /* ---- Easter egg found ---- */
   --easter-egg-found: #ef4444;
 
@@ -252,6 +256,10 @@ html.dark {
 
   /* ---- Interactive surface ---- */
   --hover-bg: rgba(0, 0, 0, 0.15);
+
+  /* ---- Archive heatmap ---- */
+  --archive-cell-light: #166534;
+  --archive-cell-dark:  #4ade80;
 
   /* ---- Easter egg found ---- */
   --easter-egg-found: #f87171;

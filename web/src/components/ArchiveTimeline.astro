@@ -1,5 +1,5 @@
 ---
-// Archive timeline sidebar widget — collapsible year/month groups with neumorphism depth
+// Archive calendar sidebar widget — heatmap grid, one row per year, 12 cells per month
 import type { YearGroup } from '~/lib/blog-archive'
 
 interface Props {
@@ -9,48 +9,128 @@ interface Props {
 const { archives } = Astro.props
 if (archives.length === 0) return
 
-const monthLabel = (m: number) => `${m}月`
+// Build a lookup: year -> month -> count
+const countMap = new Map<number, Map<number, number>>()
+let maxCount = 0
+for (const g of archives) {
+  const mm = new Map<number, number>()
+  for (const m of g.months) {
+    mm.set(m.month, m.count)
+    if (m.count > maxCount) maxCount = m.count
+  }
+  countMap.set(g.year, mm)
+}
+
+// Intensity level 0-3 based on count
+function intensity(count: number): number {
+  if (count === 0) return 0
+  if (maxCount <= 1) return 2
+  const ratio = count / maxCount
+  if (ratio <= 0.33) return 1
+  if (ratio <= 0.66) return 2
+  return 3
+}
+
+const monthLabels = ['1','2','3','4','5','6','7','8','9','10','11','12']
 ---
 
-<nav aria-label="Archive timeline">
-  <h3 class="neu-section-title mb-3">
+<nav aria-label="Archive calendar">
+  <h3 class="neu-section-title mb-5">
     归档
     <span class="neu-section-divider"></span>
   </h3>
 
-  <div class="flex flex-col gap-2">
-    {archives.map((group, i) => (
-      <details open={i === 0} class="group">
-        <summary
-          class="neu-btn flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold
-            cursor-pointer list-none select-none
-            [&::-webkit-details-marker]:hidden"
-        >
-          <span class="text-[var(--text-muted)] text-xs transition-transform duration-200 group-open:rotate-90">
-            ▶
-          </span>
-          <span class="text-[var(--text-heading)]">{group.year}</span>
-        </summary>
-
-        <div class="neu-inset-subtle rounded-xl mt-1.5 p-2">
-          <ul class="flex flex-col gap-0.5 list-none">
-            {group.months.map(({ month, count }) => (
-              <li>
-                <a
-                  href={`/blog/archive/${group.year}/${month}/`}
-                  class="flex items-center justify-between px-3 py-1.5 rounded-lg text-sm no-underline
-                    transition-all duration-200 ease
-                    hover:bg-[linear-gradient(145deg,var(--neu-gradient-light),var(--neu-gradient-dark))]
-                    hover:-translate-y-px"
-                >
-                  <span class="text-[var(--text-primary)] text-sm">{monthLabel(month)}</span>
-                  <span class="text-[var(--text-muted)] ml-2 text-xs font-medium tabular-nums">{count}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </details>
+  <!-- Month header -->
+  <div class="archive-grid mb-1">
+    <span class="year-label"></span>
+    {monthLabels.map((l) => (
+      <span class="text-[var(--text-muted)] text-[0.5rem] text-center leading-none">{l}</span>
     ))}
   </div>
+
+  {archives.map((group) => {
+    const mm = countMap.get(group.year)!
+    return (
+      <div class="archive-grid mb-1.5">
+        <span class="year-label text-[var(--text-secondary)] text-xs font-semibold tabular-nums">
+          {group.year}
+        </span>
+        {Array.from({ length: 12 }, (_, i) => {
+          const month = i + 1
+          const count = mm.get(month) ?? 0
+          const level = intensity(count)
+          const href = count > 0 ? `/blog/archive/${group.year}/${month}/` : undefined
+          const Tag = count > 0 ? 'a' : 'span'
+          return (
+            <Tag
+              href={href}
+              class:list={[
+                'archive-cell',
+                `level-${level}`,
+                count > 0 && 'has-posts',
+              ]}
+              title={count > 0 ? `${group.year}年${month}月 · ${count}篇` : `${group.year}年${month}月`}
+            />
+          )
+        })}
+      </div>
+    )
+  })}
 </nav>
+
+<style>
+  .archive-grid {
+    display: grid;
+    grid-template-columns: 2.5rem repeat(12, 1fr);
+    gap: 3px;
+    align-items: center;
+  }
+
+  .year-label {
+    text-align: right;
+    padding-right: 0.25rem;
+  }
+
+  .archive-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+
+  /* Level 0: empty month — subtle inset */
+  .archive-cell.level-0 {
+    background: var(--neu-bg);
+    box-shadow: inset 1px 1px 2px var(--neu-shadow-dark),
+                inset -1px -1px 2px var(--neu-shadow-light);
+  }
+
+  /* Level 1-3: progressively stronger gradient */
+  .archive-cell.level-1 {
+    background: var(--archive-cell-light);
+    opacity: 0.6;
+  }
+  .archive-cell.level-2 {
+    background: linear-gradient(145deg, var(--archive-cell-light), var(--archive-cell-dark));
+    opacity: 0.8;
+  }
+  .archive-cell.level-3 {
+    background: linear-gradient(145deg, var(--archive-cell-light), var(--archive-cell-dark));
+    opacity: 1;
+  }
+
+  /* Clickable cells hover */
+  .archive-cell.has-posts {
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .archive-cell.has-posts:hover {
+    transform: scale(1.2);
+    box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+                -2px -2px 4px var(--neu-shadow-light);
+  }
+  .archive-cell.has-posts:active {
+    transform: scale(0.95);
+    box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
+                inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
+  }
+</style>
