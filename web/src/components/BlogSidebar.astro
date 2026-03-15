@@ -5,7 +5,6 @@ import { getAllCategories, getAllTags } from '~/lib/blog-tags'
 import { getAllSeries } from '~/lib/blog-series'
 import { getArchiveGroups } from '~/lib/blog-archive'
 
-import RecentPosts from './RecentPosts.astro'
 import CategoryFilter from './CategoryFilter.astro'
 import TagsCloud from './TagsCloud.astro'
 import SeriesWidget from './SeriesWidget.astro'
@@ -16,11 +15,6 @@ const posts = (await getCollection('blog'))
   .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
 
 // Derive widget data from posts
-const recentPosts = posts.slice(0, 5).map((p) => ({
-  id: p.id,
-  title: p.data.title,
-  pubDate: p.data.pubDate,
-}))
 const categories = getAllCategories(posts)
 const tags = getAllTags(posts)
 const series = getAllSeries(posts)
@@ -28,7 +22,6 @@ const archives = getArchiveGroups(posts)
 ---
 
 <div class="flex flex-col gap-6">
-  <RecentPosts posts={recentPosts} />
   <CategoryFilter categories={categories} />
   <TagsCloud tags={tags} />
   <SeriesWidget series={series} />
