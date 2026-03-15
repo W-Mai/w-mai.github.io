@@ -1,6 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import ArticleSidebar from '../../components/ArticleSidebar.astro';
+import RelatedPosts from '../../components/RelatedPosts.astro';
 import BlogPost from '../../layouts/BlogPost.astro';
 import { extractFirstBodyImage } from '../../lib/blog-hero';
 import { getRelatedPosts } from '../../lib/blog-related';
@@ -54,7 +55,8 @@ const showToc = tocHeadings.length >= 2;
 
 <BlogPost {...post.data} bodyHeroImage={bodyImgMeta} readingTime={readingTime} wordCount={wordCount} seriesData={seriesData} postId={post.id}>
 	{showToc && (
-		<ArticleSidebar slot="sidebar" headings={headings} relatedPosts={relatedPosts} />
+		<ArticleSidebar slot="sidebar" headings={headings} />
 	)}
 	<Content />
+	<RelatedPosts slot="related" posts={relatedPosts} />
 </BlogPost>

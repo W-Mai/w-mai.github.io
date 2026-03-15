@@ -1,5 +1,5 @@
 ---
-// Related posts sidebar widget — inset list with gradient hover items
+// Related posts widget — card-style grid with numbered badges
 import type { RelatedPostInfo } from '~/lib/blog-related'
 import FormattedDate from './FormattedDate.astro'
 
@@ -14,31 +14,53 @@ const related = posts.slice(0, 5)
 ---
 
 <nav aria-label="Related posts">
-  <h3 class="neu-section-title mb-3">
+  <h3 class="neu-section-title mb-4">
     相关文章
     <span class="neu-section-divider"></span>
   </h3>
 
-  <div class="neu-inset-subtle rounded-xl p-2">
-    <ul class="flex flex-col gap-0.5 list-none">
-      {related.map((post) => (
-        <li>
-          <a
-            href={`/blog/${post.id}/`}
-            class="block px-3 py-2 rounded-lg text-sm no-underline
-              transition-all duration-200 ease
-              hover:bg-[linear-gradient(145deg,var(--neu-gradient-light),var(--neu-gradient-dark))]
-              hover:-translate-y-px"
-          >
-            <span class="text-[var(--text-primary)] block truncate text-sm font-medium">
-              {post.title}
-            </span>
-            <span class="text-[var(--text-muted)] text-xs">
-              <FormattedDate date={post.pubDate} />
-            </span>
-          </a>
-        </li>
-      ))}
-    </ul>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    {related.map((post, i) => (
+      <a
+        href={`/blog/${post.id}/`}
+        class="related-card neu-btn flex items-center gap-2.5 pl-2 pr-3 py-2 rounded-[1.125rem] text-sm no-underline
+          transition-all duration-200 ease"
+      >
+        <span class="related-badge">{i + 1}</span>
+        <span class="flex-1 min-w-0">
+          <span class="text-[var(--text-primary)] block truncate text-sm font-medium">{post.title}</span>
+          <span class="text-[var(--text-muted)] block text-xs">
+            <FormattedDate date={post.pubDate} />
+          </span>
+        </span>
+      </a>
+    ))}
   </div>
 </nav>
+
+<style>
+  /* Badge — numbered circle */
+  .related-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--neu-bg);
+    box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
+                inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
+    flex-shrink: 0;
+  }
+
+  /* Hover: badge lifts to raised gradient */
+  .related-card:hover .related-badge {
+    background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+    box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+                -2px -2px 4px var(--neu-shadow-light);
+    color: var(--text-heading);
+  }
+</style>

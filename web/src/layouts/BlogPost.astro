@@ -257,6 +257,13 @@ if (hasSidebar) {
 					</div>
 				</article>
 
+				<!-- Related posts -->
+				{Astro.slots.has('related') && (
+					<div class="max-w-3xl mx-auto w-full mt-12">
+						<slot name="related" />
+					</div>
+				)}
+
 				<!-- Comments -->
 				<div class="max-w-3xl mx-auto w-full">
 					<Giscus />
