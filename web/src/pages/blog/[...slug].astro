@@ -45,7 +45,10 @@ const seriesData = getSeriesForPost(allPosts, post.id);
 
 // Compute sidebar data: related posts + TOC headings
 const relatedPosts = getRelatedPosts(allPosts, post);
-const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const tocDepths = [...new Set(headings.map((h) => h.depth))].sort((a, b) => a - b);
+const tocTopLevel = tocDepths[0] ?? 2;
+const tocSubLevel = tocDepths[1] ?? tocTopLevel + 1;
+const tocHeadings = headings.filter((h) => h.depth === tocTopLevel || h.depth === tocSubLevel);
 const showToc = tocHeadings.length >= 2;
 ---
 

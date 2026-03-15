@@ -18,18 +18,25 @@ interface Props {
 
 const { headings } = Astro.props
 
-// Filter to h2 and h3 only
-const filtered = headings.filter((h) => h.depth === 2 || h.depth === 3)
+// Adaptive level detection: find the two shallowest depths used in the article
+// e.g. only h3+h4 → topLevel=3, subLevel=4; h2+h3 → topLevel=2, subLevel=3
+const depths = [...new Set(headings.map((h) => h.depth))].sort((a, b) => a - b)
+const topLevel = depths[0] ?? 2
+const subLevel = depths[1] ?? topLevel + 1
 
-// Build nested structure: h3 items grouped under their preceding h2
+const filtered = headings.filter((h) => h.depth === topLevel || h.depth === subLevel)
+
+// Build nested structure: sub-level items grouped under preceding top-level
 const tocTree: TocNode[] = []
 for (const h of filtered) {
-  if (h.depth === 2) {
+  if (h.depth === topLevel) {
     tocTree.push({ heading: h, children: [] })
-  } else if (h.depth === 3 && tocTree.length > 0) {
+  } else if (h.depth === subLevel && tocTree.length > 0) {
     tocTree[tocTree.length - 1].children.push(h)
+  } else {
+    // sub-level without preceding top-level → promote to top
+    tocTree.push({ heading: h, children: [] })
   }
-  // h3 without a preceding h2 is dropped
 }
 
 // Do not render if fewer than 2 filtered headings
