@@ -1,0 +1,166 @@
+---
+// GitHub-style yearly contribution heatmap — 53 columns × 7 rows
+interface Props {
+  /** Map of ISO date string (YYYY-MM-DD) to count */
+  dateCounts: Record<string, number>
+  /** Year to display (default: current year) */
+  year?: number
+}
+
+const { dateCounts, year = new Date().getFullYear() } = Astro.props
+
+// Build 53×7 grid starting from the first Sunday of the year
+const jan1 = new Date(year, 0, 1)
+const startOffset = jan1.getDay() // 0=Sun
+const startDate = new Date(year, 0, 1 - startOffset)
+
+// Find max count for intensity scaling
+let maxCount = 0
+for (const v of Object.values(dateCounts)) {
+  if (v > maxCount) maxCount = v
+}
+
+function intensity(count: number): number {
+  if (count === 0) return 0
+  if (maxCount <= 1) return 2
+  const ratio = count / maxCount
+  if (ratio <= 0.25) return 1
+  if (ratio <= 0.5) return 2
+  if (ratio <= 0.75) return 3
+  return 4
+}
+
+// Build weeks (columns), each with 7 days
+const weeks: Array<Array<{ date: string; count: number; level: number; inYear: boolean }>> = []
+const d = new Date(startDate)
+for (let w = 0; w < 53; w++) {
+  const week: typeof weeks[0] = []
+  for (let dow = 0; dow < 7; dow++) {
+    const iso = d.toISOString().slice(0, 10)
+    const inYear = d.getFullYear() === year
+    const count = inYear ? (dateCounts[iso] ?? 0) : 0
+    week.push({ date: iso, count, level: inYear ? intensity(count) : -1, inYear })
+    d.setDate(d.getDate() + 1)
+  }
+  weeks.push(week)
+}
+
+// Month labels positioned at the first week of each month
+const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+const monthPositions: Array<{ label: string; col: number }> = []
+let lastMonth = -1
+for (let w = 0; w < weeks.length; w++) {
+  for (const cell of weeks[w]) {
+    if (!cell.inYear) continue
+    const m = new Date(cell.date).getMonth()
+    if (m !== lastMonth) {
+      monthPositions.push({ label: monthNames[m], col: w })
+      lastMonth = m
+    }
+  }
+}
+
+const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
+---
+
+<div class="year-heatmap neu-card rounded-[2rem] p-5 sm:p-6 mb-6 anim-fade overflow-hidden" style="--delay:1">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="neu-section-title text-base">
+      {year} 年碎碎念
+    </h3>
+    <span class="text-[var(--text-muted)] text-xs">{totalThoughts} 条想法</span>
+  </div>
+
+  <div class="heatmap-scroll">
+    <div class="heatmap-grid" style={`--cols:${weeks.length}`}>
+      {weeks.map((_, w) => {
+        const mp = monthPositions.find(p => p.col === w)
+        return (
+          <span class="month-label" style={`grid-column:${w + 1}; grid-row:1`}>
+            {mp ? mp.label : ''}
+          </span>
+        )
+      })}
+
+      {weeks.map((week, w) =>
+        week.map((cell, dow) => (
+          <span
+            class:list={[
+              'heatmap-cell',
+              cell.inYear ? `level-${cell.level}` : 'out-of-year',
+            ]}
+            style={`grid-column:${w + 1}; grid-row:${dow + 2}`}
+            title={cell.inYear ? `${cell.date} · ${cell.count} 条` : ''}
+          />
+        ))
+      )}
+    </div>
+  </div>
+</div>
+
+<style>
+  .heatmap-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    container-type: inline-size;
+  }
+  .heatmap-scroll::-webkit-scrollbar { height: 0; display: none; }
+
+  .heatmap-grid {
+    display: grid;
+    --cell: max(8px, calc((100cqw - 52 * 2px) / 53));
+    grid-template-columns: repeat(var(--cols), var(--cell));
+    grid-template-rows: auto repeat(7, var(--cell));
+    gap: 2px;
+  }
+
+  .month-label {
+    font-size: 0.5rem;
+    color: var(--text-muted);
+    text-align: left;
+    line-height: 1;
+    padding-bottom: 2px;
+    white-space: nowrap;
+  }
+
+  .heatmap-cell {
+    border-radius: 2px;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+
+  .heatmap-cell.out-of-year {
+    visibility: hidden;
+  }
+
+  .heatmap-cell.level-0 {
+    background: var(--neu-bg);
+    box-shadow: inset 0.5px 0.5px 1px var(--neu-shadow-dark),
+                inset -0.5px -0.5px 1px var(--neu-shadow-light);
+  }
+  .heatmap-cell.level-1 {
+    background: var(--archive-cell-light);
+    opacity: 0.4;
+  }
+  .heatmap-cell.level-2 {
+    background: var(--archive-cell-light);
+    opacity: 0.7;
+  }
+  .heatmap-cell.level-3 {
+    background: linear-gradient(145deg, var(--archive-cell-light), var(--archive-cell-dark));
+    opacity: 0.85;
+  }
+  .heatmap-cell.level-4 {
+    background: linear-gradient(145deg, var(--archive-cell-light), var(--archive-cell-dark));
+    opacity: 1;
+  }
+
+  .heatmap-cell:not(.out-of-year):not(.level-0):hover {
+    transform: scale(1.6);
+    box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+                -2px -2px 4px var(--neu-shadow-light);
+    z-index: 1;
+    position: relative;
+  }
+
+
+</style>

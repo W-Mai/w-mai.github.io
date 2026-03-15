@@ -4,9 +4,11 @@ import type { YearGroup } from '~/lib/blog-archive'
 
 interface Props {
   archives: YearGroup[]
+  /** Override section title (default: 归档) */
+  title?: string
 }
 
-const { archives } = Astro.props
+const { archives, title = '归档' } = Astro.props
 if (archives.length === 0) return
 
 // Build a lookup: year -> month -> count
@@ -36,7 +38,7 @@ const monthLabels = ['1','2','3','4','5','6','7','8','9','10','11','12']
 
 <nav aria-label="Archive calendar">
   <h3 class="neu-section-title mb-5">
-    归档
+    {title}
     <span class="neu-section-divider"></span>
   </h3>
 
