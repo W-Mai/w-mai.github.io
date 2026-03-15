@@ -1,66 +1,97 @@
 ---
+interface Props {
+  /** When true (default), sidebar collapses to drawer on mobile */
+  collapsible?: boolean
+}
+
+const { collapsible = true } = Astro.props
 ---
 
-<!-- Desktop: static sticky sidebar -->
-<aside
-  class=" box-border
-          hidden
-          md:block
-          w-full
-          md:w-72
-          flex-shrink-0
-          neu-bg
-          p-4
-          md:px-6
-          md:pt-6
-          space-y-2
-          md:sticky
-          md:top-[var(--header-height,4.5rem)]
-          md:self-start
-          md:max-h-[calc(100vh-var(--header-height,4.5rem))]
-          md:overflow-y-auto
-          md:[scrollbar-width:none]
-          md:[&::-webkit-scrollbar]:hidden
-">
-  <slot name="sidebar"/>
-</aside>
-
-<!-- Mobile: floating toggle + slide-in drawer -->
-<button
-  id="sidebar-toggle"
-  class="md:hidden fixed bottom-6 left-4 z-40
-         neu-btn flex items-center justify-center
-         w-12 h-12 rounded-full
-         text-[var(--text-secondary)]
-         transition-all duration-200 ease"
-  aria-label="Toggle sidebar"
-  aria-expanded="false"
->
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-    <line x1="3" y1="5" x2="17" y2="5"/>
-    <line x1="3" y1="10" x2="17" y2="10"/>
-    <line x1="3" y1="15" x2="17" y2="15"/>
-  </svg>
-</button>
-
-<div id="sidebar-overlay" class="md:hidden fixed inset-0 z-40 pointer-events-none opacity-0 transition-opacity duration-200"
-     style="background: var(--overlay-bg);">
-</div>
-
-<div id="sidebar-drawer"
-     class="md:hidden fixed top-0 left-0 z-40
-            h-full w-72
+{collapsible ? (
+  <!-- Collapsible mode: hidden on mobile, drawer toggle -->
+  <aside
+    class=" box-border
+            hidden
+            md:block
+            w-full
+            md:w-72
+            flex-shrink-0
             neu-bg
-            p-4 pt-6
+            p-4
+            md:px-6
+            md:pt-6
             space-y-2
-            overflow-y-auto
-            [scrollbar-width:none]
-            [&::-webkit-scrollbar]:hidden
-            transition-transform duration-200 ease
-            -translate-x-full"
->
-  <slot name="sidebar"/>
-</div>
+            md:sticky
+            md:top-[var(--header-height,4.5rem)]
+            md:self-start
+            md:max-h-[calc(100vh-var(--header-height,4.5rem))]
+            md:overflow-y-auto
+            md:[scrollbar-width:none]
+            md:[&::-webkit-scrollbar]:hidden
+  ">
+    <slot name="sidebar"/>
+  </aside>
+
+  <button
+    id="sidebar-toggle"
+    class="md:hidden fixed bottom-6 left-4 z-40
+           neu-btn flex items-center justify-center
+           w-12 h-12 rounded-full
+           text-[var(--text-secondary)]
+           transition-all duration-200 ease"
+    aria-label="Toggle sidebar"
+    aria-expanded="false"
+  >
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="3" y1="5" x2="17" y2="5"/>
+      <line x1="3" y1="10" x2="17" y2="10"/>
+      <line x1="3" y1="15" x2="17" y2="15"/>
+    </svg>
+  </button>
+
+  <div id="sidebar-overlay" class="md:hidden fixed inset-0 z-40 pointer-events-none opacity-0 transition-opacity duration-200"
+       style="background: var(--overlay-bg);">
+  </div>
+
+  <div id="sidebar-drawer"
+       class="md:hidden fixed top-0 left-0 z-40
+              h-full w-72
+              neu-bg
+              p-4 pt-6
+              space-y-2
+              overflow-y-auto
+              [scrollbar-width:none]
+              [&::-webkit-scrollbar]:hidden
+              transition-transform duration-200 ease
+              -translate-x-full"
+  >
+    <slot name="sidebar"/>
+  </div>
+) : (
+  <!-- Always-visible mode: shown on all screen sizes -->
+  <aside
+    class=" box-border
+            w-full
+            md:w-72
+            flex-shrink-0
+            neu-bg
+            p-4
+            md:px-6
+            md:pt-6
+            space-y-2
+            order-first
+            md:order-none
+            md:sticky
+            md:top-[var(--header-height,4.5rem)]
+            md:self-start
+            md:max-h-[calc(100vh-var(--header-height,4.5rem))]
+            md:overflow-y-auto
+            md:[scrollbar-width:none]
+            md:[&::-webkit-scrollbar]:hidden
+  ">
+    <slot name="sidebar"/>
+  </aside>
+)}
 
 <script>
   function initSidebarDrawer() {

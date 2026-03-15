@@ -11,7 +11,7 @@ const repos = await fetchGitHubRepos()
 const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
 ---
 
-<WithSidebar>
+<WithSidebar collapsible={false}>
     <Fragment slot="sidebar">
         <ProfileSidebar profile={profile} showBio />
     </Fragment>
