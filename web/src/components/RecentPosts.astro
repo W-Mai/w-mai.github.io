@@ -1,5 +1,5 @@
 ---
-// Recent posts sidebar widget — inset list with gradient hover items
+// Recent posts sidebar widget — pill-shaped raised cards like header tabs
 import FormattedDate from './FormattedDate.astro'
 
 interface Props {
@@ -13,31 +13,49 @@ const recent = posts.slice(0, 5)
 ---
 
 <nav aria-label="Recent posts">
-  <h3 class="neu-section-title mb-3">
+  <h3 class="neu-section-title mb-5">
     最近文章
     <span class="neu-section-divider"></span>
   </h3>
 
-  <div class="neu-inset-subtle rounded-xl p-2">
-    <ul class="flex flex-col gap-0.5 list-none">
-      {recent.map((post) => (
-        <li>
-          <a
-            href={`/blog/${post.id}/`}
-            class="block px-3 py-2 rounded-lg text-sm no-underline
-              transition-all duration-200 ease
-              hover:bg-[linear-gradient(145deg,var(--neu-gradient-light),var(--neu-gradient-dark))]
-              hover:-translate-y-px"
-          >
-            <span class="text-[var(--text-primary)] block truncate text-sm font-medium">
-              {post.title}
-            </span>
-            <span class="text-[var(--text-muted)] text-xs">
-              <FormattedDate date={post.pubDate} />
-            </span>
-          </a>
-        </li>
-      ))}
-    </ul>
+  <div class="flex flex-col gap-2">
+    {recent.map((post) => (
+      <a
+        href={`/blog/${post.id}/`}
+        class="recent-pill"
+      >
+        <span class="text-[var(--text-primary)] block truncate text-sm font-medium">
+          {post.title}
+        </span>
+        <span class="text-[var(--text-muted)] block text-xs">
+          <FormattedDate date={post.pubDate} />
+        </span>
+      </a>
+    ))}
   </div>
 </nav>
+
+<style>
+  .recent-pill {
+    display: block;
+    padding: 0.45em 1.1em;
+    border-radius: 9999px;
+    text-decoration: none;
+    background: transparent;
+    box-shadow: none;
+    transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease, transform 200ms ease;
+  }
+
+  .recent-pill:hover {
+    background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+    transform: translateY(-1px);
+  }
+
+  .recent-pill:active {
+    background: linear-gradient(145deg, var(--neu-gradient-dark), var(--neu-gradient-light));
+    box-shadow:
+      inset 2px 2px 4px var(--neu-shadow-dark-strong),
+      inset -2px -2px 4px var(--neu-shadow-light-strong);
+    transform: translateY(0);
+  }
+</style>

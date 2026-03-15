@@ -1,5 +1,5 @@
 ---
-// Category filter sidebar widget — inset container with gradient hover items
+// Category filter sidebar widget — card-style with count badges
 interface Props {
   categories: Array<{ category: string; count: number }>
 }
@@ -9,31 +9,48 @@ if (categories.length === 0) return
 ---
 
 <nav aria-label="Categories">
-  <h3 class="neu-section-title mb-3">
+  <h3 class="neu-section-title mb-5">
     分类
     <span class="neu-section-divider"></span>
   </h3>
 
-  <div class="neu-inset-subtle rounded-xl p-2">
-    <ul class="flex flex-col gap-0.5 list-none">
-      {categories.map(({ category, count }) => (
-        <li>
-          <a
-            href={`/blog/categories/${category}/`}
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sm no-underline
-              transition-all duration-200 ease
-              hover:bg-[linear-gradient(145deg,var(--neu-gradient-light),var(--neu-gradient-dark))]
-              hover:-translate-y-px"
-          >
-            <span class="text-[var(--text-primary)] truncate text-sm font-medium">
-              {category}
-            </span>
-            <span class="text-[var(--text-muted)] ml-2 text-xs font-medium tabular-nums">
-              {count}
-            </span>
-          </a>
-        </li>
-      ))}
-    </ul>
+  <div class="flex flex-col gap-2">
+    {categories.map(({ category, count }) => (
+      <a
+        href={`/blog/categories/${category}/`}
+        class="cat-card neu-btn flex items-center gap-2 p-1.5 rounded-full text-sm no-underline
+          transition-all duration-200 ease"
+      >
+        <span class="cat-badge">{count}</span>
+        <span class="text-[var(--text-primary)] flex-1 truncate text-sm font-medium">
+          {category}
+        </span>
+      </a>
+    ))}
   </div>
 </nav>
+
+<style>
+  .cat-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--neu-bg);
+    box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
+                inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
+    flex-shrink: 0;
+  }
+
+  .cat-card:hover .cat-badge {
+    background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
+    box-shadow: 2px 2px 4px var(--neu-shadow-dark),
+                -2px -2px 4px var(--neu-shadow-light);
+    color: var(--text-heading);
+  }
+</style>
