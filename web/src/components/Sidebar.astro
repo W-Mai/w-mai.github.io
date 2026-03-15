@@ -17,6 +17,8 @@
                 md:self-start
                 md:max-h-[calc(100vh-var(--header-height,4.5rem))]
                 md:overflow-y-auto
+                md:[scrollbar-width:none]
+                md:[&::-webkit-scrollbar]:hidden
   ">
     <slot name="sidebar"/>
 </aside>
