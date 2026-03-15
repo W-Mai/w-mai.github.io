@@ -9,6 +9,7 @@ import FormattedDate from '../components/FormattedDate.astro';
 import Giscus from '../components/Giscus.astro';
 import Header from '../components/Header.astro';
 import SeriesNav from '../components/SeriesNav.astro';
+import Sidebar from '../components/Sidebar.astro';
 import TagChip from '../components/TagChip.astro';
 import type { SeriesData } from '../lib/blog-series';
 
@@ -23,6 +24,13 @@ type Props = CollectionEntry<'blog'>['data'] & {
 const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount, tags = [], category, seriesData, postId } = Astro.props;
 
 const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
+
+// Pre-render sidebar slot if provided by the page
+const hasSidebar = Astro.slots.has('sidebar');
+let sidebarHtml = '';
+if (hasSidebar) {
+	sidebarHtml = await Astro.slots.render('sidebar', []);
+}
 ---
 
 <html lang="en">
@@ -105,6 +113,9 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 			html[data-embed] .giscus-wrapper {
 				display: none !important;
 			}
+			html[data-embed] .blog-sidebar-wrapper {
+				display: none !important;
+			}
 			html[data-embed] main {
 				padding-top: 1rem !important;
 			}
@@ -119,134 +130,149 @@ const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 
 		<Header />
 
-		<main class="max-w-3xl mx-auto px-4 py-10">
-			<!-- Back link -->
-			<div class="mb-8">
-				<div class="embed-hide flex items-center gap-2">
+		<div class="flex flex-col md:flex-row min-h-screen max-w-[1400px] mx-auto">
+			{hasSidebar && (
+				<div class="blog-sidebar-wrapper">
+					<Sidebar>
+						<Fragment slot="sidebar" set:html={sidebarHtml} />
+					</Sidebar>
+				</div>
+			)}
+
+			<main class:list={[
+				'box-border flex-1 flex-col w-full',
+				hasSidebar ? 'md:p-16 p-6' : 'max-w-3xl mx-auto px-4 py-10',
+			]}>
+				<!-- Back link -->
+				<div class="mb-8">
+					<div class="embed-hide flex items-center gap-2">
+						<a href="/blog"
+						   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
+						          group">
+							<span class="group-hover:-translate-x-0.5 transition-transform">←</span>
+							<span>返回文章列表</span>
+						</a>
+						{isEditorMode && postId && (
+							<a href={`/admin/live-editor?slug=${postId}`}
+							   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
+							          group">
+								<span>✏️</span>
+								<span>编辑</span>
+							</a>
+						)}
+					</div>
+				</div>
+
+				<article class="max-w-3xl mx-auto w-full">
+					{seriesData && postId && (
+						<SeriesNav seriesData={seriesData} currentPostId={postId} />
+					)}
+					<div class="neu-hero-img rounded-3xl overflow-hidden mb-8">
+						{heroImage ? (
+							<Image
+								width={1020} height={510}
+								src={heroImage}
+								alt=""
+								class="w-full object-cover rounded-none"
+							/>
+						) : bodyHeroImage ? (
+							<Image
+								width={1020} height={510}
+								src={bodyHeroImage}
+								alt=""
+								class="w-full object-cover rounded-none"
+							/>
+						) : (
+							<div class="h-48 md:h-64">
+								<BlogHeroFallback title={title} />
+							</div>
+						)}
+					</div>
+
+					<!-- Article header -->
+					<header class="mb-10">
+						<div class="flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)] mb-4">
+							<FormattedDate date={pubDate} />
+							{updatedDate && (
+								<>
+									<span>·</span>
+									<span class="italic">updated <FormattedDate date={updatedDate} /></span>
+								</>
+							)}
+							{readingTime && (
+								<>
+									<span>·</span>
+									<span>{readingTime}</span>
+								</>
+							)}
+							{wordCount != null && (
+								<>
+									<span>·</span>
+									<span>共 {wordCount} 字</span>
+								</>
+							)}
+							<BusuanziCounter />
+						</div>
+						<h1 class="text-3xl md:text-4xl font-bold text-[var(--text-heading)] leading-tight m-0 mb-3">
+							{title}
+						</h1>
+						{description && (
+							<p class="text-lg text-[var(--text-secondary)] leading-relaxed m-0">{description}</p>
+						)}
+						{tags.length > 0 && (
+							<div class="flex flex-wrap gap-1.5 mt-3">
+								{tags.map((tag) => (
+									<TagChip tag={tag} />
+								))}
+							</div>
+						)}
+						{category && (
+							<p class="text-[var(--text-secondary)] text-sm mt-2 m-0">
+								📂 <a href={`/blog/categories/${category}/`} class="text-[var(--text-link)] hover:text-[var(--text-link-hover)]">{category}</a>
+							</p>
+						)}
+						<hr class="mt-6 border-[var(--border-divider)]" />
+					</header>
+
+					<!-- Article body -->
+					<div class="prose prose-slate prose-lg max-w-none
+					            dark:prose-invert
+					            prose-h1:font-bold prose-h1:text-[var(--text-heading)]
+					            prose-h2:font-bold prose-h2:text-[var(--text-heading)] prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
+					            prose-h3:font-bold prose-h3:text-[var(--text-heading)] prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+					            prose-h4:font-bold prose-h4:text-[var(--text-heading)]
+					            prose-p:text-[var(--text-primary)] prose-p:leading-relaxed
+					            prose-a:text-[var(--text-link)] prose-a:underline prose-a:underline-offset-2
+					            hover:prose-a:text-[var(--text-link-hover)]
+					            prose-strong:text-[var(--text-heading)]
+					            prose-code:text-[var(--text-link)] prose-code:bg-[var(--bg-code)]
+					            prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+					            prose-code:before:content-none prose-code:after:content-none
+					            prose-pre:bg-[var(--bg-pre)] prose-pre:rounded-2xl prose-pre:shadow-md
+					            prose-blockquote:border-[var(--border-divider)] prose-blockquote:text-[var(--text-secondary)]
+					            prose-img:rounded-2xl prose-img:shadow-md
+					            prose-hr:border-[var(--border-divider)]
+					            prose-li:text-[var(--text-primary)]">
+						<slot />
+					</div>
+				</article>
+
+				<!-- Comments -->
+				<div class="max-w-3xl mx-auto w-full">
+					<Giscus />
+				</div>
+
+				<!-- Bottom back link -->
+				<div class="embed-hide max-w-3xl mx-auto w-full mt-16 pt-8 border-t border-[var(--border-divider)]">
 					<a href="/blog"
 					   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
 					          group">
 						<span class="group-hover:-translate-x-0.5 transition-transform">←</span>
 						<span>返回文章列表</span>
 					</a>
-					{isEditorMode && postId && (
-						<a href={`/admin/live-editor?slug=${postId}`}
-						   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
-						          group">
-							<span>✏️</span>
-							<span>编辑</span>
-						</a>
-					)}
 				</div>
-			</div>
-
-			<article>
-				{seriesData && postId && (
-					<SeriesNav seriesData={seriesData} currentPostId={postId} />
-				)}
-				<div class="neu-hero-img rounded-3xl overflow-hidden mb-8">
-					{heroImage ? (
-						<Image
-							width={1020} height={510}
-							src={heroImage}
-							alt=""
-							class="w-full object-cover rounded-none"
-						/>
-					) : bodyHeroImage ? (
-						<Image
-							width={1020} height={510}
-							src={bodyHeroImage}
-							alt=""
-							class="w-full object-cover rounded-none"
-						/>
-					) : (
-						<div class="h-48 md:h-64">
-							<BlogHeroFallback title={title} />
-						</div>
-					)}
-				</div>
-
-				<!-- Article header -->
-				<header class="mb-10">
-					<div class="flex flex-wrap items-center gap-2 text-sm text-[var(--text-muted)] mb-4">
-						<FormattedDate date={pubDate} />
-						{updatedDate && (
-							<>
-								<span>·</span>
-								<span class="italic">updated <FormattedDate date={updatedDate} /></span>
-							</>
-						)}
-						{readingTime && (
-							<>
-								<span>·</span>
-								<span>{readingTime}</span>
-							</>
-						)}
-						{wordCount != null && (
-							<>
-								<span>·</span>
-								<span>共 {wordCount} 字</span>
-							</>
-						)}
-						<BusuanziCounter />
-					</div>
-					<h1 class="text-3xl md:text-4xl font-bold text-[var(--text-heading)] leading-tight m-0 mb-3">
-						{title}
-					</h1>
-					{description && (
-						<p class="text-lg text-[var(--text-secondary)] leading-relaxed m-0">{description}</p>
-					)}
-					{tags.length > 0 && (
-						<div class="flex flex-wrap gap-1.5 mt-3">
-							{tags.map((tag) => (
-								<TagChip tag={tag} />
-							))}
-						</div>
-					)}
-					{category && (
-						<p class="text-[var(--text-secondary)] text-sm mt-2 m-0">
-							📂 <a href={`/blog/categories/${category}/`} class="text-[var(--text-link)] hover:text-[var(--text-link-hover)]">{category}</a>
-						</p>
-					)}
-					<hr class="mt-6 border-[var(--border-divider)]" />
-				</header>
-
-				<!-- Article body -->
-				<div class="prose prose-slate prose-lg max-w-none
-				            dark:prose-invert
-				            prose-h1:font-bold prose-h1:text-[var(--text-heading)]
-				            prose-h2:font-bold prose-h2:text-[var(--text-heading)] prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-				            prose-h3:font-bold prose-h3:text-[var(--text-heading)] prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-				            prose-h4:font-bold prose-h4:text-[var(--text-heading)]
-				            prose-p:text-[var(--text-primary)] prose-p:leading-relaxed
-				            prose-a:text-[var(--text-link)] prose-a:underline prose-a:underline-offset-2
-				            hover:prose-a:text-[var(--text-link-hover)]
-				            prose-strong:text-[var(--text-heading)]
-				            prose-code:text-[var(--text-link)] prose-code:bg-[var(--bg-code)]
-				            prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-				            prose-code:before:content-none prose-code:after:content-none
-				            prose-pre:bg-[var(--bg-pre)] prose-pre:rounded-2xl prose-pre:shadow-md
-				            prose-blockquote:border-[var(--border-divider)] prose-blockquote:text-[var(--text-secondary)]
-				            prose-img:rounded-2xl prose-img:shadow-md
-				            prose-hr:border-[var(--border-divider)]
-				            prose-li:text-[var(--text-primary)]">
-					<slot />
-				</div>
-			</article>
-
-			<!-- Comments -->
-			<Giscus />
-
-			<!-- Bottom back link -->
-			<div class="embed-hide mt-16 pt-8 border-t border-[var(--border-divider)]">
-				<a href="/blog"
-				   class="neu-btn neu-link-btn gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)]
-				          group">
-					<span class="group-hover:-translate-x-0.5 transition-transform">←</span>
-					<span>返回文章列表</span>
-				</a>
-			</div>
-		</main>
+			</main>
+		</div>
 
 		<Footer />
 

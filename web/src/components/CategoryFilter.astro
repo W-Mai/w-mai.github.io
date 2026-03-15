@@ -1,0 +1,42 @@
+---
+// Category filter sidebar widget — displays all categories with post counts
+interface Props {
+  categories: Array<{ category: string; count: number }>
+}
+
+const { categories } = Astro.props
+
+// Do not render if no categories
+if (categories.length === 0) return
+---
+
+<nav aria-label="Categories">
+  <!-- Section heading -->
+  <h3 class="neu-section-title mb-3">
+    分类
+    <span class="neu-section-divider"></span>
+  </h3>
+
+  <ul class="flex flex-col gap-1.5">
+    {categories.map(({ category, count }) => (
+      <li>
+        <a
+          href={`/blog/categories/${category}/`}
+          class="text-[var(--text-link)] block px-3 py-2 rounded-lg text-sm no-underline
+            transition-all duration-200 ease
+            hover:bg-[linear-gradient(145deg,var(--neu-gradient-light),var(--neu-gradient-dark))]
+            hover:text-[var(--text-link-hover)] hover:-translate-y-px"
+        >
+          <span class="flex items-center justify-between">
+            <span class="text-[var(--text-primary)] truncate text-sm font-medium">
+              {category}
+            </span>
+            <span class="text-[var(--text-muted)] ml-2 text-xs font-medium tabular-nums">
+              {count}
+            </span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

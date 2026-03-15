@@ -1,17 +1,15 @@
 ---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import BaseHead from '../../components/BaseHead.astro';
-import BlogHeroFallback from '../../components/BlogHeroFallback.astro';
-import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
-import Header from '../../components/Header.astro';
-import SeriesBadge from '../../components/SeriesBadge.astro';
-import TagChip from '../../components/TagChip.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
-import { extractFirstBodyImage } from '../../lib/blog-hero';
-import { truncateTags } from '../../lib/blog-tags';
-import { estimateReadingTime, stripMarkdown, countWords } from '../../lib/reading-stats';
+import BlogHeroFallback from '~/components/BlogHeroFallback.astro';
+import BlogSidebar from '~/components/BlogSidebar.astro';
+import FormattedDate from '~/components/FormattedDate.astro';
+import SeriesBadge from '~/components/SeriesBadge.astro';
+import TagChip from '~/components/TagChip.astro';
+import WithSidebar from '~/layouts/WithSidebar.astro';
+import { extractFirstBodyImage } from '~/lib/blog-hero';
+import { truncateTags } from '~/lib/blog-tags';
+import { estimateReadingTime, stripMarkdown, countWords } from '~/lib/reading-stats';
 
 // Glob-import all co-located post images for body image fallback
 const assetImages = import.meta.glob<{ default: ImageMetadata }>(
@@ -32,155 +30,147 @@ const posts = (await getCollection('blog')).sort(
 const [featured, ...rest] = posts;
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body class="neu-bg">
-		<Header />
-		<main class="max-w-4xl mx-auto px-4 py-10">
-			<h1 class="text-4xl md:text-5xl font-bold mb-2 anim-fade text-[var(--text-heading)]" style="--delay:0">🚀 怼点文章</h1>
-			<p class="text-[var(--text-secondary)] mb-10 text-lg anim-fade" style="--delay:1">俺搁这儿写嘞东西</p>
+<WithSidebar>
+	<BlogSidebar slot="sidebar" />
 
-			{featured && (() => {
-			const bodyImg = !featured.data.heroImage ? extractFirstBodyImage(featured.body) : null;
-			const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
-			const featuredReadMin = estimateReadingTime(featured.body ?? '');
-			const featuredWordCount = countWords(stripMarkdown(featured.body ?? '')).total;
-			const featuredHref = `/blog/${featured.id}/`;
-			return (
-				<div class="blog-featured group block rounded-3xl overflow-hidden neu-card
-				            transition-all duration-300 ease-out
-				            mb-10 cursor-pointer"
-				     onclick={`window.location.href='${featuredHref}'`}
-				     role="link" tabindex="0"
-				     onkeydown={`if(event.key==='Enter')window.location.href='${featuredHref}'`}>
-					<div class="overflow-hidden h-64 md:h-80">
-						{featured.data.heroImage ? (
-							<Image
-								width={960} height={480}
-								src={featured.data.heroImage}
-								alt=""
-								class="card-cover-img"
-							/>
-						) : bodyImgMeta ? (
-							<Image
-								width={960} height={480}
-								src={bodyImgMeta}
-								alt=""
-								class="card-cover-img"
-							/>
-						) : (
-							<BlogHeroFallback title={featured.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
-						)}
-					</div>
-					<div class="p-7">
-						<p class="text-xs text-[var(--text-muted)] mb-2">
-							<FormattedDate date={featured.data.pubDate} />
-							<span class="mx-1">·</span>
-							<span>{featuredReadMin} 分钟</span>
-							<span class="mx-1">·</span>
-							<span>{featuredWordCount} 字</span>
-						</p>
-						<h2 class="text-2xl md:text-3xl font-bold text-[var(--text-heading)] group-hover:text-[var(--text-heading)] transition-colors m-0">
-							{featured.data.title}
-						</h2>
-						{featured.data.description && (
-							<p class="mt-2 text-[var(--text-secondary)] line-clamp-2">{featured.data.description}</p>
-						)}
-						{featured.data.tags.length > 0 && (() => {
-							const { visible, remaining } = truncateTags(featured.data.tags);
-							return (
-								<div class="flex flex-wrap gap-1.5 mt-2" onclick="event.stopPropagation()">
-									{featured.data.series && (
-										<SeriesBadge series={featured.data.series} seriesTitle={featured.data.seriesTitle} />
-									)}
-									{visible.map((tag) => (
-										<TagChip tag={tag} />
-									))}
-									{remaining > 0 && (
-										<span class="text-[var(--text-muted)] text-xs self-center">+{remaining}</span>
-									)}
-								</div>
-							);
-						})()}
-					</div>
+	<h1 class="text-4xl md:text-5xl font-bold mb-2 anim-fade text-[var(--text-heading)]" style="--delay:0">🚀 怼点文章</h1>
+	<p class="text-[var(--text-secondary)] mb-10 text-lg anim-fade" style="--delay:1">俺搁这儿写嘞东西</p>
+
+	{featured && (() => {
+		const bodyImg = !featured.data.heroImage ? extractFirstBodyImage(featured.body) : null;
+		const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
+		const featuredReadMin = estimateReadingTime(featured.body ?? '');
+		const featuredWordCount = countWords(stripMarkdown(featured.body ?? '')).total;
+		const featuredHref = `/blog/${featured.id}/`;
+		return (
+			<div class="blog-featured neu-card group block rounded-3xl overflow-hidden
+			            mb-10 transition-all duration-300 ease-out cursor-pointer"
+			     onclick={`window.location.href='${featuredHref}'`}
+			     role="link" tabindex="0"
+			     onkeydown={`if(event.key==='Enter')window.location.href='${featuredHref}'`}>
+				<div class="overflow-hidden h-64 md:h-80">
+					{featured.data.heroImage ? (
+						<Image
+							width={960} height={480}
+							src={featured.data.heroImage}
+							alt=""
+							class="card-cover-img"
+						/>
+					) : bodyImgMeta ? (
+						<Image
+							width={960} height={480}
+							src={bodyImgMeta}
+							alt=""
+							class="card-cover-img"
+						/>
+					) : (
+						<BlogHeroFallback title={featured.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
+					)}
 				</div>
-			);
-		})()}
-
-			{rest.length > 0 && (
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-7 anim-fade" style="--delay:3">
-					{rest.map((post) => {
-						const bodyImg = !post.data.heroImage ? extractFirstBodyImage(post.body) : null;
-						const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
-						const readMin = estimateReadingTime(post.body ?? '');
-						const wc = countWords(stripMarkdown(post.body ?? '')).total;
-						const postHref = `/blog/${post.id}/`;
+				<div class="p-7">
+					<p class="text-xs text-[var(--text-muted)] mb-2">
+						<FormattedDate date={featured.data.pubDate} />
+						<span class="mx-1">·</span>
+						<span>{featuredReadMin} 分钟</span>
+						<span class="mx-1">·</span>
+						<span>{featuredWordCount} 字</span>
+					</p>
+					<h2 class="text-2xl md:text-3xl font-bold text-[var(--text-heading)] transition-colors m-0
+					           group-hover:text-[var(--text-heading)]">
+						{featured.data.title}
+					</h2>
+					{featured.data.description && (
+						<p class="text-[var(--text-secondary)] mt-2 line-clamp-2">{featured.data.description}</p>
+					)}
+					{featured.data.tags.length > 0 && (() => {
+						const { visible, remaining } = truncateTags(featured.data.tags);
 						return (
-							<div class="blog-post-card group block rounded-2xl overflow-hidden neu-card
-							            transition-all duration-300 ease-out
-							            cursor-pointer"
-							     onclick={`window.location.href='${postHref}'`}
-							     role="link" tabindex="0"
-							     onkeydown={`if(event.key==='Enter')window.location.href='${postHref}'`}>
-								<div class="overflow-hidden h-44">
-									{post.data.heroImage ? (
-										<Image
-											width={720} height={360}
-											src={post.data.heroImage}
-											alt=""
-											class="card-cover-img"
-										/>
-									) : bodyImgMeta ? (
-										<Image
-											width={720} height={360}
-											src={bodyImgMeta}
-											alt=""
-											class="card-cover-img"
-										/>
-									) : (
-										<BlogHeroFallback title={post.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
-									)}
-								</div>
-								<div class="p-5">
-									<p class="text-xs text-[var(--text-muted)] mb-1">
-										<FormattedDate date={post.data.pubDate} />
-										<span class="mx-1">·</span>
-										<span>{readMin} 分钟</span>
-										<span class="mx-1">·</span>
-										<span>{wc} 字</span>
-									</p>
-									<h3 class="text-base font-bold text-[var(--text-heading)] group-hover:text-[var(--text-heading)] transition-colors m-0 line-clamp-2">
-										{post.data.title}
-									</h3>
-									{post.data.tags.length > 0 && (() => {
-										const { visible, remaining } = truncateTags(post.data.tags);
-										return (
-											<div class="flex flex-wrap gap-1.5 mt-2" onclick="event.stopPropagation()">
-												{post.data.series && (
-													<SeriesBadge series={post.data.series} seriesTitle={post.data.seriesTitle} />
-												)}
-												{visible.map((tag) => (
-													<TagChip tag={tag} />
-												))}
-												{remaining > 0 && (
-													<span class="text-[var(--text-muted)] text-xs self-center">+{remaining}</span>
-												)}
-											</div>
-										);
-									})()}
-								</div>
+							<div class="flex flex-wrap gap-1.5 mt-2" onclick="event.stopPropagation()">
+								{featured.data.series && (
+									<SeriesBadge series={featured.data.series} seriesTitle={featured.data.seriesTitle} />
+								)}
+								{visible.map((tag) => (
+									<TagChip tag={tag} />
+								))}
+								{remaining > 0 && (
+									<span class="text-[var(--text-muted)] text-xs self-center">+{remaining}</span>
+								)}
 							</div>
 						);
-					})}
+					})()}
 				</div>
-			)}
-		</main>
-		<Footer />
-	</body>
-</html>
+			</div>
+		);
+	})()}
+
+	{rest.length > 0 && (
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-7 anim-fade" style="--delay:3">
+			{rest.map((post) => {
+				const bodyImg = !post.data.heroImage ? extractFirstBodyImage(post.body) : null;
+				const bodyImgMeta = bodyImg ? resolveBodyImage(bodyImg) : null;
+				const readMin = estimateReadingTime(post.body ?? '');
+				const wc = countWords(stripMarkdown(post.body ?? '')).total;
+				const postHref = `/blog/${post.id}/`;
+				return (
+					<div class="blog-post-card neu-card group block rounded-2xl overflow-hidden
+					            transition-all duration-300 ease-out cursor-pointer"
+					     onclick={`window.location.href='${postHref}'`}
+					     role="link" tabindex="0"
+					     onkeydown={`if(event.key==='Enter')window.location.href='${postHref}'`}>
+						<div class="overflow-hidden h-44">
+							{post.data.heroImage ? (
+								<Image
+									width={720} height={360}
+									src={post.data.heroImage}
+									alt=""
+									class="card-cover-img"
+								/>
+							) : bodyImgMeta ? (
+								<Image
+									width={720} height={360}
+									src={bodyImgMeta}
+									alt=""
+									class="card-cover-img"
+								/>
+							) : (
+								<BlogHeroFallback title={post.data.title} class="transition-transform duration-700 ease-out group-hover:scale-105" />
+							)}
+						</div>
+						<div class="p-5">
+							<p class="text-xs text-[var(--text-muted)] mb-1">
+								<FormattedDate date={post.data.pubDate} />
+								<span class="mx-1">·</span>
+								<span>{readMin} 分钟</span>
+								<span class="mx-1">·</span>
+								<span>{wc} 字</span>
+							</p>
+							<h3 class="text-base font-bold text-[var(--text-heading)] transition-colors m-0 line-clamp-2
+							           group-hover:text-[var(--text-heading)]">
+								{post.data.title}
+							</h3>
+							{post.data.tags.length > 0 && (() => {
+								const { visible, remaining } = truncateTags(post.data.tags);
+								return (
+									<div class="flex flex-wrap gap-1.5 mt-2" onclick="event.stopPropagation()">
+										{post.data.series && (
+											<SeriesBadge series={post.data.series} seriesTitle={post.data.seriesTitle} />
+										)}
+										{visible.map((tag) => (
+											<TagChip tag={tag} />
+										))}
+										{remaining > 0 && (
+											<span class="text-[var(--text-muted)] text-xs self-center">+{remaining}</span>
+										)}
+									</div>
+								);
+							})()}
+						</div>
+					</div>
+				);
+			})}
+		</div>
+	)}
+</WithSidebar>
 
 <style>
   /* Neumorphism hover for featured card */

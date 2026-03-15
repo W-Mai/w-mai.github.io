@@ -1,0 +1,18 @@
+---
+// Article page sidebar — composes TOC + related posts
+import type { RelatedPostInfo } from '~/lib/blog-related'
+import ArticleTOC from './ArticleTOC.astro'
+import RelatedPosts from './RelatedPosts.astro'
+
+interface Props {
+  headings: Array<{ depth: number; slug: string; text: string }>
+  relatedPosts: RelatedPostInfo[]
+}
+
+const { headings, relatedPosts } = Astro.props
+---
+
+<div class="hidden md:flex flex-col gap-8">
+  <ArticleTOC headings={headings} />
+  <RelatedPosts posts={relatedPosts} />
+</div>
