@@ -1,5 +1,5 @@
 ---
-// Popular tags cloud — inset container with tag chips
+// Popular tags cloud — inset container with filter tag chips
 import TagChip from './TagChip.astro'
 
 interface Props {
@@ -21,7 +21,7 @@ const top = tags.slice(0, 12)
   <div class="neu-inset-subtle rounded-xl p-3">
     <div class="flex flex-wrap gap-2">
       {top.map(({ tag }) => (
-        <TagChip tag={tag} />
+        <TagChip tag={tag} filter />
       ))}
     </div>
   </div>

@@ -59,17 +59,22 @@ const monthLabels = ['1','2','3','4','5','6','7','8','9','10','11','12']
           const month = i + 1
           const count = mm.get(month) ?? 0
           const level = intensity(count)
-          const href = count > 0 ? `/blog/archive/${group.year}/${month}/` : undefined
-          const Tag = count > 0 ? 'a' : 'span'
-          return (
-            <Tag
-              href={href}
+          return count > 0 ? (
+            <button
+              type="button"
+              data-filter-type="archive"
+              data-filter-value={`${group.year}-${month}`}
               class:list={[
                 'archive-cell',
                 `level-${level}`,
-                count > 0 && 'has-posts',
+                'has-posts',
               ]}
-              title={count > 0 ? `${group.year}年${month}月 · ${count}篇` : `${group.year}年${month}月`}
+              title={`${group.year}年${month}月 · ${count}篇`}
+            />
+          ) : (
+            <span
+              class:list={['archive-cell', 'level-0']}
+              title={`${group.year}年${month}月`}
             />
           )
         })}
@@ -94,7 +99,9 @@ const monthLabels = ['1','2','3','4','5','6','7','8','9','10','11','12']
   .archive-cell {
     aspect-ratio: 1;
     border-radius: 4px;
-    transition: transform 200ms ease, box-shadow 200ms ease;
+    border: none;
+    padding: 0;
+    transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
   }
 
   /* Level 0: empty month — subtle inset */
@@ -121,7 +128,6 @@ const monthLabels = ['1','2','3','4','5','6','7','8','9','10','11','12']
   /* Clickable cells hover */
   .archive-cell.has-posts {
     cursor: pointer;
-    text-decoration: none;
   }
   .archive-cell.has-posts:hover {
     transform: scale(1.2);
@@ -132,5 +138,15 @@ const monthLabels = ['1','2','3','4','5','6','7','8','9','10','11','12']
     transform: scale(0.95);
     box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
                 inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
+  }
+
+  /* Active/selected state — inset depression */
+  .archive-cell.has-posts.active {
+    transform: scale(1);
+    box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
+                inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
+  }
+  .archive-cell.has-posts.active:hover {
+    transform: scale(1);
   }
 </style>

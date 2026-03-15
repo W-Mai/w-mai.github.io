@@ -1,15 +1,24 @@
 ---
-// Reusable tag chip component with optional link behavior
+// Reusable tag chip component with link, filter, or static mode
 interface Props {
   tag: string;
   interactive?: boolean;
+  /** Render as filter button instead of link */
+  filter?: boolean;
 }
 
-const { tag, interactive = true } = Astro.props;
+const { tag, interactive = true, filter = false } = Astro.props;
 const href = `/blog/tags/${tag}/`;
 ---
 
-{interactive ? (
+{filter ? (
+  <button
+    type="button"
+    data-filter-type="tag"
+    data-filter-value={tag}
+    class="neu-tag-chip cursor-pointer"
+  >{tag}</button>
+) : interactive ? (
   <a href={href} class="neu-tag-chip">{tag}</a>
 ) : (
   <span class="neu-tag-chip">{tag}</span>

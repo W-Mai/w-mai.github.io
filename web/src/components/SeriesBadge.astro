@@ -1,15 +1,28 @@
 ---
+// Series badge — link on article pages, filter button on listing pages
 interface Props {
 	series: string;
 	seriesTitle?: string;
+	/** Render as filter button instead of link */
+	filter?: boolean;
 }
 
-const { series, seriesTitle } = Astro.props;
+const { series, seriesTitle, filter = false } = Astro.props;
 const label = seriesTitle ?? series;
 ---
 
-<a href={`/blog/series/${series}/`}
-   class="neu-tag-chip"
-   onclick="event.stopPropagation()">
-	📚 {label}
-</a>
+{filter ? (
+	<button
+		type="button"
+		data-filter-type="series"
+		data-filter-value={series}
+		class="neu-tag-chip cursor-pointer"
+		onclick="event.stopPropagation()"
+	>📚 {label}</button>
+) : (
+	<a href={`/blog/series/${series}/`}
+	   class="neu-tag-chip"
+	   onclick="event.stopPropagation()">
+		📚 {label}
+	</a>
+)}

@@ -57,7 +57,7 @@ html:not(.no-transitions) .neu-tag-chip {
     5px 5px 10px var(--neu-shadow-dark),
     -5px -5px 10px var(--neu-shadow-light);
   border: none;
-  transition: box-shadow 0.2s ease;
+  transition: background 200ms ease, box-shadow 200ms ease, transform 200ms ease, color 200ms ease;
 }
 .neu-btn:hover {
   box-shadow:
@@ -375,6 +375,27 @@ a.neu-tag-chip:active {
     inset 2px 2px 4px var(--neu-shadow-dark-strong),
     inset -2px -2px 4px var(--neu-shadow-light-strong);
   transform: translateY(0);
+}
+
+/* Filter button tag chip — hover and active/selected states */
+button.neu-tag-chip {
+  border: none;
+  transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease, transform 200ms ease;
+}
+button.neu-tag-chip:hover {
+  box-shadow:
+    1px 1px 2px var(--neu-shadow-dark),
+    -1px -1px 2px var(--neu-shadow-light);
+  transform: translateY(-1px);
+}
+button.neu-tag-chip.active {
+  background: var(--neu-bg);
+  box-shadow:
+    inset 2px 2px 4px var(--neu-shadow-dark-strong),
+    inset -2px -2px 4px var(--neu-shadow-light-strong);
+  transform: translateY(0);
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* Timeline — vertical connector and dot for thoughts page */

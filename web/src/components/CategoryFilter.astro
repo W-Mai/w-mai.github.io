@@ -1,5 +1,5 @@
 ---
-// Category filter sidebar widget — card-style with count badges
+// Category filter sidebar widget — toggleable buttons with count badges
 interface Props {
   categories: Array<{ category: string; count: number }>
 }
@@ -16,21 +16,36 @@ if (categories.length === 0) return
 
   <div class="flex flex-col gap-2">
     {categories.map(({ category, count }) => (
-      <a
-        href={`/blog/categories/${category}/`}
-        class="cat-card neu-btn flex items-center gap-2 p-1.5 rounded-full text-sm no-underline
-          transition-all duration-200 ease"
+      <button
+        type="button"
+        data-filter-type="category"
+        data-filter-value={category}
+        class="cat-card flex items-center gap-2 p-1.5 rounded-full text-sm cursor-pointer"
       >
         <span class="cat-badge">{count}</span>
-        <span class="text-[var(--text-primary)] flex-1 truncate text-sm font-medium">
+        <span class="text-[var(--text-primary)] flex-1 truncate text-sm font-medium text-left">
           {category}
         </span>
-      </a>
+      </button>
     ))}
   </div>
 </nav>
 
 <style>
+  /* Raised button — self-contained, no neu-btn dependency (avoids specificity conflicts) */
+  .cat-card {
+    background: var(--neu-bg);
+    border: none;
+    box-shadow: 5px 5px 10px var(--neu-shadow-dark),
+                -5px -5px 10px var(--neu-shadow-light);
+    transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease, transform 200ms ease;
+  }
+  .cat-card:hover {
+    box-shadow: 2px 2px 5px var(--neu-shadow-dark),
+                -2px -2px 5px var(--neu-shadow-light);
+    transform: translateY(-1px);
+  }
+
   .cat-badge {
     display: inline-flex;
     align-items: center;
@@ -45,12 +60,29 @@ if (categories.length === 0) return
     box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
                 inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
     flex-shrink: 0;
+    transition: background 200ms ease, box-shadow 200ms ease, color 200ms ease, transform 200ms ease;
   }
 
   .cat-card:hover .cat-badge {
     background: linear-gradient(145deg, var(--neu-gradient-light), var(--neu-gradient-dark));
     box-shadow: 2px 2px 4px var(--neu-shadow-dark),
                 -2px -2px 4px var(--neu-shadow-light);
+    color: var(--text-heading);
+    transform: scale(1.1);
+  }
+
+  /* Active/pressed — pure inset, no gradient */
+  .cat-card.active {
+    background: var(--neu-bg);
+    box-shadow: inset 3px 3px 6px var(--neu-shadow-dark-strong),
+                inset -3px -3px 6px var(--neu-shadow-light-strong);
+  }
+  .cat-card.active:hover {
+    transform: none;
+  }
+  .cat-card.active .cat-badge {
+    box-shadow: inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
+                inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
     color: var(--text-heading);
   }
 </style>
