@@ -1,5 +1,4 @@
 ---
-const slots = Astro.slots
 ---
 <aside
         class=" box-border
@@ -14,9 +13,9 @@ const slots = Astro.slots
                 order-first
                 md:order-none
                 md:sticky
-                md:top-[4.5rem]
+                md:top-[var(--header-height,4.5rem)]
                 md:self-start
-                md:max-h-[calc(100vh-4.5rem)]
+                md:max-h-[calc(100vh-var(--header-height,4.5rem))]
                 md:overflow-y-auto
   ">
     <slot name="sidebar"/>

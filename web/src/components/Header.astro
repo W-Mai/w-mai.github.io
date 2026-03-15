@@ -98,7 +98,20 @@ const moreBtnLabel = activeDropdown?.label ?? activeCollapse?.label ?? '瞅瞅';
 			});
 		}
 	}
-	document.addEventListener('astro:page-load', initHeaderMenu)
+
+	function syncHeaderHeight() {
+		const header = document.querySelector('header');
+		if (header) {
+			const h = header.offsetHeight;
+			document.documentElement.style.setProperty('--header-height', h + 'px');
+		}
+	}
+
+	document.addEventListener('astro:page-load', () => {
+		initHeaderMenu();
+		syncHeaderHeight();
+		window.addEventListener('resize', syncHeaderHeight);
+	});
 </script>
 <style>
 	header {
