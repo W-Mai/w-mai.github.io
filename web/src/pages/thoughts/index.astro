@@ -221,10 +221,11 @@ for (const t of thoughts) {
       loading = true
 
       try {
-        // Load all remaining chunks sequentially
-        while (await loadChunk()) { /* keep loading */ }
-        sentinel.textContent = ''
-        observer.disconnect()
+        const hasMore = await loadChunk()
+        if (!hasMore || nextPage > totalChunks) {
+          sentinel.textContent = ''
+          observer.disconnect()
+        }
       } catch (e) {
         console.error('[thoughts] Failed to load chunk:', e)
         sentinel.innerHTML = '<span class="text-[var(--text-muted)] text-sm">加载失败</span>'
@@ -232,7 +233,7 @@ for (const t of thoughts) {
       } finally {
         loading = false
       }
-    }, { rootMargin: '100px' })
+    }, { rootMargin: '200px' })
 
     observer.observe(sentinel)
 
