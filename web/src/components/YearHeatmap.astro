@@ -1,5 +1,5 @@
 ---
-// GitHub-style yearly contribution heatmap — 53 columns × 7 rows
+// GitHub-style yearly contribution heatmap — canvas-based for minimal DOM footprint
 interface Props {
   /** Map of ISO date string (YYYY-MM-DD) to count */
   dateCounts: Record<string, number>
@@ -8,58 +8,6 @@ interface Props {
 }
 
 const { dateCounts, year = new Date().getFullYear() } = Astro.props
-
-// Build 53×7 grid starting from the first Sunday of the year
-const jan1 = new Date(year, 0, 1)
-const startOffset = jan1.getDay() // 0=Sun
-const startDate = new Date(year, 0, 1 - startOffset)
-
-// Find max count for intensity scaling
-let maxCount = 0
-for (const v of Object.values(dateCounts)) {
-  if (v > maxCount) maxCount = v
-}
-
-function intensity(count: number): number {
-  if (count === 0) return 0
-  if (maxCount <= 1) return 2
-  const ratio = count / maxCount
-  if (ratio <= 0.25) return 1
-  if (ratio <= 0.5) return 2
-  if (ratio <= 0.75) return 3
-  return 4
-}
-
-// Build weeks (columns), each with 7 days
-const weeks: Array<Array<{ date: string; count: number; level: number; inYear: boolean }>> = []
-const d = new Date(startDate)
-for (let w = 0; w < 53; w++) {
-  const week: typeof weeks[0] = []
-  for (let dow = 0; dow < 7; dow++) {
-    const iso = d.toISOString().slice(0, 10)
-    const inYear = d.getFullYear() === year
-    const count = inYear ? (dateCounts[iso] ?? 0) : 0
-    week.push({ date: iso, count, level: inYear ? intensity(count) : -1, inYear })
-    d.setDate(d.getDate() + 1)
-  }
-  weeks.push(week)
-}
-
-// Month labels positioned at the first week of each month
-const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
-const monthPositions: Array<{ label: string; col: number }> = []
-let lastMonth = -1
-for (let w = 0; w < weeks.length; w++) {
-  for (const cell of weeks[w]) {
-    if (!cell.inYear) continue
-    const m = new Date(cell.date).getMonth()
-    if (m !== lastMonth) {
-      monthPositions.push({ label: monthNames[m], col: w })
-      lastMonth = m
-    }
-  }
-}
-
 const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
 ---
 
@@ -72,29 +20,12 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
   </div>
 
   <div class="heatmap-scroll">
-    <div class="heatmap-grid" style={`--cols:${weeks.length}`}>
-      {weeks.map((_, w) => {
-        const mp = monthPositions.find(p => p.col === w)
-        return (
-          <span class="month-label" style={`grid-column:${w + 1}; grid-row:1`}>
-            {mp ? mp.label : ''}
-          </span>
-        )
-      })}
-
-      {weeks.map((week, w) =>
-        week.map((cell, dow) => (
-          <span
-            class:list={[
-              'heatmap-cell',
-              cell.inYear ? `level-${cell.level}` : 'out-of-year',
-            ]}
-            style={`grid-column:${w + 1}; grid-row:${dow + 2}`}
-            title={cell.inYear ? `${cell.date} · ${cell.count} 条` : ''}
-          />
-        ))
-      )}
-    </div>
+    <canvas
+      id="heatmap-canvas"
+      data-year={year}
+      data-counts={JSON.stringify(dateCounts)}
+    ></canvas>
+    <div id="heatmap-tooltip" class="heatmap-tooltip"></div>
   </div>
 </div>
 
@@ -102,65 +33,238 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
   .heatmap-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    container-type: inline-size;
+    position: relative;
   }
   .heatmap-scroll::-webkit-scrollbar { height: 0; display: none; }
 
-  .heatmap-grid {
-    display: grid;
-    --cell: max(8px, calc((100cqw - 52 * 2px) / 53));
-    grid-template-columns: repeat(var(--cols), var(--cell));
-    grid-template-rows: auto repeat(7, var(--cell));
-    gap: 2px;
+  #heatmap-canvas {
+    display: block;
+    width: 100%;
+    image-rendering: pixelated;
   }
 
-  .month-label {
-    font-size: 0.5rem;
-    color: var(--text-muted);
-    text-align: left;
-    line-height: 1;
-    padding-bottom: 2px;
-    white-space: nowrap;
-  }
-
-  .heatmap-cell {
-    border-radius: 2px;
-    transition: transform 200ms ease, box-shadow 200ms ease;
-  }
-
-  .heatmap-cell.out-of-year {
-    visibility: hidden;
-  }
-
-  .heatmap-cell.level-0 {
+  .heatmap-tooltip {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-family: var(--font-sans, sans-serif);
+    color: var(--text-primary);
     background: var(--neu-bg);
-    box-shadow: inset 0.5px 0.5px 1px var(--neu-shadow-dark),
-                inset -0.5px -0.5px 1px var(--neu-shadow-light);
+    box-shadow: 2px 2px 6px var(--neu-shadow-dark), -2px -2px 6px var(--neu-shadow-light);
+    white-space: nowrap;
+    transition: opacity 150ms ease;
+    z-index: 10;
   }
-  .heatmap-cell.level-1 {
-    background: var(--archive-cell-light);
-    opacity: 0.4;
-  }
-  .heatmap-cell.level-2 {
-    background: var(--archive-cell-light);
-    opacity: 0.7;
-  }
-  .heatmap-cell.level-3 {
-    background: linear-gradient(145deg, var(--archive-cell-light), var(--archive-cell-dark));
-    opacity: 0.85;
-  }
-  .heatmap-cell.level-4 {
-    background: linear-gradient(145deg, var(--archive-cell-light), var(--archive-cell-dark));
-    opacity: 1;
-  }
-
-  .heatmap-cell:not(.out-of-year):not(.level-0):hover {
-    transform: scale(1.6);
-    box-shadow: 2px 2px 4px var(--neu-shadow-dark),
-                -2px -2px 4px var(--neu-shadow-light);
-    z-index: 1;
-    position: relative;
-  }
-
-
+  .heatmap-tooltip.visible { opacity: 1; }
 </style>
+
+<script>
+  function initHeatmapCanvas() {
+    const canvas = document.getElementById('heatmap-canvas') as HTMLCanvasElement | null
+    if (!canvas) return
+
+    const year = parseInt(canvas.dataset.year ?? '2026', 10)
+    const dateCounts: Record<string, number> = JSON.parse(canvas.dataset.counts ?? '{}')
+    const tooltip = document.getElementById('heatmap-tooltip')!
+
+    const jan1 = new Date(year, 0, 1)
+    const startOffset = jan1.getDay()
+    const startDate = new Date(year, 0, 1 - startOffset)
+
+    let maxCount = 0
+    for (const v of Object.values(dateCounts)) {
+      if (v > maxCount) maxCount = v
+    }
+
+    function intensity(count: number): number {
+      if (count === 0) return 0
+      if (maxCount <= 1) return 2
+      const ratio = count / maxCount
+      if (ratio <= 0.25) return 1
+      if (ratio <= 0.5) return 2
+      if (ratio <= 0.75) return 3
+      return 4
+    }
+
+    // Build cell data
+    const COLS = 53
+    const ROWS = 7
+    const cells: Array<{ date: string; count: number; level: number; inYear: boolean }> = []
+    const d = new Date(startDate)
+    for (let w = 0; w < COLS; w++) {
+      for (let dow = 0; dow < ROWS; dow++) {
+        const iso = d.toISOString().slice(0, 10)
+        const inYear = d.getFullYear() === year
+        const count = inYear ? (dateCounts[iso] ?? 0) : 0
+        cells.push({ date: iso, count, level: inYear ? intensity(count) : -1, inYear })
+        d.setDate(d.getDate() + 1)
+      }
+    }
+
+    // Month label positions
+    const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+    const monthPositions: Array<{ label: string; col: number }> = []
+    let lastMonth = -1
+    for (let w = 0; w < COLS; w++) {
+      for (let dow = 0; dow < ROWS; dow++) {
+        const cell = cells[w * ROWS + dow]
+        if (!cell.inYear) continue
+        const m = new Date(cell.date).getMonth()
+        if (m !== lastMonth) {
+          monthPositions.push({ label: monthNames[m], col: w })
+          lastMonth = m
+        }
+      }
+    }
+
+    // Read CSS custom properties for theming
+    const cs = getComputedStyle(document.documentElement)
+    function getVar(name: string): string {
+      return cs.getPropertyValue(name).trim()
+    }
+
+    function draw() {
+      const container = canvas.parentElement!
+      const containerWidth = container.clientWidth
+      const dpr = window.devicePixelRatio || 1
+
+      const GAP = 2
+      const cellSize = Math.max(8, Math.floor((containerWidth - (COLS - 1) * GAP) / COLS))
+      const LABEL_H = 14
+      const totalW = COLS * cellSize + (COLS - 1) * GAP
+      const totalH = LABEL_H + ROWS * cellSize + (ROWS - 1) * GAP
+
+      canvas.width = totalW * dpr
+      canvas.height = totalH * dpr
+      canvas.style.width = totalW + 'px'
+      canvas.style.height = totalH + 'px'
+
+      const ctx = canvas.getContext('2d')!
+      ctx.scale(dpr, dpr)
+      ctx.clearRect(0, 0, totalW, totalH)
+
+      // Colors from CSS tokens
+      const neuBg = getVar('--neu-bg') || '#e0e5ec'
+      const shadowDark = getVar('--neu-shadow-dark') || 'rgb(163 177 198 / 0.6)'
+      const cellLight = getVar('--archive-cell-light') || '#6b9f6b'
+      const cellDark = getVar('--archive-cell-dark') || '#3d6b3d'
+      const textMuted = getVar('--text-muted') || '#999'
+
+      // Draw month labels
+      ctx.font = `${Math.max(8, cellSize * 0.7)}px sans-serif`
+      ctx.fillStyle = textMuted
+      ctx.textBaseline = 'bottom'
+      for (const mp of monthPositions) {
+        const x = mp.col * (cellSize + GAP)
+        ctx.fillText(mp.label, x, LABEL_H - 1)
+      }
+
+      // Draw cells
+      for (let w = 0; w < COLS; w++) {
+        for (let dow = 0; dow < ROWS; dow++) {
+          const cell = cells[w * ROWS + dow]
+          if (!cell.inYear) continue
+
+          const x = w * (cellSize + GAP)
+          const y = LABEL_H + dow * (cellSize + GAP)
+          const r = Math.min(2, cellSize * 0.15)
+
+          ctx.globalAlpha = 1
+          if (cell.level === 0) {
+            // Inset empty cell
+            ctx.fillStyle = neuBg
+            roundRect(ctx, x, y, cellSize, cellSize, r)
+            ctx.fill()
+            // Subtle inset shadow
+            ctx.shadowColor = shadowDark
+            ctx.shadowBlur = 1
+            ctx.shadowOffsetX = 0.5
+            ctx.shadowOffsetY = 0.5
+            roundRect(ctx, x + 0.5, y + 0.5, cellSize - 1, cellSize - 1, r)
+            ctx.fill()
+            ctx.shadowColor = 'transparent'
+            ctx.shadowBlur = 0
+            ctx.shadowOffsetX = 0
+            ctx.shadowOffsetY = 0
+          } else {
+            const opacities = [0, 0.4, 0.7, 0.85, 1]
+            ctx.globalAlpha = opacities[cell.level]
+            if (cell.level >= 3) {
+              // Gradient for high levels
+              const grad = ctx.createLinearGradient(x, y, x + cellSize, y + cellSize)
+              grad.addColorStop(0, cellLight)
+              grad.addColorStop(1, cellDark)
+              ctx.fillStyle = grad
+            } else {
+              ctx.fillStyle = cellLight
+            }
+            roundRect(ctx, x, y, cellSize, cellSize, r)
+            ctx.fill()
+          }
+          ctx.globalAlpha = 1
+        }
+      }
+
+      // Store layout info for hit testing
+      ;(canvas as any).__heatmapLayout = { cellSize, GAP, LABEL_H, cells, COLS, ROWS, totalW, totalH }
+    }
+
+    function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+      ctx.beginPath()
+      ctx.moveTo(x + r, y)
+      ctx.lineTo(x + w - r, y)
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+      ctx.lineTo(x + w, y + h - r)
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+      ctx.lineTo(x + r, y + h)
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+      ctx.lineTo(x, y + r)
+      ctx.quadraticCurveTo(x, y, x + r, y)
+      ctx.closePath()
+    }
+
+    // Hover tooltip
+    canvas.addEventListener('mousemove', (e) => {
+      const layout = (canvas as any).__heatmapLayout
+      if (!layout) return
+      const rect = canvas.getBoundingClientRect()
+      const scaleX = layout.totalW / rect.width
+      const mx = (e.clientX - rect.left) * scaleX
+      const my = (e.clientY - rect.top) * scaleX
+
+      const col = Math.floor(mx / (layout.cellSize + layout.GAP))
+      const row = Math.floor((my - layout.LABEL_H) / (layout.cellSize + layout.GAP))
+
+      if (col >= 0 && col < layout.COLS && row >= 0 && row < layout.ROWS) {
+        const cell = layout.cells[col * layout.ROWS + row]
+        if (cell && cell.inYear) {
+          tooltip.textContent = `${cell.date} · ${cell.count} 条`
+          tooltip.classList.add('visible')
+          tooltip.style.left = (e.clientX - rect.left + 10) + 'px'
+          tooltip.style.top = (e.clientY - rect.top - 28) + 'px'
+          return
+        }
+      }
+      tooltip.classList.remove('visible')
+    })
+
+    canvas.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible')
+    })
+
+    draw()
+
+    // Redraw on resize
+    const ro = new ResizeObserver(() => draw())
+    ro.observe(canvas.parentElement!)
+
+    // Redraw on theme change
+    const observer = new MutationObserver(() => draw())
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  }
+
+  document.addEventListener('astro:page-load', initHeatmapCanvas)
+</script>
