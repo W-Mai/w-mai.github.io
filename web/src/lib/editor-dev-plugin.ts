@@ -135,6 +135,10 @@ export default function editorDevIntegration(): AstroIntegration {
           entrypoint: './src/lib/editor-routes/wechat-export.ts',
         });
         injectRoute({
+          pattern: '/api/editor/categories',
+          entrypoint: './src/lib/editor-routes/categories.ts',
+        });
+        injectRoute({
           pattern: '/api/editor/diagram-layout',
           entrypoint: './src/lib/editor-routes/diagram/layout.ts',
         });

@@ -2,6 +2,7 @@ import { type FC, useState, useEffect, useCallback, useRef } from 'react';
 import { EDITOR_TOKENS as T } from './editor-tokens';
 import TagChipEditor from './TagChipEditor';
 import DateTimePicker from './DateTimePicker';
+import CategoryPicker from './CategoryPicker';
 import type { FrontmatterData } from '../../lib/frontmatter-utils';
 
 interface FrontmatterPanelProps {
@@ -9,6 +10,7 @@ interface FrontmatterPanelProps {
   data: FrontmatterData;
   onChange: (field: keyof FrontmatterData, value: FrontmatterData[keyof FrontmatterData]) => void;
   allCategories?: string[];
+  onCategoriesChange?: (categories: string[]) => void;
 }
 
 /** Shared styles for field labels */
@@ -64,7 +66,7 @@ function resolveHeroImageUrl(heroImage: string, slug?: string): string {
   return `/api/editor/assets/${encodeURIComponent(name)}`;
 }
 
-const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, allCategories = [] }) => {
+const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, allCategories = [], onCategoriesChange }) => {
   const [local, setLocal] = useState<FrontmatterData>(data);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [pickerClosing, setPickerClosing] = useState(false);
@@ -446,31 +448,13 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
         </div>
       </div>
 
-      {/* category — select from canonical list or add new */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ ...labelStyle, marginBottom: 0 }}>Category</label>
-          {local.category && (
-            <button
-              onClick={() => handleChange('category', undefined)}
-              aria-label="Clear category"
-              style={clearBtnStyle}
-            >×</button>
-          )}
-        </div>
-        <div style={{ marginTop: T.spacingXs }}>
-          <select
-            value={local.category ?? ''}
-            onChange={(e) => handleChange('category', e.target.value || undefined)}
-            style={{ ...inputBaseStyle, cursor: 'pointer', appearance: 'auto' }}
-          >
-            <option value="">— Select —</option>
-            {allCategories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {/* category — dropdown with add/remove */}
+      <CategoryPicker
+        value={local.category}
+        categories={allCategories}
+        onChange={(v) => handleChange('category', v)}
+        onCategoriesChange={onCategoriesChange ?? (() => {})}
+      />
 
       {/* Tags — full width */}
       <div style={{ gridColumn: '1 / -1' }}>

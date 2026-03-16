@@ -27,6 +27,19 @@ const setViewEffect = StateEffect.define<EditorView>();
 // Current post slug for co-located image resolution
 let activeSlug: string | null = null;
 
+// Mutable category list — initialized from CATEGORIES, synced via API
+let activeCategoryList: string[] = [...CATEGORIES];
+
+/** Persist category list to categories.ts via editor API */
+function handleCategoriesChange(cats: string[]): void {
+  activeCategoryList = cats;
+  fetch('/api/editor/categories', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cats),
+  }).catch(() => {});
+}
+
 /** Update the active slug for frontmatter panel image resolution */
 export function setFrontmatterSlug(slug: string | null): void {
   activeSlug = slug;
@@ -88,7 +101,8 @@ class FrontmatterWidget extends WidgetType {
         slug: activeSlug ?? undefined,
         data: this.data,
         onChange: this.handleFieldChange,
-        allCategories: [...CATEGORIES],
+        allCategories: [...activeCategoryList],
+        onCategoriesChange: handleCategoriesChange,
       }),
     );
   }
