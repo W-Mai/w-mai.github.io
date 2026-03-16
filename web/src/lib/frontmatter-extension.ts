@@ -19,6 +19,7 @@ import {
 } from './frontmatter-utils';
 import FrontmatterPanel from '../components/editor/FrontmatterPanel';
 import { EDITOR_TOKENS as T } from '../components/editor/editor-tokens';
+import { CATEGORIES } from '../data/categories';
 
 // StateEffect to inject the EditorView reference into the state field
 const setViewEffect = StateEffect.define<EditorView>();
@@ -87,6 +88,7 @@ class FrontmatterWidget extends WidgetType {
         slug: activeSlug ?? undefined,
         data: this.data,
         onChange: this.handleFieldChange,
+        allCategories: [...CATEGORIES],
       }),
     );
   }

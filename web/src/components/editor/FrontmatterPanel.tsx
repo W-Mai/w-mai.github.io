@@ -8,6 +8,7 @@ interface FrontmatterPanelProps {
   slug?: string;
   data: FrontmatterData;
   onChange: (field: keyof FrontmatterData, value: FrontmatterData[keyof FrontmatterData]) => void;
+  allCategories?: string[];
 }
 
 /** Shared styles for field labels */
@@ -63,7 +64,7 @@ function resolveHeroImageUrl(heroImage: string, slug?: string): string {
   return `/api/editor/assets/${encodeURIComponent(name)}`;
 }
 
-const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) => {
+const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, allCategories = [] }) => {
   const [local, setLocal] = useState<FrontmatterData>(data);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [pickerClosing, setPickerClosing] = useState(false);
@@ -445,7 +446,7 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) =
         </div>
       </div>
 
-      {/* category — optional with clear button */}
+      {/* category — select from canonical list or add new */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>Category</label>
@@ -458,13 +459,16 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange }) =
           )}
         </div>
         <div style={{ marginTop: T.spacingXs }}>
-          <input
-            type="text"
+          <select
             value={local.category ?? ''}
             onChange={(e) => handleChange('category', e.target.value || undefined)}
-            placeholder="Optional"
-            style={inputBaseStyle}
-          />
+            style={{ ...inputBaseStyle, cursor: 'pointer', appearance: 'auto' }}
+          >
+            <option value="">— Select —</option>
+            {allCategories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
       </div>
 

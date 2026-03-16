@@ -1,5 +1,6 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { CATEGORIES } from './data/categories';
 
 const blog = defineCollection({
 	// Load Markdown and MDX files from the root-level `posts/` directory
@@ -20,8 +21,8 @@ const blog = defineCollection({
 				.refine((tags) => new Set(tags).size === tags.length, {
 					message: 'Duplicate tags are not allowed',
 				}),
-			// Optional category for coarse-grained classification
-			category: z.string().optional(),
+			// Category validated against canonical list
+			category: z.enum(CATEGORIES).optional(),
 			// Series/collection fields
 			series: z.string().optional(),
 			seriesOrder: z.number().int().nonnegative().optional(),
