@@ -96,34 +96,36 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
     const d = new Date(startDate)
     for (let w = 0; w < COLS; w++) {
       for (let dow = 0; dow < ROWS; dow++) {
-        const iso = d.toISOString().slice(0, 10)
-        const inYear = d.getFullYear() === year
+        const yy = d.getFullYear()
+        const mm = String(d.getMonth() + 1).padStart(2, '0')
+        const dd = String(d.getDate()).padStart(2, '0')
+        const iso = `${yy}-${mm}-${dd}`
+        const inYear = yy === year
         const count = inYear ? (dateCounts[iso] ?? 0) : 0
         cells.push({ date: iso, count, level: inYear ? intensity(count) : -1, inYear })
         d.setDate(d.getDate() + 1)
       }
     }
 
-    // Month label positions
+    // Month label positions — parse month directly from ISO string to avoid timezone issues
     const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
     const monthPositions: Array<{ label: string; col: number }> = []
-    let lastMonth = -1
+    const seenMonths = new Set<number>()
     for (let w = 0; w < COLS; w++) {
       for (let dow = 0; dow < ROWS; dow++) {
         const cell = cells[w * ROWS + dow]
         if (!cell.inYear) continue
-        const m = new Date(cell.date).getMonth()
-        if (m !== lastMonth) {
+        const m = parseInt(cell.date.slice(5, 7), 10) - 1
+        if (!seenMonths.has(m)) {
+          seenMonths.add(m)
           monthPositions.push({ label: monthNames[m], col: w })
-          lastMonth = m
         }
       }
     }
 
-    // Read CSS custom properties for theming
-    const cs = getComputedStyle(document.documentElement)
+    // Read CSS custom properties fresh each draw for theme changes
     function getVar(name: string): string {
-      return cs.getPropertyValue(name).trim()
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
     }
 
     function draw() {
@@ -132,9 +134,17 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
       const dpr = window.devicePixelRatio || 1
 
       const GAP = 2
-      const cellSize = Math.max(8, Math.floor((containerWidth - (COLS - 1) * GAP) / COLS))
+      const DOW_LABELS = ['日', '月', '火', '水', '木', '金', '土']
+      const fontSize = Math.max(8, Math.min(11, containerWidth / 80))
+
+      canvas.width = containerWidth * dpr
+      canvas.height = dpr
+      const ctx = canvas.getContext('2d')!
+      ctx.font = `${fontSize}px sans-serif`
+      const DOW_W = Math.ceil(ctx.measureText('水').width) + 6
+      const cellSize = Math.max(8, Math.floor((containerWidth - DOW_W - (COLS - 1) * GAP) / COLS))
       const LABEL_H = 14
-      const totalW = COLS * cellSize + (COLS - 1) * GAP
+      const totalW = DOW_W + COLS * cellSize + (COLS - 1) * GAP
       const totalH = LABEL_H + ROWS * cellSize + (ROWS - 1) * GAP
 
       canvas.width = totalW * dpr
@@ -142,25 +152,32 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
       canvas.style.width = totalW + 'px'
       canvas.style.height = totalH + 'px'
 
-      const ctx = canvas.getContext('2d')!
       ctx.scale(dpr, dpr)
       ctx.clearRect(0, 0, totalW, totalH)
 
       // Colors from CSS tokens
       const neuBg = getVar('--neu-bg') || '#e0e5ec'
-      const shadowDark = getVar('--neu-shadow-dark') || 'rgb(163 177 198 / 0.6)'
       const cellLight = getVar('--archive-cell-light') || '#6b9f6b'
       const cellDark = getVar('--archive-cell-dark') || '#3d6b3d'
       const textMuted = getVar('--text-muted') || '#999'
 
       // Draw month labels
-      ctx.font = `${Math.max(8, cellSize * 0.7)}px sans-serif`
+      ctx.font = `${fontSize}px sans-serif`
       ctx.fillStyle = textMuted
       ctx.textBaseline = 'bottom'
       for (const mp of monthPositions) {
-        const x = mp.col * (cellSize + GAP)
+        const x = DOW_W + mp.col * (cellSize + GAP)
         ctx.fillText(mp.label, x, LABEL_H - 1)
       }
+
+      // Draw day-of-week labels (Japanese)
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'right'
+      for (let dow = 0; dow < ROWS; dow++) {
+        const y = LABEL_H + dow * (cellSize + GAP) + cellSize / 2
+        ctx.fillText(DOW_LABELS[dow], DOW_W - 4, y)
+      }
+      ctx.textAlign = 'left'
 
       // Draw cells
       for (let w = 0; w < COLS; w++) {
@@ -168,32 +185,34 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
           const cell = cells[w * ROWS + dow]
           if (!cell.inYear) continue
 
-          const x = w * (cellSize + GAP)
+          const x = DOW_W + w * (cellSize + GAP)
           const y = LABEL_H + dow * (cellSize + GAP)
           const r = Math.min(2, cellSize * 0.15)
 
           ctx.globalAlpha = 1
+
           if (cell.level === 0) {
-            // Inset empty cell
-            ctx.fillStyle = neuBg
+            // Inset empty cell — 3-layer trick: dark base → light offset → bg center
+            const shadowDark = getVar('--neu-shadow-dark-strong') || 'rgb(163 177 198 / 0.7)'
+            const shadowLt = getVar('--neu-shadow-light-strong') || 'rgb(255 255 255 / 0.8)'
+            const off = Math.max(0.5, cellSize * 0.08)
+            // Layer 1: dark shadow (top-left origin)
+            ctx.fillStyle = shadowDark
             roundRect(ctx, x, y, cellSize, cellSize, r)
             ctx.fill()
-            // Subtle inset shadow
-            ctx.shadowColor = shadowDark
-            ctx.shadowBlur = 1
-            ctx.shadowOffsetX = 0.5
-            ctx.shadowOffsetY = 0.5
-            roundRect(ctx, x + 0.5, y + 0.5, cellSize - 1, cellSize - 1, r)
+            // Layer 2: light shadow (shifted bottom-right)
+            ctx.fillStyle = shadowLt
+            roundRect(ctx, x + off, y + off, cellSize - off, cellSize - off, r)
             ctx.fill()
-            ctx.shadowColor = 'transparent'
-            ctx.shadowBlur = 0
-            ctx.shadowOffsetX = 0
-            ctx.shadowOffsetY = 0
+            // Layer 3: bg fill slightly inset
+            ctx.fillStyle = neuBg
+            roundRect(ctx, x + off, y + off, cellSize - off * 2, cellSize - off * 2, Math.max(0, r - off * 0.5))
+            ctx.fill()
           } else {
+            // Raised active cell — colored fill
             const opacities = [0, 0.4, 0.7, 0.85, 1]
             ctx.globalAlpha = opacities[cell.level]
             if (cell.level >= 3) {
-              // Gradient for high levels
               const grad = ctx.createLinearGradient(x, y, x + cellSize, y + cellSize)
               grad.addColorStop(0, cellLight)
               grad.addColorStop(1, cellDark)
@@ -209,7 +228,7 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
       }
 
       // Store layout info for hit testing
-      ;(canvas as any).__heatmapLayout = { cellSize, GAP, LABEL_H, cells, COLS, ROWS, totalW, totalH }
+      ;(canvas as any).__heatmapLayout = { cellSize, GAP, LABEL_H, DOW_W, cells, COLS, ROWS, totalW, totalH }
     }
 
     function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -235,7 +254,7 @@ const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
       const mx = (e.clientX - rect.left) * scaleX
       const my = (e.clientY - rect.top) * scaleX
 
-      const col = Math.floor(mx / (layout.cellSize + layout.GAP))
+      const col = Math.floor((mx - layout.DOW_W) / (layout.cellSize + layout.GAP))
       const row = Math.floor((my - layout.LABEL_H) / (layout.cellSize + layout.GAP))
 
       if (col >= 0 && col < layout.COLS && row >= 0 && row < layout.ROWS) {
