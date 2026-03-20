@@ -12,7 +12,9 @@ export const SITE_URL = 'https://benign.host';
 export const PINNED_PROJECTS = [
     'icu',
     'vegravis',
+    'uinspy',
     'filmr',
+    'xSticker',
     'git_rnd_name',
     'BuZhiYin',
     'macmemana',

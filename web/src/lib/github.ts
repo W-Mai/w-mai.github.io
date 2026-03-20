@@ -216,7 +216,17 @@ export interface FeaturedProject {
 
 // Resolve a raw image URL to an absolute URL
 function resolveImageUrl(rawUrl: string, owner: string, repo: string): string {
-  if (rawUrl.startsWith('http')) return rawUrl
+  if (rawUrl.startsWith('http')) {
+    // Convert GitHub blob URLs to raw.githubusercontent.com URLs
+    const blobMatch = rawUrl.match(
+      /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/,
+    )
+    if (blobMatch) {
+      const [, bOwner, bRepo, bRef, bPath] = blobMatch
+      return `https://raw.githubusercontent.com/${bOwner}/${bRepo}/${bRef}/${bPath}`
+    }
+    return rawUrl
+  }
   const cleanPath = rawUrl.replace(/^\.?\//, '')
   return `https://raw.githubusercontent.com/${owner}/${repo}/HEAD/${cleanPath}`
 }
