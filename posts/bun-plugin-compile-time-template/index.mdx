@@ -1,0 +1,335 @@
+---
+title: 'Bun Plugin 编译时模板转换：html` 到 DOM 操作的代码生成'
+description: '用 Bun 的 plugin API 在构建时把 html tagged template 编译成原生 DOM 操作，零运行时开销，产物可读'
+pubDate: '2026-03-21T01:30+08:00'
+tags: ["bun", "compiler", "web-components", "typescript"]
+category: "代码"
+---
+
+### 问题
+
+我在做一个 LVGL 运行时状态的可视化工具（[uinspy](https://github.com/W-Mai/uinspy)），需求很明确：**单个 HTML 文件，零依赖，拖进浏览器就能用。**
+
+这意味着不能用 React、Vue 这些带运行时的框架。但纯手写 `document.createElement` 又太痛苦了，一个稍微复杂点的组件写出来全是 DOM API 调用，可读性约等于零。
+
+我想要的是这样写：
+
+```typescript
+static __template = html`
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">${__LOGO__}</span> ${__TITLE__}
+    </div>
+    <nav class="nav" id="topbar-nav"></nav>
+    <input type="text" class="search" id="search" placeholder="Filter..."/>
+  </header>
+`;
+```
+
+但构建产物里不要出现任何模板解析逻辑，直接变成：
+
+```javascript
+const _e = document.createElement("header");
+_e.setAttribute("class", "topbar");
+const _e1 = document.createElement("div");
+_e1.setAttribute("class", "brand");
+// ...
+_e.append(_e1, _e2, _e3);
+return _e;
+```
+
+::sticker[getimgdata-5.gif]::
+
+### 方案：Bun Plugin
+
+Bun 的构建系统有一个 `onLoad` 钩子，可以在文件被打包之前拦截并修改源码。我给所有 `.ui.ts` 文件注册了一个 plugin：
+
+```typescript
+export const uiPlugin: BunPlugin = {
+  name: "uinspy-ui",
+  setup(build) {
+    build.onLoad({ filter: /\.ui\.ts$/ }, async (args) => {
+      let code = await Bun.file(args.path).text();
+      // ... transforms ...
+      return { contents: code, loader: "ts" };
+    });
+  },
+};
+```
+
+`.ui.ts` 是一个约定：这个后缀的文件会经过编译时转换，普通 `.ts` 文件不受影响。
+
+### 三层模板转换
+
+plugin 里有三种 `html`` ` 的使用场景，按优先级依次处理：
+
+**1. 静态模板（`static __template = html`` `）**
+
+类级别的模板声明，整个类共享一份 DOM 结构。编译后变成一个工厂函数：
+
+```typescript
+// before
+static __template = html`<div class="card"><span id="title"></span></div>`;
+
+// after
+static __template = () => {
+  const _e = document.createElement("div");
+  _e.setAttribute("class", "card");
+  const _e1 = document.createElement("span");
+  _e1.setAttribute("id", "title");
+  _e.append(_e1);
+  return _e;
+};
+```
+
+**2. 内联模板（`this.html`` `）**
+
+在 `render()` 方法里动态创建 DOM 片段。编译后变成 IIFE：
+
+```typescript
+// before
+const card = this.html`<div class="item">${name}</div>`;
+
+// after
+const card = (() => {
+  const _e = document.createElement("div");
+  _e.setAttribute("class", "item");
+  _e.append(name);
+  return _e;
+})();
+```
+
+**3. 独立模板（`html`` `）**
+
+不在类里面，纯粹的 DOM 构建辅助函数。同样编译成 IIFE，但要注意跳过 `innerHTML`` ` 这种误匹配：
+
+```typescript
+// skip: preceded by word char
+el.innerHTML`...`  // not touched
+
+// transform: standalone
+const btn = html`<button class="action">Click</button>`;
+```
+
+三层按顺序处理，先 static，再 this.html，最后 standalone，避免互相干扰。
+
+### HTML 解析器
+
+要把 `html`` ` 里的内容编译成 DOM 操作，首先得解析 HTML。我写了一个递归下降的 parser，文法长这样：
+
+```bnf
+Template   ::= Node*
+Node       ::= Element | Text | Expr
+Element    ::= '<' TAG ATTRS '/>'                    (* self-closing *)
+             | '<' TAG ATTRS '>' Node* '</' TAG '>'  (* paired *)
+Text       ::= [^<$]+                                (* raw text *)
+Expr       ::= '${' JS_EXPR '}'                      (* interpolation *)
+TAG        ::= [a-zA-Z][a-zA-Z0-9-]*
+ATTRS      ::= (ATTR_NAME '="' ATTR_VAL '"' | ATTR_NAME)*
+```
+
+三种节点：
+
+```typescript
+interface ParsedNode {
+  type: "element" | "text" | "expr";
+  tag?: string;       // element tag name
+  attrs?: string;     // raw attribute string
+  children?: ParsedNode[];
+  text?: string;      // text content
+  expr?: string;      // ${...} expression
+}
+```
+
+解析逻辑：
+
+1. 遇到 `<tag ...>` → 开标签，递归解析子节点直到 `</tag>`
+2. 遇到 `<tag ... />` → 自闭合标签
+3. 其他内容 → 按 `${...}` 分割成 text 和 expr 节点
+
+嵌套标签的匹配用深度计数：遇到同名开标签 depth++，遇到闭标签 depth--，depth 归零时就是匹配的闭标签。
+
+```typescript
+let depth = 1;
+let j = i;
+while (j < html.length && depth > 0) {
+  const closeIdx = html.indexOf("</" + tag, j);
+  const openIdx = html.indexOf("<" + tag, j);
+  // ... handle nesting ...
+}
+```
+
+### 代码生成
+
+解析完 AST 之后，`compileNodes` 递归生成 DOM 操作代码：
+
+```typescript
+function compileNodes(
+  nodes: ParsedNode[],
+  parentVar: string,
+  counter: number
+): { code: string; counter: number } {
+  let code = "";
+  const children: string[] = [];
+
+  for (const node of nodes) {
+    if (node.type === "text") {
+      // text → string literal
+      children.push(`"${escaped}"`);
+    } else if (node.type === "expr") {
+      // ${expr} → expression reference
+      children.push(node.expr!);
+    } else if (node.type === "element") {
+      // element → createElement + setAttribute + recurse
+      const v = counter === 0 ? "_e" : `_e${counter}`;
+      counter++;
+      code += `const ${v} = document.createElement("${node.tag}"); `;
+      code += compileAttrs(node.attrs || "", v);
+      // recurse into children
+      if (node.children && node.children.length > 0) {
+        const sub = compileNodes(node.children, v, counter);
+        code += sub.code;
+        counter = sub.counter;
+      }
+      children.push(v);
+    }
+  }
+  // batch append all children
+  if (children.length > 0) {
+    code += `${parentVar}.append(${children.join(", ")}); `;
+  }
+  return { code, counter };
+}
+```
+
+关键设计：用一个递增的 counter 给变量命名（`_e`, `_e1`, `_e2`...），子节点全部收集完之后用一次 `append()` 批量挂载，减少 DOM 操作次数。
+
+### 模板提取的边界处理
+
+从源码中提取 `` html`...` `` 的内容不能简单地找下一个反引号，因为模板里可能有 `${...}` 表达式，表达式里又可能有嵌套的花括号：
+
+```typescript
+function extractTemplate(code: string, start: number, prefix: string) {
+  let j = start + prefix.length;
+  let depth = 0;
+  while (j < code.length) {
+    if (code[j] === "`" && depth === 0) break;  // end of template
+    if (code[j] === "$" && code[j + 1] === "{") { depth++; j += 2; continue; }
+    if (code[j] === "}" && depth > 0) { depth--; j++; continue; }
+    j++;
+  }
+  // ...
+}
+```
+
+用 depth 追踪 `${}` 的嵌套层级，只有在 depth 为 0 时遇到的反引号才是模板的结束。
+
+### 降级策略
+
+如果 HTML 解析失败（比如模板里有不规范的结构），不会报错，而是降级到运行时 `innerHTML`：
+
+```typescript
+const compiled = compileTemplate(tpl.inner);
+result += compiled
+  ? `static __template = () => { ${compiled} }`
+  : `static __template = () => {
+      const _t = document.createElement("template");
+      _t.innerHTML = \`${tpl.inner}\`;
+      return _t.content.firstElementChild;
+    }`;
+```
+
+编译成功 → 纯 DOM 操作，零解析开销。编译失败 → `innerHTML` 兜底，功能不丢。:sticker[v2_18ec4f39-a600-430c-bbce-f68fe3557dfl.gif]:
+
+### 除了模板，plugin 还做了什么
+
+模板转换只是 plugin 的一部分。完整的 `.ui.ts` 处理流程：
+
+**1. `//@ component("tag-name")` → `customElements.define`**
+
+```typescript
+// before
+//@ component("ui-theme-toggle")
+class UiThemeToggle extends BaseComponent { ... }
+
+// after (annotation stripped, define appended)
+class UiThemeToggle extends BaseComponent { ... }
+customElements.define("ui-theme-toggle", UiThemeToggle);
+```
+
+plugin 扫描所有 `//@ component(...)` 注解，收集 tag→class 映射，在文件末尾追加 `customElements.define`。注解本身被删掉，不进入产物。
+
+**2. `css`` ` → 作用域 CSS 收集**
+
+组件的样式用 `css`` ` 声明，plugin 会：
+- 用组件的 tag name 给所有选择器加前缀（scope）
+- 把 scoped CSS 收集到全局数组 `collectedCSS` 里
+- 构建完成后，和 `app.css` 合并，一起送进 Tailwind 处理
+
+> CSS scope 的完整实现（递归下降 parser、at-rule 分类处理、选择器特殊处理）见 [不用 Shadow DOM 的组件样式隔离：编译时 CSS 自动 Scope](/blog/css-auto-scope)
+
+```typescript
+// before
+static __style = css`
+  .toggle { @apply flex items-center w-8 h-8; }
+  .toggle:hover { @apply border-blue; }
+`;
+
+// after: CSS collected as
+// ui-theme-toggle .toggle { @apply flex items-center w-8 h-8; }
+// ui-theme-toggle .toggle:hover { @apply border-blue; }
+```
+
+这样每个组件的样式自动隔离，不需要 Shadow DOM，还能用 Tailwind 的 `@apply`。
+
+**3. 自动注入 import**
+
+plugin 检测代码里是否用了 `BaseComponent`、`signal()`、`store()`，自动注入对应的 import 语句，并删除手写的旧 import（避免重复）。路径根据文件位置自动计算相对路径。
+
+```typescript
+// .ui.ts files don't need to write imports
+// plugin auto-injects:
+import { BaseComponent } from "../framework/base";
+import { signal } from "../framework/signal";
+```
+
+### 构建产物
+
+整个构建流程：
+
+1. Bun.build 处理所有 `.ui.ts`（plugin 转换）→ JS bundle
+2. 收集所有 scoped CSS + `app.css` → Tailwind compile → CSS bundle
+3. JS + CSS + `index.html` 模板 → 内联成单个 HTML 文件
+
+产出两个版本：
+- `uinspy.html`：可读版，语法压缩但保留变量名和缩进，方便 git diff
+- `uinspy.min.html`：全压缩版，体积最小
+
+这篇文章对应的阶段（纯框架 + demo 组件）：
+
+```
+dist/uinspy.html      24.4 KB (readable, git-friendly)
+dist/uinspy.min.html  19.4 KB (minified)
+```
+
+加上 LVGL dashboard 全部业务代码之后：
+
+```
+dist/uinspy.html      114.1 KB (readable, git-friendly)
+dist/uinspy.min.html  84.2 KB  (minified)
+```
+
+### 为什么不用现成的方案
+
+| 方案 | 问题 |
+|------|------|
+| React/Vue/Svelte | 运行时太大，单文件产物臃肿 |
+| Lit | 运行时 ~5KB，但 `html`` ` 是运行时解析 |
+| Vanilla JS | 可读性差，维护成本高 |
+| htm + preact | 运行时解析 + 虚拟 DOM 开销 |
+
+我需要的是：**写的时候像模板，跑的时候是原生 DOM 操作，构建产物人类可读。** Bun plugin 刚好提供了这个能力：在 `onLoad` 阶段做源码变换，之后 Bun 的 bundler 正常处理 TypeScript 和 tree-shaking。
+
+整个 plugin 不到 400 行，没有外部依赖。:sticker[getimgdata-8.jpg]:
+
+::sticker[v2_8f1f8006-246a-40d5-9f9d-fb73f64291dl.gif]::
