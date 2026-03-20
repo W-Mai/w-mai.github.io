@@ -1,0 +1,224 @@
+---
+title: '当 GDB 的类型系统背叛了你：一次 LVGL Dashboard 样式全挂的调试记录'
+description: 'GDB 的 lookup_type 有隐式全局状态副作用，一次类型查找会污染后续查找结果，导致 LVGL 样式数据全部损坏'
+pubDate: '2026-03-20T18:00+08:00'
+tags: ["gdb", "lvgl", "python", "debugging"]
+category: "代码"
+---
+
+### 现象
+
+我在给 LVGL 写一个 GDB Python 插件，其中有个 dashboard 功能：从 coredump 里提取 LVGL 的完整运行时状态（显示器、对象树、样式、动画、缓存等），序列化成 JSON，然后在浏览器里渲染出一个可视化面板。
+
+某天打开 dashboard，发现所有样式数据全部损坏。1821 个 style 属性，读出来的值全是垃圾。
+
+但代码没有任何改动。上一次还是好的。
+
+::sticker[getimgdata-15.jpg]::
+
+### 第一反应：是不是 coredump 坏了？
+
+不是。用 GDB 手动 `print` 一个 `lv_style_t` 结构体，字段值是正确的。
+
+问题只在 Python 脚本读取的时候出现。:sticker[getimgdata-7.gif]:
+
+### 缩小范围
+
+dashboard 的数据收集流程在 `data_collector.py` 的 `collect_all()` 里，按顺序收集各个子系统：
+
+```python
+data = {
+    "displays": _collect_displays(lvgl),      # 1. 先收集显示器
+    "object_trees": _collect_object_trees(lvgl),  # 2. 再收集对象树（含样式）
+    "image_cache": _collect_image_cache(lvgl),
+    ...
+}
+```
+
+关键发现：**如果注释掉 `_collect_displays`，样式就正常了。**
+
+::sticker[v2_cc91a343-c1d3-489f-b151-3d63f947e70l.gif]::
+
+### 追踪污染源
+
+`_collect_displays` 做了什么？它遍历所有显示器，对每个显示器调用 `_buf_to_dict(disp.buf_1)` 来提取帧缓冲区数据。`disp.buf_1` 返回一个 `LVDrawBuf` 实例，其构造函数是：
+
+```python
+class LVDrawBuf(Value):
+    def __init__(self, draw_buf: ValueInput):
+        super().__init__(Value.normalize(draw_buf, "lv_draw_buf_t"))
+```
+
+`Value.normalize` 内部会调用 `gdb.lookup_type("lv_draw_buf_t")`。
+
+之后，当收集对象树中的样式时，`LVStyle` 的构造函数同样调用 `Value.normalize(style, "lv_style_t")`，内部调用 `gdb.lookup_type("lv_style_t")`。
+
+问题就出在这个 `gdb.lookup_type` 上。
+
+### GDB 的编译单元搜索顺序
+
+GDB 在处理 DWARF 调试信息时，同一个类型名可能在多个编译单元（compilation unit, CU）中有不同的定义。`gdb.lookup_type("lv_style_t")` 并不总是返回同一个定义：它取决于 GDB 内部的 CU 搜索顺序。
+
+这个搜索顺序不是固定的。当你调用 `gdb.lookup_type("lv_draw_buf_t")` 时，GDB 会遍历 CU 来找到这个类型，这个遍历过程会**改变内部的搜索状态**。之后再查找 `lv_style_t` 时，GDB 可能会从一个不同的 CU 开始搜索，从而找到一个不同的定义。
+
+这就是 **type pollution**：一次类型查找的副作用改变了后续类型查找的结果。
+
+::sticker[v2_9e96d7cd-c2a9-4b9f-b51b-1dafc8ea940l.gif]::
+
+### LVGL 的宏控制结构体
+
+为什么同一个 `lv_style_t` 会有不同的定义？因为 LVGL 大量使用宏来控制结构体的字段：
+
+```c
+typedef struct {
+    const lv_property_name_t * prop_name_id_map;
+    uint32_t prop_cnt     : 8;
+    uint32_t is_const     : 1;
+    uint32_t has_group    : 1;
+    // ...
+#if LV_USE_ASSERT_STYLE
+    uint32_t sentinel;    // extra 4-byte sentinel field
+#endif
+} lv_style_t;
+```
+
+在这个固件的构建中，主应用编译时 `LV_USE_ASSERT_STYLE=0`，`lv_style_t` 是 12 字节。但某些编译单元（可能是测试代码或库代码）编译时 `LV_USE_ASSERT_STYLE=1`，`lv_style_t` 是 16 字节。
+
+两个定义都存在于 ELF 的 DWARF 信息中。GDB 不知道哪个是「正确的」：它只是按搜索顺序返回第一个匹配的。
+
+### 污染的具体效果
+
+正常情况下（未被污染），`gdb.lookup_type("lv_style_t")` 返回 12 字节版本：
+
+```
+(gdb) ptype lv_style_t
+type = struct {
+    ...
+    uint32_t prop_cnt : 8;
+    uint32_t is_const : 1;
+    ...
+}
+// sizeof = 12
+```
+
+被污染后，返回 16 字节版本（带 `sentinel` 字段）：
+
+```
+(gdb) ptype lv_style_t
+type = struct {
+    ...
+    uint32_t prop_cnt : 8;
+    uint32_t is_const : 1;
+    ...
+    uint32_t sentinel;
+}
+// sizeof = 16
+```
+
+当 Python 脚本用 16 字节的类型定义去解读实际只有 12 字节的内存布局时，所有字段偏移都错了。`prop_cnt` 读出来是垃圾值，`values_and_props` 指针指向错误的地址，整个样式解析链条全部崩溃。
+
+1821 个样式，全挂。:sticker[getimgdata-10.jpg]:
+
+### 修复
+
+#### 第一版修复（不通用）
+
+最初的想法是在 `LVStyle` 里特殊处理：手动检测 `lv_style_t` 的 size，如果发现是 16 字节就知道拿到了错误的定义，然后想办法找到正确的。
+
+但这个方案被否决了。为啥？因为 LVGL 里有大量宏控制的结构体，不只是 `lv_style_t`。逐个修复不现实，也不可维护。
+
+#### 最终修复（通用，在 Value.normalize 中）
+
+核心思路：**如果输入已经是一个类型正确的指针，就不要再调用 `gdb.lookup_type` 了。**
+
+当一个 `lv_style_t*` 指针从某个结构体的字段中取出时（比如 `obj->styles[i].style`），这个指针自带的类型信息来自它所在结构体的编译单元。这个类型定义是正确的：因为它和实际的内存布局一致。
+
+只有当我们调用 `gdb.lookup_type("lv_style_t")` 重新查找类型时，才可能拿到一个来自不同编译单元的错误定义。
+
+所以修复方案是在 `normalize()` 中加一个 early return：
+
+```python
+if target_type is not None:
+    typ = val.type.strip_typedefs()
+    if typ.code == gdb.TYPE_CODE_PTR:
+        target = typ.target()
+        tname = target.name or target.tag or ""
+        if tname == target_type:
+            return val  # type already matches, skip lookup_type
+```
+
+这段代码的含义是：当输入值已经是一个指向 `target_type` 的指针时，直接返回它，保留原始的类型定义。只有当类型不匹配时（比如输入是 `int` 或者指向其他类型的指针），才走 `gdb.lookup_type` 的路径。
+
+::sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]::
+
+### 一个微妙的细节
+
+为什么用 `target.name` 而不是 `target.strip_typedefs().tag`？
+
+在被污染的状态下，如果指针类型是 `const lv_style_t *`，那么：
+
+- `typ.target()` → `const lv_style_t`，`.name` = `"lv_style_t"` ✅
+- `typ.target().strip_typedefs()` → `const struct { ... }`，`.tag` = `None`，`.name` = `None` ❌
+
+这是因为 `strip_typedefs()` 在某些 GDB 版本中会展开 typedef 到底层的匿名结构体定义，而 `const` 限定符会导致 GDB 无法正确关联 tag 名。
+
+所以必须用 `typ.target().name`（不 strip typedefs）来获取类型名。:sticker[getimgdata-7.gif]:
+
+### 加固 auto-infer 分支
+
+`normalize()` 还有一个 auto-infer 分支：当 `target_type` 参数为 `None` 时，它会尝试从指针类型自动推断目标类型名。原来的代码用 `str(target)` 来获取类型名：
+
+```python
+# before
+target_type = str(target)  # might return "const struct { ... }"
+```
+
+在污染场景下，`str(target)` 可能返回一个匿名结构体的展开形式，这不是一个有效的类型名。修复为：
+
+```python
+# after
+target_type = target.name or target.tag  # only use valid type names
+```
+
+当 `name` 和 `tag` 都是 `None` 时，`target_type` 保持 `None`，auto-infer 不生效，避免了用无效类型名去做后续的 `lookup_type`。
+
+### 验证
+
+修复前后的测试对比：
+
+| 指标 | 修复前 | 修复后 |
+|------|--------|--------|
+| 单元测试通过 | 11/16 | 12/16 |
+| Dashboard 样式 OK | 0/1821 | 1821/1821 |
+| Dashboard 样式 Bad | 1821/1821 | 0/1821 |
+
+::sticker[v2_743a5aa2-4263-473b-b37d-d7206bf8deal.gif]::
+
+### 总结
+
+这个 bug 的根因是 GDB 的 `lookup_type` API 存在隐式的全局状态副作用：一次类型查找会改变后续查找的搜索顺序。当目标程序中同一个类型名存在多个不同定义时（LVGL 中由宏控制的结构体很常见），这个副作用就会导致类型混淆。
+
+修复的核心原则是：**信任指针自带的类型信息，避免不必要的 `gdb.lookup_type` 调用。** 这是一个架构层面的修复：在 `Value.normalize()` 这个所有 wrapper 类共用的入口点做防护，而不是在每个具体的 wrapper 类里逐个打补丁。
+
+这个问题的隐蔽性在于：
+
+1. 它是顺序依赖的：只有先查找 `lv_draw_buf_t` 再查找 `lv_style_t` 才会触发
+2. 它是数据依赖的：只有当 ELF 中存在同名但不同定义的类型时才会触发
+3. 它的表现是数据损坏而不是报错：所有 API 调用都成功了，只是返回了错误的类型定义
+
+对于任何在 GDB Python 脚本中大量使用 `gdb.lookup_type` 的项目，这都是一个值得警惕的陷阱。
+
+### 再想深一层：这个 ELF 本身就有问题
+
+换个角度看，同一个 `lv_style_t` 在同一个 ELF 里有 12 字节和 16 字节两种定义，这本身就说明构建系统存在 ABI 不兼容问题。不同的编译单元用了不同的宏配置编译同一个头文件，链接到了同一个二进制里。
+
+这意味着如果某个 `.c` 文件以为 `lv_style_t` 是 16 字节，而它调用的函数实际操作的是 12 字节版本，那运行时就会发生内存越界、字段错位。GDB 的 type pollution 只是把这个潜在的 ABI 问题暴露了出来：DWARF 里的类型不一致，恰恰反映了编译时的配置不一致。
+
+所以这个 bug 其实有两层：
+
+1. **表层**：GDB `lookup_type` 的隐式状态导致脚本拿到了错误的类型定义
+2. **底层**：构建系统没有保证所有编译单元使用一致的宏配置，产生了 ABI 不兼容的二进制
+
+第一层我们在 `Value.normalize` 里修了。第二层，得去查构建系统里谁偷偷开了 `LV_USE_ASSERT_STYLE`。:sticker[v2_15f69528-c9fb-4749-aca6-a74f840d4bdl.gif]:
+
+::sticker[getimgdata-5.jpg]::
