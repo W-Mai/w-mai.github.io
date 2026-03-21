@@ -1,0 +1,291 @@
+---
+title: '交互打磨——从能用到好用'
+description: 'ViewCube 导航方块、透视↔正交平滑过渡、深度范围过滤、双击聚焦、对象树联动高亮，以及各种让 3D 场景手感丝滑的细节'
+pubDate: '2026-03-22T03:04+08:00'
+heroImage: ../../assets/images/uinspy-hero.png
+tags: ["typescript", "interaction", "3d", "animation", "ux"]
+category: "代码"
+series: 'uinspy'
+seriesOrder: 3
+seriesTitle: '交互打磨——从能用到好用'
+---
+
+[上一篇](/blog/uinspy-renderer-evolution)把渲染器从 CSS 3D 重写到 Canvas 2D 再到 Three.js。能画出来了，但「能画」和「好用」之间还差一大截。
+
+这篇聊的是怎么把一个能看的 3D 场景，打磨成一个用起来顺手的交互工具。
+
+::sticker[v2_743a5aa2-4263-473b-b37d-d7206bf8deal.gif]::
+
+### 键盘惯性和统一动画
+
+键盘控制和 `animateTo` 统一动画系统的实现细节在[惯性动画系统](/blog/inertia-animation-system)里写过了，这里只说结论：
+
+- 方向键/WASD/Q/E 走速度累积 + 指数衰减，不同操作用不同的加速度和摩擦系数
+- 所有「从 A 到 B」的平滑过渡走统一的 `animateTo`，`Partial<>` 让调用方只指定想改的参数
+- Shift 3× 加速改的是加速度不是摩擦系数，保持衰减曲线形状一致
+
+这套系统是后面所有交互的基础。ViewCube 跳转、3D/2D 切换、双击聚焦、Reset，全部调用 `animateTo`。
+
+### ViewCube：一个小方块解决导航问题
+
+3D 场景最大的交互痛点是：**迷路。** 旋转几下之后不知道自己在看哪个方向，想回到正面视图得手动拖回去。
+
+ViewCube 是一个经典的解决方案。3ds Max、Fusion 360、Blender 都有类似的东西：场景角落放一个小立方体，显示当前视角方向，点击面/边/角可以跳转到预设视角。
+
+#### 26 个预设视角
+
+一个立方体有 6 个面、12 条边、8 个角，总共 26 个可点击区域，对应 26 个预设视角：
+
+| 类型 | 数量 | 示例 | rotX | rotY |
+|------|------|------|------|------|
+| 面 | 6 | Front、Top、Right… | 0° / -90° / 0°… | 0° / 0° / -90°… |
+| 边 | 12 | Front-Top、Front-Right… | -45° / 0°… | 0° / -45°… |
+| 角 | 8 | Front-Top-Right… | ±45° | ±45° / ±135° |
+
+角的 rotX 是 ±45°（和边一样），rotY 是 ±45° 或 ±135°。这里没有用理论上的 $\arctan\!\bigl(\frac{1}{\sqrt{2}}\bigr) \approx 35.26°$，而是直接取 45° 简化实现——视觉上差别不大，代码更简洁。
+
+```typescript
+const vcItems: VCItem[] = [
+  // 6 faces — translateZ + rotateY/rotateX positioning
+  { transform: `translateZ(${S}px)`,                preset: { rotX: 0,   rotY: 0 },   label: "Front", cls: "vc-face" },
+  { transform: `rotateY(180deg) translateZ(${S}px)`, preset: { rotX: 0,   rotY: 180 }, label: "Back",  cls: "vc-face" },
+  { transform: `rotateY(90deg) translateZ(${S}px)`,  preset: { rotX: 0,   rotY: -90 }, label: "Right", cls: "vc-face" },
+  { transform: `rotateY(-90deg) translateZ(${S}px)`, preset: { rotX: 0,   rotY: 90 },  label: "Left",  cls: "vc-face" },
+  { transform: `rotateX(90deg) translateZ(${S}px)`,  preset: { rotX: -90, rotY: 0 },   label: "Top",   cls: "vc-face" },
+  { transform: `rotateX(-90deg) translateZ(${S}px)`, preset: { rotX: 90,  rotY: 0 },   label: "Bot",   cls: "vc-face" },
+  // 12 edges — e.g. front-top: { rotX: -45, rotY: 0 }
+  // 8 corners — e.g. front-top-right: { rotX: -45, rotY: -45 }
+  // ...
+];
+```
+
+点击任意区域，调用 `animateTo({ rotX, rotY })` 平滑过渡过去。
+
+#### ViewCube 的渲染
+
+ViewCube 本身也是一个 3D 物体，需要跟着主场景的旋转同步。但它不能用主场景的渲染器画——它有自己的投影参数（固定大小、固定位置、不受缩放和平移影响）。
+
+实现方式没有用 canvas，而是直接用 **CSS 3D transform**。在 viewport 右上角放一个 `div` 容器（`viewcube-wrap`），设置 `perspective: 250px`，里面的子 `div`（`viewcube`）开启 `transform-style: preserve-3d`。6 个面、12 条边、8 个角各是一个绝对定位的 `<div>`，用 `translateZ`、`rotateY`、`translate3d` 等变换摆到立方体的正确位置。
+
+旋转同步只需要一行：
+
+```typescript
+function updateViewCube() {
+  vcCube.style.transform = `rotateX(${cam.rotX}deg) rotateY(${cam.rotY}deg)`;
+  // match perspective/ortho with main view
+  const p = 250 + (1 - cam.persp) * 2000;
+  vcWrap.style.perspective = `${p}px`;
+}
+```
+
+`cam.persp` 从 1（透视）到 0（正交）变化时，`perspective` 值从 250px 增大到 2250px。CSS `perspective` 越大，透视效果越弱，趋近于正交投影——和主场景的投影混合保持一致。
+
+背面剔除不需要手动算——CSS 的 `backface-visibility: visible` 配合 `preserve-3d` 天然处理了面的前后关系。hover 效果也是纯 CSS：鼠标移到面上变蓝（`background: var(--blue)`），点击直接触发 `animateTo`。
+
+这个方案比用 canvas 画线框立方体简单得多：不需要自己做投影、不需要处理深度排序、不需要写拾取逻辑。浏览器的 CSS 3D 引擎把这些全做了。代价是 DOM 节点多了 26 个 `div`，但对于一个固定大小的小方块来说完全不是问题。
+
+### 透视↔正交平滑过渡
+
+[篇三](/blog/uinspy-renderer-evolution)提到了 `cam.persp` 作为 0~1 的连续值控制透视和正交之间的混合。这里补充交互层面的细节。
+
+按 `O` 键或点击 Ortho 按钮切换正交/透视：
+
+```typescript
+// keyboard shortcut
+case "o": case "O": toggleOrtho.click(); return;
+
+// toggle handler
+toggleOrtho.addEventListener("click", () => {
+  const ortho = toggleOrtho.dataset.on === "1";
+  animateTo({ persp: ortho ? 0 : 1 });
+});
+```
+
+一行代码。`animateTo` 会在 500ms 内把 `persp` 从当前值平滑过渡到目标值，渲染器每帧读取 `cam.persp` 做投影混合。
+
+### 深度范围过滤
+
+LVGL 的对象树可能有几十层深度。全部展开的时候，3D 爆炸视图里层叠得很密，很难看清中间某几层的结构。
+
+深度范围过滤让用户只显示指定深度范围内的层：
+
+```typescript
+interface DepthRange {
+  min: number;  // 0 = root
+  max: number;  // visMax = deepest visible layer
+}
+```
+
+两个 slider 控制 min 和 max。超出范围的层设置 `visible = false`，渲染器跳过不可见的层，减少视觉噪音。
+
+```typescript
+function updateDepths() {
+  layers.forEach((l, idx) => {
+    const gd = screenOffset[l.screenIdx] + l.localDepth;
+    const inRange = gd >= Math.round(depthRange.min)
+                 && gd <= Math.round(depthRange.max);
+    sceneLayers[idx].visible = bordersOn && layerVisible[l.screenIdx] && inRange;
+    sceneLayers[idx].depth = compressedDepth[gd] * currentSpread;
+  });
+  renderer.markDirty();
+}
+```
+
+`visible` 同时受三个条件控制：Borders 开关（`bordersOn`）、screen filter（`layerVisible`）、深度范围（`inRange`）。任何一个不满足就不渲染。
+
+slider 的范围是动态的：`max` 的上限取决于当前数据里最深的层。切换 screen 的时候，深度范围自动 reset 到全范围。
+
+深度范围也接入了 `animateTo`：
+
+```typescript
+animateTo({ depthMin: 3, depthMax: 5 });
+```
+
+过渡期间，`depthMin` 和 `depthMax` 被 lerp 插值，但传给渲染器之前会 `Math.round`——深度是整数，不能有 3.7 层这种东西。视觉上的效果是：层一层一层地淡入/淡出，而不是突然出现/消失。
+
+### 双击聚焦
+
+双击某个层，相机自动聚焦到那个层：
+
+```typescript
+canvas.addEventListener("dblclick", e => {
+  const hit = pickAt(e);
+  if (!hit?.layer.addr) return;
+  focusLayer(hit.layer.addr);
+});
+
+function focusLayer(addr: string) {
+  const l = layers.find(la => la.addr === addr);
+  if (!l) return;
+  // double-click same layer again → exit focus
+  if (focusedAddr === addr) { exitFocus(); return; }
+
+  // save state before focusing
+  if (!focusedAddr) {
+    savedDepthRange = { ...depthRange };
+    savedFocusCam = { rotX: cam.rotX, rotY: cam.rotY, panX: cam.panX, panY: cam.panY, persp: cam.persp };
+  }
+  focusedAddr = addr;
+  const cx = l.x1 + (l.x2 - l.x1) / 2 - sceneW / 2;
+  const cy = l.y1 + (l.y2 - l.y1) / 2 - sceneH / 2;
+  const gd = screenOffset[l.screenIdx] + l.localDepth;
+  animateTo({ rotX: 0, rotY: 0, panX: -cx, panY: -cy, persp: 0, depthMin: gd, depthMax: gd });
+}
+```
+
+做了这几件事：
+
+1. **旋转归零：** 正面看这个层
+2. **平移到层中心：** 计算层中心相对于场景中心的偏移，取反作为 pan 值
+3. **切换正交：** 聚焦单层的时候透视没有意义
+4. **深度范围收窄到单层：** 只显示这一层，其他层全部隐藏
+
+全部通过一次 `animateTo` 调用完成，500ms 内平滑过渡。
+
+再次双击同一个层，退出聚焦，恢复之前保存的相机状态和深度范围。
+
+### 对象树联动高亮
+
+Dashboard 左侧有一个对象树面板，显示 LVGL 的 widget 层级结构。3D 场景和对象树需要双向联动：
+
+- **hover 3D 层 → 对象树高亮对应节点：** 鼠标在 3D 场景里移动时，`pick` 返回当前 hover 的层，通过 `addr`（LVGL 对象的内存地址）找到对象树里的对应节点，滚动到可见区域并高亮
+- **hover 对象树节点 → 3D 层高亮：** 鼠标在对象树节点上时，调用 `renderer.setHighlight(addr)` 让 3D 场景里对应的层高亮显示
+
+```typescript
+// 3D scene hover → highlight in obj tree + renderer
+window.addEventListener("mousemove", e => {
+  if (dragging) return;
+  const hit = renderer.pick(mx, my);
+  if (hit) {
+    renderer.setHighlight(hit.layer.addr);
+    highlightObj(hit.layer.addr);  // global state → obj tree reacts
+  } else {
+    renderer.setHighlight(null);
+    clearHighlight();
+  }
+});
+
+// obj tree hover → highlight in 3D scene
+onHL(addr => renderer.setHighlight(addr));
+```
+
+高亮的视觉效果是：被高亮的层填充色变亮（`rgba(137, 180, 250, 0.25)` vs 默认的 `0.06`），边框加粗。同时在 buffer 图像上画一个虚线框标出对应区域的位置，方便定位。
+
+联动的关键是 `addr` 作为统一标识符。LVGL 对象的内存地址在整个 coredump 里是唯一的，天然适合做 ID。对象树节点、3D 层、数据面板都用 `addr` 关联，不需要额外的映射表。
+
+### 鼠标拖拽旋转和平移
+
+鼠标拖拽旋转看起来简单：记录上一帧的鼠标位置，算出 `dx`、`dy`，分别加到 `rotY` 和 `rotX`。
+
+```typescript
+viewport.onmousedown = e => {
+  if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+    dragging = "pan"; lastX = e.clientX; lastY = e.clientY;
+  } else if (e.button === 0 && is3d) {
+    dragging = "rotate"; lastX = e.clientX; lastY = e.clientY;
+  }
+};
+
+window.addEventListener("mousemove", e => {
+  if (!dragging) return;
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  if (dragging === "rotate") {
+    cam.rotY += dx * C.ROTATION_SENSITIVITY;
+    cam.rotX = Math.max(-90, Math.min(90, cam.rotX - dy * C.ROTATION_SENSITIVITY));
+  } else {
+    cam.panX += dx / cam.zoom;
+    cam.panY += dy / cam.zoom;
+  }
+  renderer.markDirty();
+});
+```
+
+左键拖拽旋转，中键（或 Shift+左键）拖拽平移。`rotX` 被 clamp 在 ±90° 范围内，防止万向锁。`ROTATION_SENSITIVITY` 是 0.4，手感比较适中。
+
+平移量除以 `cam.zoom`，这样缩放后拖拽速度和视觉移动距离保持一致。
+
+### Slider 范围的动态调整
+
+Spread（Z 轴展开距离）的 slider 范围不是固定的。默认值根据最大深度反算：层越多，每层之间的间距越小，避免总高度爆炸。
+
+```typescript
+const defaultSpread = maxDepth > 0 ? Math.round(300 / maxDepth) : 30;
+const spreadMax = Math.max(500, defaultSpread * 5);
+```
+
+`300 / maxDepth` 让总展开高度大致保持在 300 左右，不管有多少层。slider 的最大值是默认值的 5 倍（至少 500），给用户足够的调整空间。
+
+### 聚焦状态的保存恢复
+
+双击聚焦会改变旋转、平移、透视、深度范围。退出聚焦的时候，这些状态需要恢复到聚焦前的样子。
+
+```typescript
+let savedDepthRange = { min: 0, max: maxDepth };
+let savedFocusCam = { rotX: 0, rotY: 0, panX: 0, panY: 0, persp: 1 };
+let focusedAddr: string | null = null;
+
+function exitFocus() {
+  if (!focusedAddr) return;
+  focusedAddr = null;
+  animateTo({ ...savedFocusCam,
+    depthMin: savedDepthRange.min,
+    depthMax: savedDepthRange.max });
+}
+```
+
+进入聚焦前保存当前相机状态和深度范围，退出时 `animateTo` 平滑恢复。键盘旋转也会自动退出聚焦（`exitFocus()`），因为手动旋转意味着用户想自由探索了。
+
+### 小结
+
+以上这些功能，总结起来就是一句话：**让每个操作都有符合直觉的反馈。**
+
+ViewCube 解决「我在看哪」的问题。双击聚焦解决「我想看这个」的问题。深度过滤解决「太多层看不清」的问题。对象树联动解决「这个层是什么」的问题。惯性和 `animateTo` 让所有状态变化都是平滑的，没有硬切。
+
+这些东西单独看都不复杂，但组合起来就是「好用」和「能用」的区别。
+
+> 从编译时 UI 框架到模块化 Dashboard，从三次重写渲染器到交互打磨。最终产物是一个单文件 HTML，零运行时依赖，打开浏览器就能用。
+>
+> 项目地址：[github.com/W-Mai/uinspy](https://github.com/W-Mai/uinspy)
+
+::sticker[v2_15f69528-c9fb-4749-aca6-a74f840d4bdl.gif]::
