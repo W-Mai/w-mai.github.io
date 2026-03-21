@@ -1,0 +1,251 @@
+---
+title: '图层混合模式'
+description: '27 种混合模式的公式与直觉理解'
+pubDate: '2026-03-21T23:17+08:00'
+tags: ["graphics", "color", "blend-mode"]
+category: "代码"
+---
+
+### 速查表
+
+| 分类 | 模式 | 公式 |
+|------|------|------|
+| 基础 | Normal | $B$ |
+| 基础 | Dissolve | 随机抽样 |
+| 变暗 | Darken | $\min(A,B)$ |
+| 变暗 | Multiply | $\frac{A \cdot B}{255}$ |
+| 变暗 | Color Burn | $A - \frac{\bar{A} \cdot \bar{B}}{B}$ |
+| 变暗 | Linear Burn | $A + B - 255$ |
+| 变暗 | 深色 | 通道总和取暗 |
+| 变亮 | Lighten | $\max(A,B)$ |
+| 变亮 | Screen | $255 - \frac{\bar{A} \cdot \bar{B}}{255}$ |
+| 变亮 | Color Dodge | $A + \frac{A \cdot B}{\bar{B}}$ |
+| 变亮 | Linear Dodge | $A + B$ |
+| 变亮 | 浅色 | 通道总和取亮 |
+| 对比 | Overlay | 暗 Multiply + 亮 Screen（按 $A$ 分） |
+| 对比 | Hard Light | 暗 Multiply + 亮 Screen（按 $B$ 分） |
+| 对比 | Soft Light | Gamma 调节 |
+| 对比 | Vivid Light | Burn + Dodge |
+| 对比 | Linear Light | $A + 2B - 255$ |
+| 对比 | Pin Light | 暗 Darken + 亮 Lighten |
+| 对比 | Hard Mix | $0$ 或 $255$ |
+| 差值 | Difference | $\|A - B\|$ |
+| 差值 | Exclusion | $A + B - \frac{A \cdot B}{128}$ |
+| 差值 | 减去 | $A - B$ |
+| 差值 | 划分 | $\frac{255 \cdot A}{B}$ |
+| HSB | Hue | $H_B\; S_A\; B_A$ |
+| HSB | Saturation | $H_A\; S_B\; B_A$ |
+| HSB | Color | $H_B\; S_B\; B_A$ |
+| HSB | Luminosity | $H_A\; S_A\; B_B$ |
+
+### 约定
+
+$A$ = 下层（基色），$B$ = 上层（混合色），值域 $0 \sim 255$。$\bar{X} = 255 - X$（反相）。
+
+Canvas 2D 用 `globalCompositeOperation`，CSS 用 `mix-blend-mode`，Photoshop / Figma / GIMP 都是同一套公式。
+
+### 基础
+
+#### Normal 正常
+
+上层直接覆盖下层。带 alpha 时为 source-over 混合：
+
+$$
+\text{result} = B \cdot \alpha + A \cdot (1 - \alpha)
+$$
+
+#### Dissolve 溶解
+
+从上层随机抽取像素设为透明，露出下层。只有「不透明度」或「填充」低于 100% 时才有效果。完全不透明时和 Normal 没区别。
+
+### 变暗组
+
+#### Darken 变暗
+
+$$
+\min(A, B)
+$$
+
+逐通道取较暗的值。
+
+#### Multiply 正片叠底
+
+$$
+\frac{A \cdot B}{255}
+$$
+
+两个幻灯片叠在一起放映，光穿过两层胶片被削弱两次，结果比两者都暗。任何色与黑色混合得黑色，与白色混合不变。
+
+#### Color Burn 颜色加深
+
+$$
+A - \frac{\bar{A} \cdot \bar{B}}{B}
+$$
+
+通过增加对比度使像素变暗。上层越暗下层越暗，上层纯黑则下层纯黑，上层纯白则下层不变。结果最亮不超过下层原始值。
+
+#### Linear Burn 线性加深
+
+$$
+A + B - 255
+$$
+
+减小亮度使像素变暗。$A + B < 255$ 时输出纯黑。上层反相后等价于纯数学减法。
+
+#### 深色
+
+$$
+(R_B + G_B + B_B) \le (R_A + G_A + B_A) \;?\; B : A
+$$
+
+比较所有通道值的总和，取较小的整个像素。不产生第三种颜色。
+
+### 变亮组
+
+#### Lighten 变亮
+
+$$
+\max(A, B)
+$$
+
+逐通道取较亮的值。
+
+#### Screen 滤色
+
+$$
+255 - \frac{\bar{A} \cdot \bar{B}}{255}
+$$
+
+两台投影机投到同一块幕布上，光叠加，结果比两者都亮。等价于两层反相后 Multiply 再反相。与黑色混合不变，与白色混合得白色。
+
+#### Color Dodge 颜色减淡
+
+$$
+A + \frac{A \cdot B}{\bar{B}}
+$$
+
+通过减小对比度来提亮。上层越亮下层越亮，上层纯黑则下层不变，上层纯白则下层除纯黑外全变白。结果最暗不低于下层原始值。
+
+#### Linear Dodge 线性减淡
+
+$$
+A + B
+$$
+
+直接加法，超过 255 截断。
+
+#### 浅色
+
+$$
+(R_B + G_B + B_B) \le (R_A + G_A + B_A) \;?\; A : B
+$$
+
+与「深色」对称，取通道总和较大的整个像素。不产生第三种颜色。
+
+### 对比组
+
+这组的共同特点：上层 50% 灰时下层不变。
+
+#### Overlay 叠加
+
+$$
+\begin{cases} \dfrac{A \cdot B}{128} & A \le 128 \\[6pt] 255 - \dfrac{\bar{A} \cdot \bar{B}}{128} & A > 128 \end{cases}
+$$
+
+依据**下层**亮度，暗部做 Multiply，亮部做 Screen。上层决定中间调偏移强度：上层 50% 灰 → 不变；上层偏暗 → 中间调往暗处偏，暗部色带变窄、亮部色带变宽；上层偏亮 → 反之。对比加强。
+
+#### Hard Light 强光
+
+$$
+\begin{cases} \dfrac{A \cdot B}{128} & B \le 128 \\[6pt] 255 - \dfrac{\bar{A} \cdot \bar{B}}{128} & B > 128 \end{cases}
+$$
+
+和 Overlay 完全对应，只是分界线换成**上层**。等价于两个图层交换顺序后做 Overlay。
+
+#### Soft Light 柔光
+
+$$
+\begin{cases} \dfrac{A \cdot B}{128} + \left(\dfrac{A}{255}\right)^2 \cdot (255 - 2B) & B \le 128 \\[6pt] \dfrac{A \cdot \bar{B}}{128} + \sqrt{\dfrac{A}{255}} \cdot (2B - 255) & B > 128 \end{cases}
+$$
+
+类似用 Gamma 值 2.0~0.5 调节下层亮度。效果非常柔和，上层比 50% 灰亮则变亮，暗则变暗。
+
+#### Vivid Light 亮光
+
+$$
+\begin{cases} A - \bar{A} \cdot \dfrac{255 - 2B}{2B} & B \le 128 \\[6pt] A + A \cdot \dfrac{2B - 255}{2\bar{B}} & B > 128 \end{cases}
+$$
+
+暗部 Color Burn + 亮部 Color Dodge。对比度增强非常激烈，高光和阴影处尤其明显。
+
+#### Linear Light 线性光
+
+$$
+A + 2B - 255
+$$
+
+通过增减亮度来加深或减淡，类似 Linear Burn 但上层影响力翻倍。
+
+#### Pin Light 点光
+
+$$
+\begin{cases} \min(A,\; 2B) & B \le 128 \\ \max(A,\; 2B - 255) & B > 128 \end{cases}
+$$
+
+中间调几乎不变，暗部 Darken + 亮部 Lighten 的组合。
+
+#### Hard Mix 实色混合
+
+$$
+\begin{cases} 255 & A + B \ge 255 \\ 0 & A + B < 255 \end{cases}
+$$
+
+每个通道要么 0 要么 255，最终只有 6 种基本颜色加黑白。
+
+### 差值组
+
+#### Difference 差值
+
+$$
+|A - B|
+$$
+
+两张完全一样的图做 Difference 结果是纯黑。主要用于比较两个版本的图片。
+
+#### Exclusion 排除
+
+$$
+A + B - \frac{A \cdot B}{128}
+$$
+
+亮区导致另一层反相，暗区则完全不影响另一层。
+
+#### 减去
+
+$$
+A - B
+$$
+
+负数截断为 0。白色混合得黑色，黑色混合得基色。
+
+#### 划分
+
+$$
+\frac{255 \cdot A}{B}
+$$
+
+基色 ≥ 混合色 → 白色；基色 < 混合色 → 比基色更暗。白色混合得基色，黑色混合得白色。
+
+### HSB 组
+
+在色相 ($H$) / 饱和度 ($S$) / 亮度 ($B$) 空间操作，分别替换某个分量。
+
+| 模式 | 输出 | 说明 |
+|------|------|------|
+| Hue 色相 | $H_B\; S_A\; B_A$ | 色相取上层，饱和度和亮度保持下层。灰色上层 → 下层去色 |
+| Saturation 饱和度 | $H_A\; S_B\; B_A$ | 饱和度取上层，色相和亮度保持下层 |
+| Color 颜色 | $H_B\; S_B\; B_A$ | 亮度保持下层，色相和饱和度取上层 |
+| Luminosity 明度 | $H_A\; S_A\; B_B$ | 亮度取上层，色相和饱和度保持下层 |
+
+
+::sticker[v2_743a5aa2-4263-473b-b37d-d7206bf8deal.gif]::
