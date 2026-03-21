@@ -1,0 +1,355 @@
+---
+title: '惯性动画系统：让 3D 交互有手感'
+description: '速度累积 + 指数衰减 + 统一 animateTo，怎么让一个 Canvas 3D 场景的键盘和动画操作丝滑起来'
+pubDate: '2026-03-22T01:23+08:00'
+tags: ["animation", "interaction", "canvas", "3d", "typescript"]
+category: "代码"
+---
+
+import DecayCompareDemo from './DecayCompareDemo';
+
+### 问题
+
+有了 3D 渲染器，能画出来了。但「能画」和「好用」之间差了一个交互层。
+
+鼠标拖拽旋转、滚轮缩放这些基本操作很容易做：监听事件，改相机参数，重绘。但键盘控制就不一样了。
+
+最直觉的做法是：按下方向键 → 旋转一个固定角度。
+
+```typescript
+// naive: fixed step per keydown
+window.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") cam.rotY += 5;
+  if (e.key === "ArrowRight") cam.rotY -= 5;
+  // ...
+});
+```
+
+这个方案有两个问题：
+
+1. **手感像在按格子。** 每次按键旋转 5°，松手立刻停。没有加速感，没有惯性，像在操作一个机械臂
+2. **帧率依赖。** `keydown` 事件的触发频率取决于系统的按键重复速率，不是渲染帧率。在不同系统上手感不一样
+
+想要的效果是：按住方向键，旋转速度逐渐加快；松手后，旋转不是立刻停，而是慢慢减速滑行到停止。就像在冰面上推一个物体。
+
+### 速度累积 + 摩擦衰减
+
+思路很简单：不直接改相机参数，改的是**速度**。
+
+```typescript
+const vel = { rotX: 0, rotY: 0, panX: 0, panY: 0, zoom: 0, spread: 0 };
+```
+
+每一帧做三件事：
+
+1. **加速：** 如果按键按下，给对应方向的速度加一个增量
+2. **应用：** 把速度叠加到相机参数上
+3. **摩擦：** 速度乘以一个小于 1 的摩擦系数，逐帧衰减
+
+```typescript
+function tickKeys() {
+  // 1. accelerate
+  if (keysDown.has("arrowleft"))  vel.rotY += KB_ACCEL;
+  if (keysDown.has("arrowright")) vel.rotY -= KB_ACCEL;
+  if (keysDown.has("arrowup"))    vel.rotX -= KB_ACCEL;
+  if (keysDown.has("arrowdown"))  vel.rotX += KB_ACCEL;
+
+  // 2. apply velocity to camera
+  cam.rotX = clamp(cam.rotX + vel.rotX, -90, 90);
+  cam.rotY += vel.rotY;
+
+  // 3. friction decay
+  vel.rotX *= KB_FRICTION;
+  vel.rotY *= KB_FRICTION;
+}
+```
+
+这就是整个惯性系统的核心。没有弹簧、没有贝塞尔曲线、没有物理引擎。就是速度累积 + 指数衰减。
+
+### 为什么是指数衰减
+
+`vel *= 0.85` 这行代码背后其实是一个物理模型：**粘滞阻力**。
+
+在流体力学里，低速运动的物体受到的阻力和速度成正比：
+
+$
+F = -b \cdot v
+$
+
+$b$ 是阻尼系数。速度越大，阻力越大。代入牛顿第二定律 $F = ma$：
+
+$
+m \frac{dv}{dt} = -b \cdot v
+$
+
+这是一个一阶线性 ODE，解析解是：
+
+$
+v(t) = v_0 \cdot e^{-\frac{b}{m}t}
+$
+
+速度随时间指数衰减。离散化到每帧（$\Delta t$ 固定）：
+
+$
+v_{n+1} = v_n \cdot e^{-\frac{b}{m}\Delta t} = v_n \cdot f
+$
+
+其中 $f = e^{-\frac{b}{m}\Delta t}$ 就是代码里的摩擦系数。`KB_FRICTION = 0.85` 对应的物理含义是：在当前帧间隔下，阻尼比 $\frac{b}{m}$ 使得每帧速度保留 85%。
+
+所以 `vel *= f` 这个形式不是瞎乘的，它是粘滞阻力模型的离散近似。和你在水里推一个球的物理过程是一样的：推的时候加速，松手后速度指数衰减。至于 `0.85` 这个具体数值，那确实是手调的：物理模型决定了「用乘法」，但乘多少得靠手感。
+
+$n$ 帧后速度是 $v_0 \times f^n$。$f = 0.85$ 时，10 帧后衰减到 $0.85^{10} \approx 0.20$，20 帧后 $0.85^{20} \approx 0.04$。大约 20 帧（~333ms @ 60fps）速度就几乎为零了。
+
+指数衰减的手感特征是：**开始减速快，结尾减速慢。** 松手的瞬间速度下降很明显（有「刹车」的感觉），但最后几帧是缓慢滑行到停止（不会突然卡住）。
+
+对比另外两种常见的减速模型：
+
+- **线性衰减**（$v_{n+1} = v_n - c$，恒力摩擦）：匀减速，最后一帧突然从某个速度跳到零，有「撞墙」感
+- **二次阻力**（$F = -b \cdot v^2$，高速空气阻力）：高速时减速极快，低速时几乎不减速，滑行时间太长
+
+粘滞阻力（指数衰减）刚好在中间：减速曲线平滑，没有突变，滑行距离可控。这也是为什么几乎所有 UI 惯性滚动（iOS、Android、Google Maps）都用这个模型。
+
+<DecayCompareDemo client:load />
+
+不同的操作用不同的摩擦系数：
+
+| 操作 | 加速度 | 摩擦系数 | 手感 |
+|------|--------|----------|------|
+| 旋转（方向键） | `0.4` | `0.85` | 快速响应，短滑行 |
+| 平移（WASD） | `0.8` | `0.92` | 平滑移动，长滑行 |
+| 缩放（+/-） | `0.005` | `0.85` | 精细控制 |
+| Z Spread（Q/E） | `0.5` | `0.85` | 和旋转一致 |
+
+平移的摩擦系数比旋转高（`0.92` vs `0.85`），意味着平移的惯性更大、滑行更远。为啥？因为平移是在看一个大场景的不同区域，滑行远一点方便快速浏览。旋转是在调整视角，需要更精确的控制，所以惯性短一些。
+
+
+### Shift 加速
+
+按住 Shift 的时候，加速度乘以 3：
+
+```typescript
+const s = keysDown.has("shift") ? 3 : 1;
+if (keysDown.has("arrowup")) vel.rotX -= KB_ACCEL * s;
+```
+
+不是改摩擦系数，是改加速度。摩擦系数不变意味着衰减曲线的形状不变，只是峰值速度更高。效果是：Shift 按住的时候转得更快，松手后的滑行距离也更远（因为初速度更大），但减速的「手感」是一样的。
+
+如果改摩擦系数（比如 Shift 时 `friction = 0.95`），滑行会变得很长很长，松手后要等很久才停下来，反而不好控制。
+
+### 帧循环：永远在跑
+
+惯性系统需要一个持续运行的帧循环：
+
+```typescript
+(function keyLoop() {
+  tickKeys();
+  requestAnimationFrame(keyLoop);
+})();
+```
+
+这个循环永远不停。每帧都调用 `tickKeys`，不管有没有按键按下。
+
+为啥不在按键按下时才启动循环？因为惯性。松手之后速度不是零，还在衰减，需要继续更新相机参数和重绘。如果松手就停循环，惯性滑行就没了。
+
+但永远跑不会浪费性能吗？不会。`tickKeys` 里有一个判断：
+
+```typescript
+const moving = Math.abs(vel.rotX) + Math.abs(vel.rotY)
+  + Math.abs(vel.panX) + Math.abs(vel.panY)
+  + Math.abs(vel.zoom) + Math.abs(vel.spread) > 0.001;
+
+if (moving || keysDown.size > 0) renderer.markDirty();
+```
+
+只有速度大于阈值或者有按键按下时，才调用 `markDirty()` 触发重绘。速度衰减到 0.001 以下就不重绘了。`tickKeys` 本身的计算量可以忽略不计（几个乘法和加法），不触发重绘就没有 GPU 开销。
+
+### 统一动画系统：animateTo
+
+除了键盘惯性，还有很多场景需要动画：
+
+- 点击 ViewCube 的面/边/角，跳转到预设视角
+- 切换 3D/2D 模式，旋转归零 + spread 归零
+- 切换透视/正交，`persp` 从 1 平滑到 0
+- 双击某个层，聚焦到那个层（旋转归零 + 平移到层中心 + 深度范围收窄）
+- 点击 Reset，所有参数回到默认值
+
+这些动画的共同点是：**从当前状态平滑过渡到目标状态。** 不同的是目标参数不一样。
+
+用一个统一的 `animateTo` 函数搞定所有场景：
+
+```typescript
+function animateTo(
+  target: Partial<{
+    rotX: number; rotY: number;
+    zoom: number; panX: number; panY: number;
+    spread: number; persp: number;
+    depthMin: number; depthMax: number;
+  }>,
+  done?: () => void
+) {
+  // cancel any running animation
+  if (animId) { cancelAnimationFrame(animId); animId = null; }
+
+  // snapshot current state as "from"
+  const from = {
+    rotX: cam.rotX, rotY: cam.rotY,
+    zoom: cam.zoom, panX: cam.panX, panY: cam.panY,
+    spread: currentSpread, persp: cam.persp,
+    depthMin: depthRange.min, depthMax: depthRange.max,
+  };
+  // merge target with current (only override specified keys)
+  const to = { ...from, ...target };
+
+  const t0 = performance.now();
+  function tick(now: number) {
+    const p = ease(Math.min((now - t0) / ANIM_DURATION, 1));
+    cam.rotX = lerp(from.rotX, to.rotX, p);
+    cam.rotY = lerp(from.rotY, to.rotY, p);
+    cam.zoom = lerp(from.zoom, to.zoom, p);
+    // ... all other params
+    updateDepths(lerp(from.spread, to.spread, p));
+
+    if (now - t0 < ANIM_DURATION)
+      animId = requestAnimationFrame(tick);
+    else { animId = null; done?.(); }
+  }
+  animId = requestAnimationFrame(tick);
+}
+```
+
+`Partial<>` 是关键：调用方只需要指定想改的参数，其他参数保持当前值。这样同一个函数可以服务所有场景：
+
+```typescript
+// ViewCube: only change rotation
+animateTo({ rotX: -45, rotY: 0 });
+
+// Toggle ortho: only change persp
+animateTo({ persp: 0 });
+
+// Focus layer: change rotation + pan + persp + depth range
+animateTo({
+  rotX: 0, rotY: 0,
+  panX: -cx, panY: -cy,
+  persp: 0,
+  depthMin: gd, depthMax: gd,
+});
+
+// Reset: everything back to default
+animateTo({
+  rotX: DEFAULT_ROT_X, rotY: DEFAULT_ROT_Y,
+  zoom: 1, panX: 0, panY: 0,
+  spread: defaultSpread, persp: 1,
+  depthMin: 0, depthMax: visMax,
+});
+```
+
+### 缓动函数
+
+`ease` 用的是 cubic ease-in-out：
+
+```typescript
+function ease(t: number) {
+  return t < 0.5
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+```
+
+$t \in [0, 1]$，输出也是 $[0, 1]$。前半段加速（$4t^3$），后半段减速。中间最快，两头慢。
+
+为什么不用线性插值？因为线性插值的起止是突变的：第一帧突然开始动，最后一帧突然停。cubic ease-in-out 的起止速度都是零，过渡更自然。
+
+为什么不用更复杂的缓动（比如弹性、回弹）？因为这是一个 3D 场景的相机动画，不是 UI 按钮动画。弹性效果会让相机来回晃，看着头晕。相机动画要的是「稳」，不是「弹」。
+
+### animateTo 和惯性的冲突处理
+
+`animateTo` 开始时会 `cancelAnimationFrame(animId)` 取消上一个动画。但它不会清零惯性速度。
+
+这意味着：如果你正在用键盘旋转（有惯性速度），然后点了 ViewCube 触发 `animateTo`，动画会从当前位置平滑过渡到目标位置，但惯性速度还在。动画结束后，惯性会继续生效，相机会在目标位置附近继续滑行一小段。
+
+这其实是可以接受的。因为惯性速度在动画期间也在被摩擦衰减（`tickKeys` 一直在跑），500ms 的动画时间足够让大部分惯性消耗掉。如果用户是在快速旋转的时候点了 ViewCube，残余惯性会让相机在到达目标后微微滑动，反而比硬停更自然。
+
+如果真的想要精确到达目标位置，可以在 `animateTo` 开始时清零速度：
+
+```typescript
+vel.rotX = vel.rotY = vel.panX = vel.panY = vel.zoom = vel.spread = 0;
+```
+
+uinspy 没有这么做，因为实际使用中没有遇到问题。
+
+### 方向约定：CAM_DIR
+
+有一个容易搞混的问题：按左方向键，场景应该往左转还是往右转？
+
+这取决于你的心智模型：
+
+- **相机移动：** 按左 → 相机往左移 → 场景看起来往右转
+- **物体移动：** 按左 → 物体往左转 → 场景看起来往左转
+
+两种都有道理，不同的 3D 软件用不同的约定。uinspy 用一个常量控制：
+
+```typescript
+// Camera control: 1 = camera moves, -1 = object moves
+CAM_DIR: -1 as 1 | -1,
+```
+
+`CAM_DIR = -1` 表示「物体移动」模式：按左，物体往左转。所有键盘加速度都乘以这个系数：
+
+```typescript
+if (keysDown.has("arrowleft"))  vel.rotY += KB_ACCEL * s * CAM_DIR;
+if (keysDown.has("arrowright")) vel.rotY -= KB_ACCEL * s * CAM_DIR;
+```
+
+改成 `1` 就变成「相机移动」模式。一个常量翻转所有方向，不用改每个按键的逻辑。
+
+### 帧率无关？
+
+严格来说，这个惯性系统不是帧率无关的。摩擦衰减是 `vel *= friction` 每帧执行一次，如果帧率从 60fps 掉到 30fps，每帧的衰减次数减半，惯性滑行距离会变长。
+
+正确的做法是用 delta-time：
+
+```typescript
+// frame-rate independent friction
+const dt = (now - lastTime) / 16.67;  // normalize to 60fps
+vel.rotX *= Math.pow(KB_FRICTION, dt);
+```
+
+`Math.pow(friction, dt)` 保证不管帧率多少，单位时间内的衰减量一致。
+
+uinspy 没有做这个优化。为啥？因为：
+
+1. 这是一个调试工具，不是游戏。帧率基本稳定在 60fps，偶尔掉帧不影响体验
+2. 惯性滑行距离的微小差异用户感知不到
+3. 加 delta-time 需要在帧循环里传时间戳，改动不大但增加了复杂度
+
+如果你在做一个对帧率敏感的应用（比如游戏），delta-time 是必须的。但对于工具类应用，每帧固定衰减就够了。:sticker[getimgdata-16.jpg]:
+
+### 完整的键盘映射
+
+最终的键盘控制方案：
+
+| 按键 | 操作 | 加速度 | 摩擦 |
+|------|------|--------|------|
+| ↑↓←→ | 旋转 | `0.4` | `0.85` |
+| WASD | 平移 | `0.8` | `0.92` |
+| +/- | 缩放 | `0.005` | `0.85` |
+| Q/E | Z Spread | `0.5` | `0.85` |
+| Shift | 3× 加速 | — | — |
+| Space | 切换 3D/2D | — | — |
+| O | 切换正交/透视 | — | — |
+| B | 切换边框 | — | — |
+| R | Reset | — | — |
+| 1-9 | 切换 screen 层 | — | — |
+
+方向键和 WASD 走惯性系统（速度累积 + 摩擦衰减），其他按键是即时触发（切换状态或调用 `animateTo`）。
+
+### 总结
+
+惯性动画系统的核心就两个东西：
+
+1. **速度累积 + 指数衰减：** 按键加速，松手摩擦减速。不同操作用不同的加速度和摩擦系数调手感
+2. **统一 `animateTo`：** 所有「从 A 到 B」的动画走同一个函数，`Partial<>` 让调用方只关心想改的参数
+
+没有物理引擎，没有动画库，就是最基础的速度 + 摩擦 + lerp。但这些简单的东西组合起来，就能让一个 3D 场景的操作从「能用」变成「好用」。
+
+::sticker[v2_743a5aa2-4263-473b-b37d-d7206bf8deal.gif]::
