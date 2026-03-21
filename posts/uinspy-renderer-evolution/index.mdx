@@ -1,0 +1,393 @@
+---
+title: '一个 3D 渲染器的三次重写'
+description: 'CSS 3D transform 性能灾难，Canvas 2D 手写投影够用但效果天花板低，Three.js WebGL 解锁光照阴影。给 LVGL 仓库提 PR 用 Canvas 2D 精简版，自己 GitHub Pages 全开'
+pubDate: '2026-03-21T22:30+08:00'
+heroImage: ../../assets/images/uinspy-hero.png
+tags: ["typescript", "canvas", "webgl", "three-js", "3d", "graphics"]
+category: "代码"
+series: 'uinspy'
+seriesOrder: 2
+seriesTitle: '一个 3D 渲染器的三次重写'
+---
+
+[上一篇](/blog/uinspy-modular-dashboard)提到 3D 爆炸视图是 dashboard 的核心交互，但渲染器的实现细节留到了这篇。原因很简单：这个渲染器被重写了三次，每次都是因为上一版撞了墙。
+
+先说结论：
+
+| 阶段 | 技术 | 优点 | 局限 |
+|------|------|------|------|
+| v1 | CSS 3D transform | 零依赖，浏览器原生 | 性能灾难，偶尔穿模 |
+| v2 | Canvas 2D 手写投影 | 完全可控，体积小 | 渲染效果天花板低 |
+| v3 | Three.js WebGL | 光追、阴影、真 3D | 体积大（+530KB） |
+
+CSS 3D 是被性能问题和渲染 glitch 淘汰的。Canvas 2D 和 Three.js 性能差不多，升级 Three.js 不是为了帧率，是为了渲染效果的上限：阴影、光照、后处理这些 Canvas 2D 做不了的事情。
+
+::sticker[getimgdata-9.jpg]::
+
+### 要渲染什么
+
+先回顾一下数据结构。LVGL 的对象树是一棵递归树，每个节点有坐标和深度。渲染器要做的事情是：
+
+```mermaid
+flowchart LR
+    A["对象树<br />递归结构"] --> B["flattenLayers<br />展平成层列表"]
+    B --> C["每层有<br />x, y, w, h, depth"]
+    C --> D["渲染器<br />3D 投影 + 绘制"]
+```
+
+`flattenLayers` 把递归树展平成一维数组，每个元素是一个矩形层（`SceneLayer`），带坐标和深度值。多个 screen 之间用 `SCREEN_GAP` 隔开避免重叠。
+
+渲染器的职责是：把这些 2D 矩形按深度在 Z 轴上拉开，支持旋转、缩放、平移，支持鼠标 hover 拾取和点击选中。
+
+为了让渲染器可替换，定义了一个 `ISceneRenderer` 接口：
+
+```typescript
+export interface ISceneRenderer {
+  setSceneSize(w: number, h: number): void;
+  setLayers(layers: SceneLayer[]): void;
+  addBuf(buf: BufImage): void;
+  setHighlight(addr: string | null): void;
+  markDirty(): void;
+  pick(mx: number, my: number): HitResult;
+  destroy(): void;
+}
+```
+
+dashboard 不关心底层用什么技术画，只管传数据和处理交互。切换渲染器只需要改一行：
+
+```typescript
+if (__UINSPY_THREE__) {
+  const { ThreeRenderer } = require("./three-renderer");
+  renderer = new ThreeRenderer(canvas, cam);
+} else {
+  renderer = new Canvas2DRenderer(canvas, cam);
+}
+```
+
+编译时常量 `__UINSPY_THREE__` 控制用哪个渲染器。不开的话 Three.js 整个被 tree-shaking 掉，产物里一行都不会有。
+
+
+### v1：CSS 3D transform
+
+最初的想法很直觉：每个层是一个 `<div>`，用 CSS `transform: translateZ()` 拉开深度，用 `transform: rotateX() rotateY()` 做旋转。浏览器原生支持 3D transform，不需要任何依赖。
+
+```css
+.scene-container {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+.scene-layer {
+  position: absolute;
+  transform: translateZ(calc(var(--depth) * var(--spread)));
+  border: 1px solid var(--border-color);
+}
+```
+
+每个层的 Z 位置 = 深度 × spread 系数。拖拽的时候改容器的 `rotateX` / `rotateY`，所有子元素跟着转。
+
+这个方案写起来很快，十几行 CSS 就搞定了。而且因为是 DOM 元素，hover、click 这些交互天然就有，不需要自己做拾取。
+
+**但两个问题让它没法用下去。**
+
+**第一个是性能。** 几百个 DOM 元素开着 `preserve-3d`，每帧都要做 3D 合成。再打开 buffer 图像（壁纸功能），浏览器要把一张大图也丢进 3D 合成管线。我的 M1 Pro MacBook 功耗直接干到了 50W，风扇狂转，就为了渲染一个调试面板。
+
+这不是代码写得烂的问题。CSS 3D 的合成管线就不是为几百个 `preserve-3d` 元素设计的。每个元素都是一个独立的合成层，GPU 要为每一层分配纹理、做矩阵变换、做混合。层数一多，显存带宽和合成开销就爆了。
+
+**第二个是偶尔穿模。** 旋转到某些角度的时候，`preserve-3d` 容器里的元素会 glitch 到绘制区域外面，整个网页都跟着闪烁。不是每次都有，但出现的时候非常明显，整个页面都在抖。具体原因没有深究，但现象是稳定可复现的。
+
+> CSS 3D 不是一个真正的 3D 渲染引擎。它能做卡片翻转、轮播这种简单场景，但几百个层的 3D 爆炸视图不是它该干的活。
+
+::sticker[v2_cf77560f-c19f-41ae-84e9-9e580bf131dl.gif]::
+
+### v2：Canvas 2D 手写 3D 投影
+
+CSS 3D 的性能问题没法绕过去，那就换个思路：不用浏览器的 3D 合成，自己在 Canvas 2D 上画。Canvas 2D 没有 3D 能力，但可以手写投影矩阵，自己算每个点的屏幕坐标，自己决定绘制顺序。
+
+核心是一个 `project` 函数：把 3D 坐标投影到 2D 屏幕坐标。
+
+```typescript
+private project(px: number, py: number, pz: number)
+  : [number, number, number] | null {
+  const { rotX, rotY, zoom, panX, panY, persp } = this.cam;
+  const rx = -rotX * Math.PI / 180, ry = -rotY * Math.PI / 180;
+  const cx = Math.cos(rx), sx = Math.sin(rx);
+  const cy = Math.cos(ry), sy = Math.sin(ry);
+
+  // center origin
+  const ox = px - this.sceneW / 2;
+  const oy = py - this.sceneH / 2;
+  const oz = -pz;
+
+  // Y-axis rotation, then X-axis rotation
+  let x = ox * cy + oz * sy;
+  let z = -ox * sy + oz * cy;
+  let y = oy * cx - z * sx;
+  z = oy * sx + z * cx;
+
+  // near-plane clip
+  const p = PERSPECTIVE_DISTANCE;
+  if (persp > 0 && z < -p * 0.95) return null;
+
+  // perspective ↔ orthographic blend
+  const perspScale = (p / (p + z)) * zoom;
+  const orthoScale = zoom;
+  const scale = orthoScale + (perspScale - orthoScale) * persp;
+
+  return [
+    cw / 2 + (x + panX) * scale,
+    ch / 2 + (y + panY) * scale,
+    z,
+  ];
+}
+```
+
+这段代码做了几件事：
+
+1. **坐标原点居中：** 把场景中心移到原点，旋转才不会偏
+2. **两次旋转：** 先绕 Y 轴（左右转），再绕 X 轴（上下转）。用的是最基础的旋转矩阵，没有四元数
+3. **近平面裁剪：** 透视模式下，如果点跑到了相机后面（`z < -p * 0.95`），返回 `null`。不裁剪的话投影会翻转，画面会炸
+4. **透视/正交混合：** `persp` 是 0~1 的连续值。0 = 纯正交，1 = 纯透视，中间值是两种投影的线性插值。这样切换的时候可以做平滑动画，不是硬切
+
+> 投影矩阵的数学原理可以参考之前写的 [矩阵运算在 GPU 中的应用](/blog/matrix-gpu)，那篇从线性代数基础讲到仿射变换。这里的 `project` 函数本质上就是一个手写的 MVP（Model-View-Projection）变换，只不过没用矩阵乘法的形式，而是直接展开成标量运算。
+
+有了投影函数，绘制就是 Painter's Algorithm：**按 Z 坐标从远到近排序，先画远的再画近的。** 远处的层先画到 canvas 上，近处的层后画，自然就盖住了远处的。
+
+```typescript
+// project all layers to screen quads
+items.sort((a, b) => b.z - a.z);  // far to near
+
+items.forEach(item => {
+  const q = item.quad;  // 4 projected screen points
+  ctx.beginPath();
+  ctx.moveTo(q[0][0], q[0][1]);
+  for (let i = 1; i < 4; i++) ctx.lineTo(q[i][0], q[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = isHighlighted
+    ? "rgba(137, 180, 250, 0.25)"
+    : "rgba(137, 180, 250, 0.06)";
+  ctx.fill();
+  ctx.stroke();
+});
+```
+
+::sticker[getimgdata-5.gif]::
+
+**鼠标拾取**也得自己做。Canvas 2D 不像 DOM 有原生的 hit test，需要手写点在四边形内的判断：
+
+```typescript
+private pointInQuad(
+  px: number, py: number, q: [number, number][]
+): boolean {
+  // cross product sign test for convex quad
+  for (let i = 0; i < 4; i++) {
+    const [ax, ay] = q[i];
+    const [bx, by] = q[(i + 1) % 4];
+    if ((bx - ax) * (py - ay) - (by - ay) * (px - ax) < 0)
+      return false;
+  }
+  return true;
+}
+```
+
+四条边的叉积符号一致 → 点在凸四边形内。从最近的层开始检查，第一个命中的就是鼠标下面的层。
+
+
+#### Canvas 2D 的一个 hack：buffer 图像的透视变形
+
+Dashboard 不只画矩形边框，还要显示 LVGL display 的 buffer 截图（就是屏幕上实际显示的画面）。这张图片需要贴在最底层，跟着 3D 旋转一起变形。
+
+Canvas 2D 的 `drawImage` 只支持仿射变换（平移、旋转、缩放、错切），不支持透视变换。仿射变换保持平行线平行，但透视投影下平行线会汇聚到灭点。
+
+为了在 Canvas 2D 上模拟透视变形，用了一个 hack：**把图片切成 16×16 的小格子，每个格子单独做仿射变换。**
+
+```typescript
+const SUBDIVS = 16;
+for (let iy = 0; iy < SUBDIVS; iy++) {
+  for (let ix = 0; ix < SUBDIVS; ix++) {
+    // project 3 corners of this sub-tile
+    const p00 = this.project(sw * u0, sh * v0, depth);
+    const p10 = this.project(sw * u1, sh * v0, depth);
+    const p01 = this.project(sw * u0, sh * v1, depth);
+    if (!p00 || !p10 || !p01) continue;
+
+    // affine transform for this tile
+    ctx.setTransform(
+      dx / srcW * dpr, dy / srcW * dpr,
+      ex / srcH * dpr, ey / srcH * dpr,
+      p00[0] * dpr, p00[1] * dpr
+    );
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+  }
+}
+```
+
+每个小格子用 3 个角点算出一个仿射矩阵（`setTransform` 的 6 个参数），然后画对应的图片区域。格子越小，仿射近似越接近真正的透视变形。16×16 = 256 次 `drawImage` 调用，视觉上已经看不出接缝了。
+
+但这个方案有两个小问题：
+
+1. **性能：** 每帧 256 次 `drawImage` + `setTransform`，在高 DPI 屏幕上开销不小。不过对于调试工具来说，帧率够用
+2. **精度：** 仿射近似终究不是真正的透视。在极端角度（比如几乎平视）下，格子边缘会出现细微的接缝和扭曲
+
+Canvas 2D 方案到这里已经完全可用了。深度排序对了，交互也有了，buffer 图像的透视变形虽然是 hack 但视觉上没问题。那为什么还要上 Three.js？
+
+::sticker[getimgdata-15.jpg]::
+
+### v3：Three.js WebGL
+
+Canvas 2D 的性能其实够用，升级 Three.js 不是为了帧率。是为了渲染效果的上限。
+
+Canvas 2D 能画边框、能贴图、能做基本的 3D 投影，但它的天花板很低。想加阴影？没有。想加光照？没有。想加后处理（bloom、SSAO）？没有。想加抗锯齿？得自己手写。这些东西在 WebGL 里都是现成的。
+
+WebGL 有真正的 3D 渲染管线：顶点着色器做投影，片段着色器做像素级渲染，GPU 硬件加速。透视变形是 GPU 原生支持的，不需要切格子 hack。深度排序有 z-buffer，不需要 Painter's Algorithm。更重要的是，它打开了一扇门：未来想加什么渲染效果都可以，不会被 Canvas 2D 的 API 限制住。
+
+但 Three.js 引入了一个新问题：**体积。**
+
+Three.js 的 tree-shaking 做得不够好，即使只用了 `WebGLRenderer`、`ShaderMaterial`、`PlaneGeometry` 这几个类，打包后还是会带进来大量内部模块。产物体积从 ~84KB 涨到 ~611KB，多了 500 多 KB。
+
+所以 Three.js 渲染器是编译时可选的。默认用 Canvas 2D，只有设置 `UINSPY_THREE=1` 构建时才会包含 Three.js。GitHub Pages 部署版开启 WebGL，release 里的标准版不开。
+
+#### ShaderMaterial 统一层渲染
+
+每个层用一个自定义 `ShaderMaterial`，在 GPU 上画边框和填充：
+
+```glsl
+// fragment shader
+uniform vec3 fillColor;
+uniform float fillOpacity;
+uniform vec3 borderColor;
+uniform float borderWidth;
+uniform vec2 size;
+varying vec2 vUv;
+
+void main() {
+  vec2 px = vUv * size;
+  float dL = px.x, dR = size.x - px.x;
+  float dT = px.y, dB = size.y - px.y;
+  float d = min(min(dL, dR), min(dT, dB));
+
+  // anti-aliased border via fwidth
+  float pixelSize = fwidth(d);
+  float bw = borderWidth * pixelSize;
+  float borderMask = 1.0 - smoothstep(
+    bw - pixelSize * 0.5,
+    bw + pixelSize * 0.5, d
+  );
+
+  vec3 col = mix(fillColor, borderColor, borderMask);
+  float alpha = mix(fillOpacity, 1.0, borderMask);
+  gl_FragColor = vec4(col, alpha);
+}
+```
+
+这个 shader 做的事情：算每个像素到四条边的最小距离，距离小于 `borderWidth` 的画边框色，否则画填充色。`fwidth` 做抗锯齿，边缘不会有锯齿。
+
+为什么不用 `LineSegments` 画边框？因为 WebGL 的线宽在不同平台上表现不一致（有些 GPU 只支持 1px 线宽），而且线和面是分开的 draw call。用 shader 在一个 draw call 里同时画填充和边框，性能更好，效果也更可控。
+
+#### 透视/正交平滑过渡
+
+Canvas 2D 版本用 `persp` 参数在透视和正交之间插值。Three.js 版本用了一个巧妙的方法：**不切换相机类型，而是用 FOV 控制。**
+
+```typescript
+// persp: 0 = ortho (tiny FOV, far camera)
+//        1 = full perspective (45° FOV)
+const maxFov = 45;
+const minFov = 0.5;  // nearly orthographic
+const fov = minFov + (maxFov - minFov) * this.cam.persp;
+
+// keep apparent size constant
+const baseDist = 1200;
+const baseTan = Math.tan(maxFov * Math.PI / 360);
+const curTan = Math.tan(fov * Math.PI / 360);
+const dist = baseDist * baseTan / curTan;
+```
+
+FOV 趋近于 0 的时候，透视投影就趋近于正交投影（平行线不再汇聚）。同时把相机距离按 FOV 反比缩放，保持画面大小不变。这样 `persp` 从 1 平滑过渡到 0，画面从透视无缝变成正交，不需要切换相机对象，动画也是连续的。
+
+::sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]::
+
+#### sRGB 颜色校正
+
+Three.js 默认的颜色空间处理会让 CSS 变量里的颜色看起来偏暗。因为 Three.js 内部用线性颜色空间做计算，输出时再转 sRGB。但我们的颜色本来就是 sRGB 的（从 CSS 变量读出来的），不需要再转一次。
+
+```typescript
+this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+this.renderer.toneMapping = THREE.NoToneMapping;
+```
+
+关掉 tone mapping，设置输出为 sRGB，颜色就和 CSS 里的一致了。这个坑踩了一会儿，因为颜色偏差不大，不仔细看不容易发现。
+
+#### Buffer 高亮的虚线 shader
+
+hover 一个层的时候，除了层本身高亮，还要在 buffer 图像上画一个虚线框标出对应区域。Canvas 2D 版本用 `setLineDash` 就行，Three.js 里得自己写 shader：
+
+```glsl
+// dashed border on buffer overlay
+float perim = 0.0;
+if (dL < dR && dL < dT && dL < dB) perim = px.y;
+else if (dT < dB) perim = size.x - px.x + size.y;
+else if (dR < dL) perim = size.x + size.y - px.y + size.x;
+else perim = px.x;
+
+float cycle = dashLen + gapLen;
+float dashMask = step(mod(perim, cycle), dashLen);
+```
+
+沿着矩形周长算一个连续的参数 `perim`，然后用 `mod` 做周期性的 dash/gap 切换。效果和 CSS 的 `border-style: dashed` 一样，但完全在 GPU 上算。
+
+### 三种方案的对比
+
+| | CSS 3D | Canvas 2D | Three.js WebGL |
+|---|---|---|---|
+| 依赖 | 无 | 无 | three.js (~530KB) |
+| 深度排序 | ⚠️ 依赖 DOM 顺序 | ✅ Painter's Algorithm | ✅ z-buffer |
+| 透视图像 | ✅ 浏览器原生 | ⚠️ 切格子近似 | ✅ GPU 原生 |
+| 鼠标拾取 | ✅ DOM 原生 | 手写 pointInQuad | Three.js Raycaster |
+| 抗锯齿 | ✅ 浏览器原生 | ❌ 需要手动处理 | ✅ MSAA |
+| 渲染效果上限 | 低 | 低 | 高（光照/阴影/后处理） |
+| 性能（500 层） | 灾难（M1 Pro 50W） | 60fps | 60fps |
+| 渲染稳定性 | 偶尔穿模 glitch | 稳定 | 稳定 |
+| 产物体积增量 | 0 | 0 | +530KB |
+
+Canvas 2D 和 Three.js 在纯边框渲染的场景下性能差不多，都能跑满 60fps。区别在于渲染效果的天花板：Canvas 2D 只能画线和贴图，Three.js 可以加光照、阴影、后处理，未来想做什么都行。
+
+::sticker[v2_15f69528-c9fb-4749-aca6-a74f840d4bdl.gif]::
+
+### 编译时切换：两个世界的平衡
+
+渲染器的选择在编译时确定，不是运行时。这不只是技术选择，还涉及到一个现实问题：**这个 dashboard 要提交到 LVGL 官方仓库。**
+
+给开源项目提 PR，要考虑的不只是功能：
+
+- **diff 大小：** 审核者要 review 你的代码。一个 530KB 的 Three.js 打包产物塞进去，diff 直接爆炸 :sticker[zhiyin.gif]:
+- **产物体积：** LVGL 是嵌入式项目，仓库里的工具应该尽量轻量。84KB 的单文件 HTML 可以接受，611KB 就过分了
+- **依赖复杂度：** Canvas 2D 是浏览器原生 API，零依赖。Three.js 引入了一个庞大的第三方库，维护负担不一样
+
+所以给 LVGL 仓库提交的版本只能是 Canvas 2D，不带壁纸功能，尽量精简。但我自己发到 GitHub Pages 的版本就没这些顾虑了：Three.js 全开，壁纸全开，屏保全开，要最好的效果。
+
+```typescript
+let renderer: ISceneRenderer;
+if (__UINSPY_THREE__) {
+  const { ThreeRenderer } = require("./three-renderer");
+  renderer = new ThreeRenderer(canvas, cam);
+} else {
+  renderer = new Canvas2DRenderer(canvas, cam);
+}
+```
+
+`__UINSPY_THREE__` 是一个编译时常量，Bun 在打包时会把它替换成 `true` 或 `false`。如果是 `false`，整个 `if` 分支会被 dead code elimination 删掉，`three-renderer.ts` 和 Three.js 都不会进入产物。
+
+这就是为什么 release 工作流要构建 6 个变体：不同的编译常量组合产出不同的产物。给 LVGL 仓库的标准版 ~84KB，自己 GitHub Pages 的全功能版 ~611KB。同一套代码，不同的编译开关，各取所需。
+
+> 编译时特性开关的实现细节在 [从零造一个编译时 UI 框架](/blog/uinspy-compile-time-ui-framework) 里有介绍，这里不重复了。
+
+### 总结
+
+三次重写的逻辑线：CSS 3D 被性能问题和渲染 glitch 淘汰 → Canvas 2D 解决了这两个问题，够用 → Three.js 不是为了性能，是为了渲染效果的上限。
+
+最终的方案不是「选一个最好的」，而是「两个都要」：给 LVGL 仓库提交精简的 Canvas 2D 版本，自己的 GitHub Pages 全功能 Three.js 版本。编译时特性开关让同一套代码服务两个场景，不需要维护两个分支。
+
+`ISceneRenderer` 接口让这一切成为可能：**把「画什么」和「怎么画」解耦，让渲染器成为可替换的零件。**
+
+下一篇会聊交互打磨：统一动画系统、键盘惯性控制、ViewCube 导航方块，以及各种让 3D 场景「手感好」的细节。
+
+::sticker[v2_743a5aa2-4263-473b-b37d-d7206bf8deal.gif]::
