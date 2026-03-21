@@ -145,12 +145,12 @@ private project(px: number, py: number, pz: number)
 
 1. **坐标原点居中：** 把场景中心移到原点，旋转才不会偏
 2. **两次旋转：** 先绕 Y 轴（左右转），再绕 X 轴（上下转）。用的是最基础的旋转矩阵，没有四元数
-3. **近平面裁剪：** 透视模式下，如果点跑到了相机后面（`z < -p * 0.95`），返回 `null`。不裁剪的话投影会翻转，画面会炸
+3. **[近平面裁剪](/blog/near-plane-clipping/#canvas-2d-手写裁剪)：** 透视模式下，如果点跑到了相机后面（`z < -p * 0.95`），返回 `null`。不裁剪的话投影会翻转，画面会炸
 4. **透视/正交混合：** `persp` 是 0~1 的连续值。0 = 纯正交，1 = 纯透视，中间值是两种投影的线性插值。这样切换的时候可以做平滑动画，不是硬切
 
 > 投影矩阵的数学原理可以参考之前写的 [矩阵运算在 GPU 中的应用](/blog/matrix-gpu)，那篇从线性代数基础讲到仿射变换。这里的 `project` 函数本质上就是一个手写的 MVP（Model-View-Projection）变换，只不过没用矩阵乘法的形式，而是直接展开成标量运算。
 
-有了投影函数，绘制就是 Painter's Algorithm：**按 Z 坐标从远到近排序，先画远的再画近的。** 远处的层先画到 canvas 上，近处的层后画，自然就盖住了远处的。
+有了投影函数，绘制就是 [Painter's Algorithm](/blog/painters-algorithm-depth-sorting/#painters-algorithm)：**按 Z 坐标从远到近排序，先画远的再画近的。** 远处的层先画到 canvas 上，近处的层后画，自然就盖住了远处的。
 
 ```typescript
 // project all layers to screen quads
@@ -238,7 +238,7 @@ Canvas 2D 的性能其实够用，升级 Three.js 不是为了帧率。是为了
 
 Canvas 2D 能画边框、能贴图、能做基本的 3D 投影，但它的天花板很低。想加阴影？没有。想加光照？没有。想加后处理（bloom、SSAO）？没有。想加抗锯齿？得自己手写。这些东西在 WebGL 里都是现成的。
 
-WebGL 有真正的 3D 渲染管线：顶点着色器做投影，片段着色器做像素级渲染，GPU 硬件加速。透视变形是 GPU 原生支持的，不需要切格子 hack。深度排序有 z-buffer，不需要 Painter's Algorithm。更重要的是，它打开了一扇门：未来想加什么渲染效果都可以，不会被 Canvas 2D 的 API 限制住。
+WebGL 有真正的 3D 渲染管线：顶点着色器做投影，片段着色器做像素级渲染，GPU 硬件加速。透视变形是 GPU 原生支持的，不需要切格子 hack。深度排序有 z-buffer，不需要 [Painter's Algorithm](/blog/painters-algorithm-depth-sorting)。更重要的是，它打开了一扇门：未来想加什么渲染效果都可以，不会被 Canvas 2D 的 API 限制住。
 
 但 Three.js 引入了一个新问题：**体积。**
 
@@ -339,7 +339,7 @@ float dashMask = step(mod(perim, cycle), dashLen);
 | | CSS 3D | Canvas 2D | Three.js WebGL |
 |---|---|---|---|
 | 依赖 | 无 | 无 | three.js (~530KB) |
-| 深度排序 | ⚠️ 依赖 DOM 顺序 | ✅ Painter's Algorithm | ✅ z-buffer |
+| 深度排序 | ⚠️ 依赖 DOM 顺序 | ✅ [Painter's Algorithm](/blog/painters-algorithm-depth-sorting) | ✅ z-buffer |
 | 透视图像 | ✅ 浏览器原生 | ⚠️ 切格子近似 | ✅ GPU 原生 |
 | 鼠标拾取 | ✅ DOM 原生 | 手写 pointInQuad | Three.js Raycaster |
 | 抗锯齿 | ✅ 浏览器原生 | ❌ 需要手动处理 | ✅ MSAA |
