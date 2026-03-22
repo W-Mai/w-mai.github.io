@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://benign.host/sitemap-index.xml
