@@ -1,59 +1,24 @@
 ---
 import TagChip from './TagChip.astro'
 import FormattedDate from './FormattedDate.astro'
+import ThoughtCommentCount from './ThoughtCommentCount'
 import { renderInlineMarkdown } from '../lib/markdown'
 import type { Thought } from '../data/thoughts'
 
 interface Props {
   thought: Thought
   isEditorMode?: boolean
+  showCommentAction?: boolean
 }
 
-const { thought, isEditorMode = false } = Astro.props
+const { thought, isEditorMode = false, showCommentAction = true } = Astro.props
 const html = await renderInlineMarkdown(thought.content)
 const date = new Date(thought.createdAt)
+const detailUrl = `/thoughts/${thought.id}/`
 ---
 
-{isEditorMode ? (
-  <div class="flex items-center gap-2">
-    <div id={`thought-${thought.id}`} class="neu-card relative rounded-[2rem] p-5 sm:p-6 flex-1">
-      {thought.tags && thought.tags.length > 0 && (
-        <div class="neu-tags-capsule absolute top-[0.875rem] right-[0.875rem]">
-          {thought.tags.map((tag) => (
-            <TagChip tag={tag} interactive={false} />
-          ))}
-        </div>
-      )}
-
-      <div class="flex items-center mb-3 gap-2">
-        {thought.mood ? (
-          <div class="neu-mood-time">
-            <span class="neu-mood-badge">{thought.mood}</span>
-            <span class="neu-time-pill"><FormattedDate date={date} /></span>
-          </div>
-        ) : (
-          <span class="neu-time-pill"><FormattedDate date={date} /></span>
-        )}
-      </div>
-
-      <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
-    </div>
-
-    <div class="neu-action-capsule">
-      <button
-        class="neu-action-item cursor-pointer"
-        data-thought-edit={JSON.stringify(thought)}
-        title="Edit"
-      >✏️</button>
-      <button
-        class="neu-action-item cursor-pointer"
-        data-thought-delete={thought.id}
-        title="Delete"
-      >🗑️</button>
-    </div>
-  </div>
-) : (
-  <div id={`thought-${thought.id}`} class="neu-card relative rounded-[2rem] p-5 sm:p-6">
+<div class="flex items-center gap-2">
+  <div id={`thought-${thought.id}`} class="neu-card relative rounded-[2rem] p-5 sm:p-6 flex-1">
     {thought.tags && thought.tags.length > 0 && (
       <div class="neu-tags-capsule absolute top-[0.875rem] right-[0.875rem]">
         {thought.tags.map((tag) => (
@@ -75,4 +40,28 @@ const date = new Date(thought.createdAt)
 
     <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
   </div>
-)}
+
+  {(isEditorMode || showCommentAction) && (
+    <div class="neu-action-capsule">
+      {isEditorMode && (
+        <>
+          <button
+            class="neu-action-item cursor-pointer"
+            data-thought-edit={JSON.stringify(thought)}
+            title="Edit"
+          >✏️</button>
+          <button
+            class="neu-action-item cursor-pointer"
+            data-thought-delete={thought.id}
+            title="Delete"
+          >🗑️</button>
+        </>
+      )}
+      {showCommentAction && (
+        <a href={detailUrl} class="neu-action-item cursor-pointer no-underline" title="评论">
+          <ThoughtCommentCount client:idle thoughtId={thought.id} />
+        </a>
+      )}
+    </div>
+  )}
+</div>

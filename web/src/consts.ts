@@ -23,6 +23,14 @@ export const PINNED_PROJECTS = [
 // Google Analytics 4 Measurement ID (replace with your actual ID)
 export const GA4_MEASUREMENT_ID = 'G-J49CNGTJGN';
 
+// Giscus discussion comment system
+export const GISCUS_REPO = 'W-Mai/w-mai.github.io' as const;
+export const GISCUS_REPO_ID = 'R_kgDOPiz_Tg';
+export const GISCUS_BLOG_CATEGORY = 'Blog Comments';
+export const GISCUS_BLOG_CATEGORY_ID = 'DIC_kwDOPiz_Ts4C3_Qs';
+export const GISCUS_THOUGHT_CATEGORY = 'Thought Comments';
+export const GISCUS_THOUGHT_CATEGORY_ID = 'DIC_kwDOPiz_Ts4C5BnR';
+
 export const SOCIALS = [
     {
         name: 'GitHub',

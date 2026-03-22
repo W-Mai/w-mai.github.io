@@ -1,22 +1,51 @@
 ---
 // Giscus comment system — custom React client with neumorphism UI
-import { SITE_URL } from '../consts';
+import { SITE_URL, GISCUS_REPO, GISCUS_REPO_ID, GISCUS_BLOG_CATEGORY, GISCUS_BLOG_CATEGORY_ID } from '../consts';
 import GiscusClient from './GiscusClient';
+
+interface Props {
+  category?: string;
+  categoryId?: string;
+}
+
+const {
+  category = GISCUS_BLOG_CATEGORY,
+  categoryId = GISCUS_BLOG_CATEGORY_ID,
+} = Astro.props;
+
+const isDev = import.meta.env.DEV;
+const prodUrl = `${SITE_URL}${Astro.url.pathname}`;
 ---
 
-<section class="giscus-wrapper">
-  <GiscusClient
-    client:only="react"
-    repo="W-Mai/w-mai.github.io"
-    repoId="R_kgDOPiz_Tg"
-    category="Blog Comments"
-    categoryId="DIC_kwDOPiz_Ts4C3_Qs"
-    mapping="pathname"
-    theme={`${SITE_URL}/giscus-neumorphism.css`}
-    lang="zh-CN"
-    reactionsEnabled={true}
-    emitMetadata={true}
-    inputPosition="bottom"
-    loading="lazy"
-  />
-</section>
+{isDev ? (
+  <div class="neu-inset-subtle rounded-2xl p-6 text-center">
+    <p class="text-[var(--text-muted)] m-0 text-sm">
+      💬 评论功能仅在主站可用
+    </p>
+    <a
+      href={prodUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="neu-btn neu-link-btn gap-1.5 text-[var(--text-link)] text-sm mt-3 inline-flex no-underline"
+    >
+      前往主站评论 →
+    </a>
+  </div>
+) : (
+  <section class="giscus-wrapper">
+    <GiscusClient
+      client:only="react"
+      repo={GISCUS_REPO}
+      repoId={GISCUS_REPO_ID}
+      category={category}
+      categoryId={categoryId}
+      mapping="pathname"
+      theme={`${SITE_URL}/giscus-neumorphism.css`}
+      lang="zh-CN"
+      reactionsEnabled={true}
+      emitMetadata={true}
+      inputPosition="bottom"
+      loading="lazy"
+    />
+  </section>
+)}
