@@ -900,6 +900,43 @@ button.neu-tag-chip.active {
   }
 }
 
+/* Comment inline button — mobile only, inside card bottom-right */
+.neu-comment-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 1.125rem;
+  background: var(--neu-bg);
+  box-shadow:
+    2px 2px 4px var(--neu-shadow-dark),
+    -2px -2px 4px var(--neu-shadow-light);
+  transition:
+    background 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+.neu-comment-inline:hover {
+  background: linear-gradient(
+    145deg,
+    var(--neu-gradient-light),
+    var(--neu-gradient-dark)
+  );
+  transform: translateY(-1px);
+}
+.neu-comment-inline:active {
+  background: linear-gradient(
+    145deg,
+    var(--neu-gradient-dark),
+    var(--neu-gradient-light)
+  );
+  box-shadow:
+    inset 1.5px 1.5px 3px var(--neu-shadow-dark-strong),
+    inset -1.5px -1.5px 3px var(--neu-shadow-light-strong);
+  transform: translateY(0);
+}
+
 /* Comment preview — inset area below thought card showing recent comments */
 .neu-comment-preview {
   box-shadow:
@@ -907,7 +944,7 @@ button.neu-tag-chip.active {
     inset -2px -2px 5px var(--neu-shadow-light);
   border-radius: 1rem;
   padding: 0.5rem 0.75rem;
-  margin-top: 0.5rem;
+  margin: 0.5rem 0.75rem 0;
 }
 .neu-comment-item {
   display: flex;

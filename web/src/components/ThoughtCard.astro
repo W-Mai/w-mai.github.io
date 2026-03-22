@@ -20,55 +20,57 @@ const date = new Date(thought.createdAt)
 const detailUrl = `/thoughts/${thought.id}/`
 ---
 
-<div class="flex items-center gap-2">
-  <div id={`thought-${thought.id}`} class="neu-card relative rounded-[2rem] p-5 sm:p-6 flex-1">
-    {thought.tags && thought.tags.length > 0 && (
-      <div class="neu-tags-capsule absolute top-[0.875rem] right-[0.875rem]">
-        {thought.tags.map((tag) => (
-          <TagChip tag={tag} interactive={false} />
-        ))}
-      </div>
-    )}
-
-    <div class="flex items-center mb-3 gap-2">
-      {thought.mood ? (
-        <div class="neu-mood-time">
-          <span class="neu-mood-badge">{thought.mood}</span>
-          <span class="neu-time-pill"><FormattedDate date={date} /></span>
+<div class="flex items-center gap-3">
+  <div class="flex-1 min-w-0">
+    <div id={`thought-${thought.id}`} class="neu-card relative rounded-[2rem] p-5 sm:p-6">
+      {thought.tags && thought.tags.length > 0 && (
+        <div class="neu-tags-capsule absolute top-[0.875rem] right-[0.875rem]">
+          {thought.tags.map((tag) => (
+            <TagChip tag={tag} interactive={false} />
+          ))}
         </div>
-      ) : (
-        <span class="neu-time-pill"><FormattedDate date={date} /></span>
       )}
-    </div>
 
-    <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
-  </div>
+      <div class="flex items-center mb-3 gap-2">
+        {thought.mood ? (
+          <div class="neu-mood-time">
+            <span class="neu-mood-badge">{thought.mood}</span>
+            <span class="neu-time-pill"><FormattedDate date={date} /></span>
+          </div>
+        ) : (
+          <span class="neu-time-pill"><FormattedDate date={date} /></span>
+        )}
+      </div>
 
-  {(isEditorMode || showCommentAction) && (
-    <div class="neu-action-capsule">
-      {isEditorMode && (
-        <>
-          <button
-            class="neu-action-item cursor-pointer"
-            data-thought-edit={JSON.stringify(thought)}
-            title="Edit"
-          >✏️</button>
-          <button
-            class="neu-action-item cursor-pointer"
-            data-thought-delete={thought.id}
-            title="Delete"
-          >🗑️</button>
-        </>
-      )}
+      <div class="thought-content text-[var(--text-primary)] text-sm sm:text-base leading-relaxed" set:html={html} />
+
+      {/* Comment button inside card, bottom-right corner */}
       {showCommentAction && (
-        <a href={detailUrl} class="neu-action-item cursor-pointer no-underline" title="评论">
+        <a href={detailUrl}
+           class="neu-comment-inline absolute bottom-[0.875rem] right-[0.875rem] no-underline"
+           title="评论">
           <ThoughtCommentCount count={commentData?.commentCount} />
         </a>
       )}
     </div>
+
+    {commentData && commentData.comments.length > 0 && (
+      <ThoughtCommentPreview data={commentData} thoughtId={thought.id} />
+    )}
+  </div>
+
+  {isEditorMode && (
+    <div class="neu-action-capsule">
+      <button
+        class="neu-action-item cursor-pointer"
+        data-thought-edit={JSON.stringify(thought)}
+        title="Edit"
+      >✏️</button>
+      <button
+        class="neu-action-item cursor-pointer"
+        data-thought-delete={thought.id}
+        title="Delete"
+      >🗑️</button>
+    </div>
   )}
 </div>
-
-{commentData && commentData.comments.length > 0 && (
-  <ThoughtCommentPreview data={commentData} thoughtId={thought.id} />
-)}
