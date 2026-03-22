@@ -7,20 +7,23 @@ import ThoughtCard from '~/components/ThoughtCard.astro'
 import Giscus from '~/components/Giscus.astro'
 import { GISCUS_THOUGHT_CATEGORY, GISCUS_THOUGHT_CATEGORY_ID } from '~/consts'
 import { loadThoughts, type Thought } from '~/data/thoughts'
+import { fetchThoughtComments } from '~/data/giscus-comments'
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const thoughts = await loadThoughts()
+  const commentMap = await fetchThoughtComments()
   return thoughts.map((t) => ({
     params: { id: t.id },
-    props: { thought: t },
+    props: { thought: t, commentData: commentMap.get(t.id) },
   }))
 }
 
 interface Props {
   thought: Thought
+  commentData?: import('~/data/giscus-comments').ThoughtCommentData
 }
 
-const { thought } = Astro.props
+const { thought, commentData } = Astro.props
 const date = new Date(thought.createdAt)
 ---
 
@@ -43,7 +46,7 @@ const date = new Date(thought.createdAt)
         </a>
       </div>
 
-      <ThoughtCard thought={thought} showCommentAction={false} />
+      <ThoughtCard thought={thought} showCommentAction={false} commentData={commentData} />
 
       <div class="mt-8">
         <Giscus category={GISCUS_THOUGHT_CATEGORY} categoryId={GISCUS_THOUGHT_CATEGORY_ID} />

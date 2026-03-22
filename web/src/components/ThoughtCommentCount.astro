@@ -1,0 +1,15 @@
+---
+// Comment count badge for thought cards — rendered at build time with SSG data
+
+interface Props {
+  count?: number;
+}
+
+const { count } = Astro.props;
+const hasComments = count !== undefined && count > 0;
+---
+
+<span class="flex items-center justify-center gap-0.5 text-[0.8rem] leading-none">
+  <span>💬</span>
+  {hasComments && <span class="text-[0.7rem] text-[var(--text-muted)]">{count}</span>}
+</span>

@@ -30,6 +30,8 @@ jobs:
       - name: Build site
         run: bunx --bun astro build
         working-directory: web
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

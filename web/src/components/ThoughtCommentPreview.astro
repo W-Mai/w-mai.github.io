@@ -1,0 +1,34 @@
+---
+// Comment preview area for thought cards — shows recent comments (avatar + name + text)
+
+import type { ThoughtCommentData } from '../data/giscus-comments';
+
+interface Props {
+  data: ThoughtCommentData;
+  thoughtId: string;
+}
+
+const { data, thoughtId } = Astro.props;
+const detailUrl = `/thoughts/${thoughtId}/`;
+---
+
+{data.comments.length > 0 && (
+  <a href={detailUrl} class="neu-comment-preview block no-underline">
+    {data.comments.map((c) => (
+      <div class="neu-comment-item">
+        <img
+          class="neu-comment-avatar"
+          src={c.author.avatarUrl}
+          alt={c.author.login}
+          loading="lazy"
+          width="20"
+          height="20"
+        />
+        <div class="min-w-0">
+          <span class="neu-comment-author">{c.author.login}</span>
+          <p class="neu-comment-text m-0">{c.bodyText}</p>
+        </div>
+      </div>
+    ))}
+  </a>
+)}

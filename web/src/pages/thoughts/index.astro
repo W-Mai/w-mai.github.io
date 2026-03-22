@@ -5,11 +5,13 @@ import YearHeatmap from '~/components/YearHeatmap.astro'
 import ThoughtTimeline from '~/components/ThoughtTimeline.astro'
 import ThoughtEditor from '~/components/editor/ThoughtEditor'
 import { loadThoughts } from '~/data/thoughts'
+import { fetchThoughtComments } from '~/data/giscus-comments'
 import type { YearGroup } from '~/lib/blog-archive'
 
 const CHUNK_SIZE = 2
 
 const thoughts = await loadThoughts()
+const commentMap = await fetchThoughtComments()
 const initialThoughts = thoughts.slice(0, CHUNK_SIZE)
 const totalChunks = Math.ceil((thoughts.length - CHUNK_SIZE) / CHUNK_SIZE)
 const allTags = [...new Set(thoughts.flatMap((t) => t.tags ?? []))]
@@ -79,7 +81,7 @@ for (const t of thoughts) {
 
   {initialThoughts.length > 0 ? (
     <>
-      <ThoughtTimeline thoughts={initialThoughts} isEditorMode={isEditorMode} />
+      <ThoughtTimeline thoughts={initialThoughts} isEditorMode={isEditorMode} commentMap={commentMap} />
       {totalChunks > 0 && (
         <div id="thought-sentinel" data-next="1" data-total={totalChunks} class="flex justify-center py-8">
           <span class="text-[var(--text-muted)] text-sm">加载中…</span>

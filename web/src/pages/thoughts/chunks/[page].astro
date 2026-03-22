@@ -4,18 +4,28 @@ import ThoughtCard from '~/components/ThoughtCard.astro'
 import TimelineDateSeparator from '~/components/TimelineDateSeparator.astro'
 import type { Thought } from '~/data/thoughts'
 import { loadThoughts } from '~/data/thoughts'
+import { fetchThoughtComments, type ThoughtCommentData } from '~/data/giscus-comments'
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const CHUNK_SIZE = 2
   const thoughts = await loadThoughts()
+  const commentMap = await fetchThoughtComments()
   const remaining = thoughts.slice(CHUNK_SIZE)
   const totalChunks = Math.ceil(remaining.length / CHUNK_SIZE)
 
+  // Serialize comment map for each chunk's items
   return Array.from({ length: totalChunks }, (_, i) => {
     const chunkItems = remaining.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
-    // Last item before this chunk for cross-chunk separator detection
     const prevItem = i > 0 ? remaining[i * CHUNK_SIZE - 1] : thoughts[CHUNK_SIZE - 1]
     const pd = new Date(prevItem.createdAt)
+
+    // Extract only relevant comment data for this chunk
+    const chunkComments: Record<string, ThoughtCommentData> = {}
+    for (const item of chunkItems) {
+      const data = commentMap.get(item.id)
+      if (data) chunkComments[item.id] = data
+    }
+
     return {
       params: { page: String(i + 1) },
       props: {
@@ -24,6 +34,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
         prevYear: pd.getFullYear(),
         prevMonth: pd.getMonth(),
         prevDay: pd.getDate(),
+        chunkComments,
       },
     }
   })
@@ -35,9 +46,10 @@ interface Props {
   prevYear: number
   prevMonth: number
   prevDay: number
+  chunkComments: Record<string, ThoughtCommentData>
 }
 
-const { items, hasMore, prevYear, prevMonth, prevDay } = Astro.props
+const { items, hasMore, prevYear, prevMonth, prevDay, chunkComments } = Astro.props
 const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE
 
 let curYear = prevYear
@@ -62,7 +74,7 @@ let curDay = prevDay
       <div class="timeline-item" data-chunk>
         <div class="timeline-dot"></div>
         <div class="timeline-connector"></div>
-        <ThoughtCard thought={thought} isEditorMode={isEditorMode} />
+        <ThoughtCard thought={thought} isEditorMode={isEditorMode} commentData={chunkComments[thought.id]} />
       </div>
     </>
   )

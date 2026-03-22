@@ -1,17 +1,20 @@
 ---
 import TagChip from './TagChip.astro'
 import FormattedDate from './FormattedDate.astro'
-import ThoughtCommentCount from './ThoughtCommentCount'
+import ThoughtCommentCount from './ThoughtCommentCount.astro'
+import ThoughtCommentPreview from './ThoughtCommentPreview.astro'
 import { renderInlineMarkdown } from '../lib/markdown'
 import type { Thought } from '../data/thoughts'
+import type { ThoughtCommentData } from '../data/giscus-comments'
 
 interface Props {
   thought: Thought
   isEditorMode?: boolean
   showCommentAction?: boolean
+  commentData?: ThoughtCommentData
 }
 
-const { thought, isEditorMode = false, showCommentAction = true } = Astro.props
+const { thought, isEditorMode = false, showCommentAction = true, commentData } = Astro.props
 const html = await renderInlineMarkdown(thought.content)
 const date = new Date(thought.createdAt)
 const detailUrl = `/thoughts/${thought.id}/`
@@ -59,9 +62,13 @@ const detailUrl = `/thoughts/${thought.id}/`
       )}
       {showCommentAction && (
         <a href={detailUrl} class="neu-action-item cursor-pointer no-underline" title="评论">
-          <ThoughtCommentCount client:idle thoughtId={thought.id} />
+          <ThoughtCommentCount count={commentData?.commentCount} />
         </a>
       )}
     </div>
   )}
 </div>
+
+{commentData && commentData.comments.length > 0 && (
+  <ThoughtCommentPreview data={commentData} thoughtId={thought.id} />
+)}
