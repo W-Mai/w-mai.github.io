@@ -4,6 +4,7 @@ import WithSidebar from '~/layouts/WithSidebar.astro'
 import ProjectCard from '../components/ProjectCard.astro'
 import FeaturedProjectCard from '../components/FeaturedProjectCard.astro'
 import ProfileSidebar from '../components/ProfileSidebar.astro'
+import RecentThoughts from '../components/RecentThoughts.astro'
 import RecentPostCard from '../components/RecentPostCard.astro'
 import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '../lib/github'
 import { PINNED_PROJECTS } from '../consts'
@@ -20,6 +21,7 @@ const recentPosts = allPosts.slice(0, 4)
 <WithSidebar collapsible={false}>
     <Fragment slot="sidebar">
         <ProfileSidebar profile={profile} showBio />
+        <RecentThoughts />
     </Fragment>
 
     <h1 class="page-title anim-fade" style="--delay:0">👋 恁好，吃了冇</h1>

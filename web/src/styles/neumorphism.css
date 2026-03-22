@@ -900,7 +900,34 @@ button.neu-tag-chip.active {
   }
 }
 
-/* Comment inline button — mobile only, inside card bottom-right */
+/* Recent thought list — hide 3rd+ items on mobile */
+@media (max-width: 639px) {
+  .neu-recent-thought-list > li:nth-child(n+3) {
+    display: none;
+  }
+}
+
+/* Recent thought item — sidebar widget list item */
+.neu-recent-thought {
+  color: var(--text-secondary);
+  transition:
+    background 200ms ease,
+    box-shadow 200ms ease;
+}
+.neu-recent-thought:hover {
+  box-shadow:
+    2px 2px 4px var(--neu-shadow-dark),
+    -2px -2px 4px var(--neu-shadow-light);
+  transform: translateY(-1px);
+}
+.neu-recent-thought-text {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Comment inline button — inside card bottom-right */
 .neu-comment-inline {
   display: flex;
   align-items: center;
