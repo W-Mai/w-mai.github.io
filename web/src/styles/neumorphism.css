@@ -1136,11 +1136,6 @@ html.no-pixel-font body {
   font-family: "Atkinson", sans-serif;
 }
 
-/* Font size override via CSS variable */
-html[style*="--rs-font-size"] body {
-  font-size: var(--rs-font-size);
-}
-
 /* Zen reading mode — hide chrome, maximize content */
 html.zen-mode body > header,
 html.zen-mode body > footer,
