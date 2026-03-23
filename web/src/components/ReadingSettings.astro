@@ -13,6 +13,15 @@
   </button>
 
   <button
+    id="rs-serif-toggle"
+    class="neu-rs-btn"
+    aria-label="Toggle serif font"
+    title="切换衬线体"
+  >
+    <span class="neu-rs-icon" style="font-family: serif; font-style: italic;">Se</span>
+  </button>
+
+  <button
     id="rs-zen-mode"
     class="neu-rs-btn"
     aria-label="Toggle zen reading mode"
@@ -34,20 +43,39 @@
 <script>
   function initReadingSettings() {
     const fontToggle = document.getElementById('rs-font-toggle')
+    const serifToggle = document.getElementById('rs-serif-toggle')
     const zenMode = document.getElementById('rs-zen-mode')
-    if (!fontToggle || !zenMode) return
+    if (!fontToggle || !serifToggle || !zenMode) return
 
     const FONT_KEY = 'rs-pixel-font'
+    const SERIF_KEY = 'rs-serif-font'
     const ZEN_KEY = 'rs-zen-mode'
 
     // Restore saved states
     const pixelOff = localStorage.getItem(FONT_KEY) === 'off'
+    const serifOn = localStorage.getItem(SERIF_KEY) === 'on'
     let zenActive = localStorage.getItem(ZEN_KEY) === 'on'
 
     function applyPixelFont(off: boolean) {
       document.documentElement.classList.toggle('no-pixel-font', off)
       fontToggle!.classList.toggle('neu-rs-active', off)
       localStorage.setItem(FONT_KEY, off ? 'off' : 'on')
+      if (off) {
+        // Deactivate serif when pixel font is toggled off (back to Atkinson)
+        applySerifFont(false)
+      }
+    }
+
+    function applySerifFont(on: boolean) {
+      document.documentElement.classList.toggle('serif-font', on)
+      serifToggle!.classList.toggle('neu-rs-active', on)
+      localStorage.setItem(SERIF_KEY, on ? 'on' : 'off')
+      if (on) {
+        // Serif implies no pixel font
+        document.documentElement.classList.add('no-pixel-font')
+        fontToggle!.classList.remove('neu-rs-active')
+        localStorage.setItem(FONT_KEY, 'off')
+      }
     }
 
     function applyZenMode(active: boolean) {
@@ -61,11 +89,17 @@
 
     // Apply initial states
     applyPixelFont(pixelOff)
+    if (serifOn) applySerifFont(true)
     applyZenMode(zenActive)
 
     fontToggle.addEventListener('click', () => {
       const isOff = document.documentElement.classList.contains('no-pixel-font')
       applyPixelFont(!isOff)
+    })
+
+    serifToggle.addEventListener('click', () => {
+      const isOn = document.documentElement.classList.contains('serif-font')
+      applySerifFont(!isOn)
     })
 
     zenMode.addEventListener('click', () => applyZenMode(!zenActive))

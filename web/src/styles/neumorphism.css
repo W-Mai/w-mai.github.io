@@ -1136,6 +1136,11 @@ html.no-pixel-font body {
   font-family: "Atkinson", sans-serif;
 }
 
+/* Serif font toggle — switch to system serif */
+html.serif-font body {
+  font-family: "Noto Serif SC", "Source Han Serif SC", "Source Serif Pro", Georgia, "Times New Roman", serif;
+}
+
 /* Zen reading mode — hide chrome, maximize content */
 html.zen-mode body > header,
 html.zen-mode body > footer,
