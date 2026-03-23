@@ -20,6 +20,15 @@
   >
     <span class="neu-rs-icon">📖</span>
   </button>
+
+  <button
+    id="rs-scroll-top"
+    class="neu-rs-btn"
+    aria-label="Scroll to top"
+    title="回到顶部"
+  >
+    <span class="neu-rs-icon">↑</span>
+  </button>
 </div>
 
 <script>
@@ -61,6 +70,11 @@
 
     zenMode.addEventListener('click', () => applyZenMode(!zenActive))
     document.getElementById('rs-zen-exit')?.addEventListener('click', () => applyZenMode(false))
+
+    // Scroll to top
+    document.getElementById('rs-scroll-top')?.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    })
 
     // ESC exits zen mode
     document.addEventListener('keydown', (e) => {
