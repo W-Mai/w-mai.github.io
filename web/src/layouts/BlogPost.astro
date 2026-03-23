@@ -283,6 +283,16 @@ if (hasSidebar) {
 
 		<Footer />
 
+		<!-- Zen mode floating exit button — outside sidebar so it stays visible -->
+		<button
+			id="rs-zen-exit"
+			class="neu-rs-zen-exit"
+			aria-label="Exit zen reading mode"
+			title="退出阅读模式 (ESC)"
+		>
+			<span class="neu-rs-icon">✕</span>
+		</button>
+
 		<script>
 			async function initTypography() {
 				const article = document.querySelector('article .prose');

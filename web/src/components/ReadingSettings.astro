@@ -1,0 +1,111 @@
+---
+// Reading settings toolbar — circular neumorphism buttons above TOC
+---
+
+<div class="reading-settings">
+  <button
+    id="rs-font-toggle"
+    class="neu-rs-btn"
+    aria-label="Toggle pixel font"
+    title="切换像素字体"
+  >
+    <span class="neu-rs-icon">Aa</span>
+  </button>
+
+  <button
+    id="rs-font-down"
+    class="neu-rs-btn"
+    aria-label="Decrease font size"
+    title="缩小字体"
+  >
+    <span class="neu-rs-icon">A-</span>
+  </button>
+
+  <button
+    id="rs-font-up"
+    class="neu-rs-btn"
+    aria-label="Increase font size"
+    title="放大字体"
+  >
+    <span class="neu-rs-icon">A+</span>
+  </button>
+
+  <button
+    id="rs-zen-mode"
+    class="neu-rs-btn"
+    aria-label="Toggle zen reading mode"
+    title="纯阅读模式"
+  >
+    <span class="neu-rs-icon">📖</span>
+  </button>
+</div>
+
+
+
+<script>
+  function initReadingSettings() {
+    const fontToggle = document.getElementById('rs-font-toggle')
+    const fontDown = document.getElementById('rs-font-down')
+    const fontUp = document.getElementById('rs-font-up')
+    const zenMode = document.getElementById('rs-zen-mode')
+    if (!fontToggle || !fontDown || !fontUp || !zenMode) return
+
+    const FONT_KEY = 'rs-pixel-font'
+    const SIZE_KEY = 'rs-font-size'
+    const ZEN_KEY = 'rs-zen-mode'
+    const MIN_SIZE = 14
+    const MAX_SIZE = 28
+    const DEFAULT_SIZE = 20
+
+    // Restore saved states
+    const pixelOff = localStorage.getItem(FONT_KEY) === 'off'
+    let fontSize = parseInt(localStorage.getItem(SIZE_KEY) || '', 10) || DEFAULT_SIZE
+    let zenActive = localStorage.getItem(ZEN_KEY) === 'on'
+
+    function applyPixelFont(off: boolean) {
+      document.documentElement.classList.toggle('no-pixel-font', off)
+      fontToggle!.classList.toggle('neu-rs-active', off)
+      localStorage.setItem(FONT_KEY, off ? 'off' : 'on')
+    }
+
+    function applyFontSize(size: number) {
+      fontSize = Math.max(MIN_SIZE, Math.min(MAX_SIZE, size))
+      document.documentElement.style.setProperty('--rs-font-size', `${fontSize}px`)
+      localStorage.setItem(SIZE_KEY, String(fontSize))
+    }
+
+    function applyZenMode(active: boolean) {
+      zenActive = active
+      document.documentElement.classList.toggle('zen-mode', active)
+      zenMode!.classList.toggle('neu-rs-active', active)
+      const exitBtn = document.getElementById('rs-zen-exit')
+      exitBtn?.classList.toggle('neu-rs-zen-exit-visible', active)
+      localStorage.setItem(ZEN_KEY, active ? 'on' : 'off')
+    }
+
+    // Apply initial states
+    applyPixelFont(pixelOff)
+    applyFontSize(fontSize)
+    applyZenMode(zenActive)
+
+    fontToggle.addEventListener('click', () => {
+      const isOff = document.documentElement.classList.contains('no-pixel-font')
+      applyPixelFont(!isOff)
+    })
+
+    fontDown.addEventListener('click', () => applyFontSize(fontSize - 2))
+    fontUp.addEventListener('click', () => applyFontSize(fontSize + 2))
+
+    zenMode.addEventListener('click', () => applyZenMode(!zenActive))
+    document.getElementById('rs-zen-exit')?.addEventListener('click', () => applyZenMode(false))
+
+    // ESC exits zen mode
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && zenActive) {
+        applyZenMode(false)
+      }
+    })
+  }
+
+  document.addEventListener('astro:page-load', initReadingSettings)
+</script>
