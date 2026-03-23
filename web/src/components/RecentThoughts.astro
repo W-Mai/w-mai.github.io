@@ -2,7 +2,7 @@
 // Sidebar widget showing recent thoughts with links to detail pages
 
 import { loadThoughts } from '../data/thoughts'
-import { renderInlineMarkdown } from '../lib/markdown'
+import { renderMarkdown } from '../lib/markdown'
 
 interface Props {
   count?: number;
@@ -15,7 +15,7 @@ const items = await Promise.all(
   thoughts.map(async (t) => ({
     id: t.id,
     mood: t.mood,
-    html: await renderInlineMarkdown(t.content),
+    html: await renderMarkdown(t.content),
     date: new Date(t.createdAt),
   }))
 );

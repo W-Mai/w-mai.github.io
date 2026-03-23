@@ -25,6 +25,3 @@ export async function renderMarkdown(content: string): Promise<string> {
   return code;
 }
 
-// Keep the old sync function name as a re-export for backward compatibility,
-// but callers must now await it.
-export { renderMarkdown as renderInlineMarkdown };
