@@ -25,6 +25,17 @@ html:not(.no-transitions) .neu-tag-chip {
   background: var(--neu-bg) !important;
 }
 
+/* Shared card hover: lift + reduced shadow */
+.neu-card-hover {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.neu-card-hover:hover {
+  box-shadow:
+    6px 6px 12px var(--neu-shadow-dark),
+    -6px -6px 12px var(--neu-shadow-light);
+  transform: translateY(-2px);
+}
+
 /* Raised card */
 .neu-card {
   background: var(--neu-bg);
