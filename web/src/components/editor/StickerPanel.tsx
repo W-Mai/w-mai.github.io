@@ -253,6 +253,8 @@ const StickerPanel: FC<StickerPanelProps> = ({ isOpen, onClose, onInsertInline, 
       {/* Backdrop (visible on mobile) */}
       <div
         className={`sticker-backdrop${sheetVisible ? ' visible' : ''}`}
+        role="button"
+        aria-label="Close sticker panel"
         onClick={handleClose}
       />
 

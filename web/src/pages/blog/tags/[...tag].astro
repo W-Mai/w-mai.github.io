@@ -65,7 +65,7 @@ function resolveBodyImage(path: string): ImageMetadata | null {
 						const wc = countWords(stripMarkdown(post.body ?? '')).total;
 						return (
 							<a href={`/blog/${post.id}/`}
-							   class="blog-post-card group block rounded-2xl overflow-hidden neu-card
+							   class="blog-post-card neu-card-hover group block rounded-2xl overflow-hidden neu-card
 							          transition-all duration-300 ease-out
 							          no-underline">
 								<div class="overflow-hidden h-44">
@@ -113,9 +113,4 @@ function resolveBodyImage(path: string): ImageMetadata | null {
 </html>
 
 <style>
-  /* Neumorphism hover for post cards */
-  .blog-post-card:hover {
-    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-    transform: translateY(-2px);
-  }
 </style>

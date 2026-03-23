@@ -56,9 +56,6 @@ function collectFiles(dir: string, exts: string[]): string[] {
  * CSS properties commonly used with responsive values.
  * We normalize property names to catch both CSS properties and Tailwind prefixes.
  */
-const RESPONSIVE_PREFIXES = /\b(sm|md|lg|xl|2xl):/
-const MEDIA_QUERY_RE = /@media\s*\(/
-
 /**
  * Extract CSS property names from clamp() usages in a line.
  * Matches patterns like `font-size: clamp(...)` or Tailwind `text-[clamp(...)]`.
@@ -131,6 +128,8 @@ function mapTailwindToProperty(tw: string): string {
 /**
  * Detect mixed clamp() + fixed breakpoint usage on the same property
  * within a single component file.
+ * Only flags when clamp() appears OUTSIDE @media blocks while the same
+ * property also appears inside a @media block with a fixed value.
  */
 export function checkResponsiveConsistency(srcDir: string): ResponsiveViolation[] {
   const violations: ResponsiveViolation[] = []
@@ -140,27 +139,26 @@ export function checkResponsiveConsistency(srcDir: string): ResponsiveViolation[
     const content = readFileSync(file, 'utf-8')
     const lines = content.split('\n')
 
-    // Track which properties use clamp() and which use responsive prefixes/@media
-    const clampProps = new Map<string, number>()   // property → first line
+    // Build a set of line indices that are inside @media blocks
+    const mediaLineSet = buildMediaLineSet(content)
+
+    // Track which properties use clamp() outside @media and which use responsive prefixes
+    const clampProps = new Map<string, number>()
     const breakpointProps = new Map<string, number>()
-    let hasMediaQuery = false
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
 
-      // Check for clamp() usage
-      for (const prop of extractClampProperties(line)) {
-        if (!clampProps.has(prop)) clampProps.set(prop, i + 1)
+      // Check for clamp() usage — only count if outside @media blocks
+      if (!mediaLineSet.has(i)) {
+        for (const prop of extractClampProperties(line)) {
+          if (!clampProps.has(prop)) clampProps.set(prop, i + 1)
+        }
       }
 
       // Check for responsive prefix usage (sm:, md:, etc.)
       for (const prop of extractResponsivePrefixProperties(line)) {
         if (!breakpointProps.has(prop)) breakpointProps.set(prop, i + 1)
-      }
-
-      // Check for @media queries
-      if (MEDIA_QUERY_RE.test(line)) {
-        hasMediaQuery = true
       }
     }
 
@@ -176,9 +174,8 @@ export function checkResponsiveConsistency(srcDir: string): ResponsiveViolation[
       }
     }
 
-    // Also check clamp properties against @media usage for CSS properties
-    if (hasMediaQuery && clampProps.size > 0) {
-      // Scan @media blocks for properties that also use clamp()
+    // Also check clamp properties (outside @media) against @media usage
+    if (clampProps.size > 0) {
       const mediaBlockProps = extractMediaBlockProperties(content)
       for (const [prop, clampLine] of clampProps) {
         if (mediaBlockProps.has(prop) && !breakpointProps.has(prop)) {
@@ -194,6 +191,39 @@ export function checkResponsiveConsistency(srcDir: string): ResponsiveViolation[
   }
 
   return violations
+}
+
+/** Build a set of 0-indexed line numbers that fall inside @media blocks. */
+function buildMediaLineSet(content: string): Set<number> {
+  const set = new Set<number>()
+  const mediaRe = /@media\s*\([^)]*\)\s*\{/g
+  let match: RegExpExecArray | null
+
+  while ((match = mediaRe.exec(content)) !== null) {
+    const braceStart = content.indexOf('{', match.index)
+    const blockEnd = findBraceEnd(content, braceStart)
+    if (blockEnd < 0) continue
+
+    const startLine = content.slice(0, braceStart).split('\n').length - 1
+    const endLine = content.slice(0, blockEnd).split('\n').length - 1
+    for (let i = startLine; i <= endLine; i++) set.add(i)
+  }
+
+  return set
+}
+
+/** Find the index of the closing brace matching the opening brace at `start`. */
+function findBraceEnd(css: string, start: number): number {
+  if (css[start] !== '{') return -1
+  let depth = 0
+  for (let i = start; i < css.length; i++) {
+    if (css[i] === '{') depth++
+    else if (css[i] === '}') {
+      depth--
+      if (depth === 0) return i
+    }
+  }
+  return -1
 }
 
 /** Extract CSS property names defined inside @media blocks. */
@@ -306,7 +336,7 @@ function checkCSSHoverBlocks(
   file: string,
   srcDir: string,
   content: string,
-  lines: string[],
+  _lines: string[],
   violations: HoverPatternViolation[],
 ): void {
   // Find :hover blocks — extract only the last selector segment before :hover
@@ -319,6 +349,9 @@ function checkCSSHoverBlocks(
     // Skip if the selector is .neu-card-hover itself
     if (selector.includes('neu-card-hover')) continue
 
+    // Skip third-party component selectors that can't use class-based hover
+    if (selector === '.giscus') continue
+
     const braceStart = content.indexOf('{', match.index + match[0].length - 1)
     const body = extractBraceBlock(content, braceStart)
     if (!body) continue
@@ -326,15 +359,33 @@ function checkCSSHoverBlocks(
     const hasTranslateY = /translateY/i.test(body)
     const hasShadow = /box-shadow/i.test(body)
 
-    if (hasTranslateY && hasShadow) {
-      // Find line number
-      const lineNum = content.slice(0, match.index).split('\n').length
-      violations.push({
-        file: relative(join(srcDir, '..'), file),
-        line: lineNum,
-        reason: `CSS :hover block with translateY + shadow on "${selector}" — consider using .neu-card-hover`,
-      })
+    if (!hasTranslateY || !hasShadow) continue
+
+    // Skip hover blocks with template literals (editor components with T.* tokens)
+    if (/\$\{/.test(body)) continue
+
+    // Only report hover blocks that exactly match neu-card-hover pattern:
+    // translateY(-2px) specifically — other values are intentional customizations
+    if (!/translateY\(-2px\)/i.test(body)) continue
+
+    // Skip hover blocks with extra properties beyond transform/box-shadow
+    // (e.g., color, background, border-color — these are intentional customizations)
+    const declRe = /^\s*([\w-]+)\s*:/gm
+    const props = new Set<string>()
+    let declMatch: RegExpExecArray | null
+    while ((declMatch = declRe.exec(body)) !== null) {
+      props.add(declMatch[1])
     }
+    const extraProps = [...props].filter(p => p !== 'transform' && p !== 'box-shadow')
+    if (extraProps.length > 0) continue
+
+    // Find line number
+    const lineNum = content.slice(0, match.index).split('\n').length
+    violations.push({
+      file: relative(join(srcDir, '..'), file),
+      line: lineNum,
+      reason: `CSS :hover block with translateY + shadow on "${selector}" — consider using .neu-card-hover`,
+    })
   }
 }
 

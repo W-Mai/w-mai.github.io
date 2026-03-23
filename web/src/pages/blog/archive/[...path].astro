@@ -60,7 +60,7 @@ const monthLabel = `${year} 年 ${month} 月`;
 				const wc = countWords(stripMarkdown(post.body ?? '')).total;
 				const postHref = `/blog/${post.id}/`;
 				return (
-					<div class="blog-post-card neu-card group block rounded-2xl overflow-hidden
+					<div class="blog-post-card neu-card neu-card-hover group block rounded-2xl overflow-hidden
 					            transition-all duration-300 ease-out cursor-pointer"
 					     onclick={`window.location.href='${postHref}'`}
 					     role="link" tabindex="0"
@@ -123,8 +123,4 @@ const monthLabel = `${year} 年 ${month} 月`;
 </WithSidebar>
 
 <style>
-  .blog-post-card:hover {
-    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-    transform: translateY(-2px);
-  }
 </style>

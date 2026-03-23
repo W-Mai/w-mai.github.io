@@ -89,7 +89,7 @@ const yearlyFrequency = [...yearlyMap.entries()]
     <div class="space-y-3">
       {postRanking.map((post, idx) => (
         <a href={`/blog/${post.id}/`}
-           class="stats-rank-card neu-card flex items-center gap-4 rounded-xl px-4 py-3
+           class="stats-rank-card neu-card neu-card-hover flex items-center gap-4 rounded-xl px-4 py-3
                   no-underline transition-all duration-200 anim-fade"
            style={`--delay:${3.5 + idx * 0.5}`}>
           <span class:list={[
@@ -154,11 +154,6 @@ const yearlyFrequency = [...yearlyMap.entries()]
 </WithSidebar>
 
 <style>
-  .stats-rank-card:hover {
-    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-    transform: translateY(-2px);
-  }
-
   /* Hover lift for frequency cards */
   .freq-card:hover {
     box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);

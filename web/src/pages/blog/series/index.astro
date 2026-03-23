@@ -28,7 +28,7 @@ const series = getAllSeries(posts);
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 anim-fade" style="--delay:2">
 					{series.map((s) => (
 						<a href={`/blog/series/${s.slug}/`}
-						   class="series-card neu-card rounded-2xl p-6 no-underline
+						   class="series-card neu-card neu-card-hover rounded-2xl p-6 no-underline
 						          transition-all duration-300 ease-out">
 							<div class="flex items-start justify-between gap-2 mb-2">
 								<h2 class="text-[var(--text-heading)] text-lg font-bold m-0 leading-snug">
@@ -53,8 +53,4 @@ const series = getAllSeries(posts);
 </html>
 
 <style>
-	.series-card:hover {
-		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-		transform: translateY(-2px);
-	}
 </style>

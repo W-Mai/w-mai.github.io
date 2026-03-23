@@ -66,7 +66,7 @@ function resolveBodyImage(path: string): ImageMetadata | null {
 						return (
 							<li>
 								<a href={`/blog/${post.id}/`}
-								   class="series-post-card group flex gap-4 rounded-2xl overflow-hidden neu-card
+								   class="series-post-card group flex gap-4 rounded-2xl overflow-hidden neu-card neu-card-hover
 								          transition-all duration-300 ease-out no-underline">
 									<div class="shrink-0 w-8 h-8 mt-5 ml-5 flex items-center justify-center
 									            rounded-full text-sm font-bold
@@ -117,8 +117,4 @@ function resolveBodyImage(path: string): ImageMetadata | null {
 </html>
 
 <style>
-	.series-post-card:hover {
-		box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-		transform: translateY(-2px);
-	}
 </style>

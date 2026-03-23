@@ -22,7 +22,7 @@
 
   /* ---- Semantic text ---- */
   --text-primary:   #1e293b;   /* slate-800 */
-  --text-secondary: #64748b;   /* slate-500 */
+  --text-secondary: #536179;   /* slate-500 darkened for WCAG AA */
   --text-muted:     #94a3b8;   /* slate-400 */
   --text-heading:   #1e293b;   /* slate-800 */
 
@@ -315,4 +315,11 @@ html.dark {
   --gray:             148, 163, 184;
   --gray-light:       51, 65, 85;
   --gray-dark:        226, 232, 240;
+  --gray-gradient:    rgba(var(--gray-light), 50%), #2d3436;
+  --box-shadow:
+    0 2px 6px rgba(var(--gray), 25%),
+    0 8px 24px rgba(var(--gray), 33%),
+    0 16px 32px rgba(var(--gray), 33%);
+  --sl-color-gray-5:  #6b7280;
+  --sl-text-sm:       0.875rem;
 }

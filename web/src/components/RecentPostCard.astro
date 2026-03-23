@@ -17,7 +17,7 @@ const href = `/blog/${id}/`
 ---
 
 <a href={href}
-   class="recent-post-card neu-card group block rounded-2xl overflow-hidden no-underline
+   class="recent-post-card neu-card neu-card-hover group block rounded-2xl overflow-hidden no-underline
           transition-all duration-300 ease-out">
   <div class="overflow-hidden h-32">
     {heroImage ? (
@@ -45,9 +45,3 @@ const href = `/blog/${id}/`
   </div>
 </a>
 
-<style>
-  .recent-post-card:hover {
-    box-shadow: 3px 3px 6px var(--neu-shadow-dark), -3px -3px 6px var(--neu-shadow-light);
-    transform: translateY(-2px);
-  }
-</style>
