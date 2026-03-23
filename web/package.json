@@ -14,7 +14,8 @@
     "dev:editor": "EDITOR_MODE=true bunx --bun astro dev",
     "build": "bunx --bun astro build",
     "preview": "bunx --bun astro preview",
-    "astro": "bunx --bun astro"
+    "astro": "bunx --bun astro",
+    "quality": "bun run scripts/quality-report.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
