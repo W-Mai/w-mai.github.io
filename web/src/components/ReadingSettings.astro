@@ -47,35 +47,29 @@
     const zenMode = document.getElementById('rs-zen-mode')
     if (!fontToggle || !serifToggle || !zenMode) return
 
-    const FONT_KEY = 'rs-pixel-font'
-    const SERIF_KEY = 'rs-serif-font'
+    const FONT_KEY = 'rs-font-mode'
     const ZEN_KEY = 'rs-zen-mode'
 
-    // Restore saved states
-    const pixelOff = localStorage.getItem(FONT_KEY) === 'off'
-    const serifOn = localStorage.getItem(SERIF_KEY) === 'on'
+    // Font modes: 'pixel' (default), 'sans', 'serif'
+    type FontMode = 'pixel' | 'sans' | 'serif'
+    let fontMode = (localStorage.getItem(FONT_KEY) || 'pixel') as FontMode
     let zenActive = localStorage.getItem(ZEN_KEY) === 'on'
 
-    function applyPixelFont(off: boolean) {
-      document.documentElement.classList.toggle('no-pixel-font', off)
-      fontToggle!.classList.toggle('neu-rs-active', off)
-      localStorage.setItem(FONT_KEY, off ? 'off' : 'on')
-      if (off) {
-        // Deactivate serif when pixel font is toggled off (back to Atkinson)
-        applySerifFont(false)
-      }
-    }
+    function applyFontMode(mode: FontMode) {
+      fontMode = mode
+      const html = document.documentElement
+      html.classList.remove('no-pixel-font', 'serif-font')
+      fontToggle!.classList.remove('neu-rs-active')
+      serifToggle!.classList.remove('neu-rs-active')
 
-    function applySerifFont(on: boolean) {
-      document.documentElement.classList.toggle('serif-font', on)
-      serifToggle!.classList.toggle('neu-rs-active', on)
-      localStorage.setItem(SERIF_KEY, on ? 'on' : 'off')
-      if (on) {
-        // Serif implies no pixel font
-        document.documentElement.classList.add('no-pixel-font')
-        fontToggle!.classList.remove('neu-rs-active')
-        localStorage.setItem(FONT_KEY, 'off')
+      if (mode === 'sans') {
+        html.classList.add('no-pixel-font')
+        fontToggle!.classList.add('neu-rs-active')
+      } else if (mode === 'serif') {
+        html.classList.add('no-pixel-font', 'serif-font')
+        serifToggle!.classList.add('neu-rs-active')
       }
+      localStorage.setItem(FONT_KEY, mode)
     }
 
     function applyZenMode(active: boolean) {
@@ -88,18 +82,15 @@
     }
 
     // Apply initial states
-    applyPixelFont(pixelOff)
-    if (serifOn) applySerifFont(true)
+    applyFontMode(fontMode)
     applyZenMode(zenActive)
 
     fontToggle.addEventListener('click', () => {
-      const isOff = document.documentElement.classList.contains('no-pixel-font')
-      applyPixelFont(!isOff)
+      applyFontMode(fontMode === 'sans' ? 'pixel' : 'sans')
     })
 
     serifToggle.addEventListener('click', () => {
-      const isOn = document.documentElement.classList.contains('serif-font')
-      applySerifFont(!isOn)
+      applyFontMode(fontMode === 'serif' ? 'pixel' : 'serif')
     })
 
     zenMode.addEventListener('click', () => applyZenMode(!zenActive))
