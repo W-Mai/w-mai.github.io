@@ -7,10 +7,10 @@ import ProfileSidebar from '../components/ProfileSidebar.astro'
 import RecentThoughts from '../components/RecentThoughts.astro'
 import RecentPostCard from '../components/RecentPostCard.astro'
 import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '../lib/github'
-import { PINNED_PROJECTS } from '../consts'
+import { PINNED_PROJECTS, USER_NAME } from '../consts'
 
 const profile = await fetchGitHubProfile()
-const repos = await fetchGitHubRepos()
+const repos = await fetchGitHubRepos(USER_NAME, 12)
 const featured = await fetchFeaturedProjects(PINNED_PROJECTS)
 
 const allPosts = (await getCollection('blog'))

@@ -31,6 +31,7 @@ const arbGitHubRepoResponse = fc.record({
   language: fc.option(fc.string(), { nil: null }),
   stargazers_count: fc.nat({ max: 1_000_000 }),
   fork: fc.boolean(),
+  pushed_at: fc.integer({ min: 1577836800000, max: 1767139200000 }).map((ts) => new Date(ts).toISOString()),
 })
 
 // Arbitrary: generate a list of repos (0 to 50)
@@ -105,6 +106,7 @@ describe('GitHub Data Fetcher - Property Tests', () => {
             expect(repo.language).toBe(original!.language)
             expect(repo.stargazers_count).toBe(original!.stargazers_count)
             expect(repo.fork).toBe(original!.fork)
+            expect(repo.pushed_at).toBe(original!.pushed_at)
           }
         }),
         { numRuns: 100 },
@@ -173,9 +175,9 @@ describe('GitHub Data Fetcher - Property Tests', () => {
   })
 
   // Feature: modern-blog-github-showcase, Property 3: Repository list invariants
-  // Validates: Requirements 2.4, 2.7
+  // Validates: Requirements 1.1, 1.2, 1.3
   describe('Property 3: Repository list invariants', () => {
-    it('output is sorted by stars descending, has at most 12 items, and contains no forks', async () => {
+    it('without limit: returns all non-forks sorted by stars desc with pushed_at secondary sort', async () => {
       await fc.assert(
         fc.asyncProperty(arbGitHubRepoList, async (repoData) => {
           globalThis.fetch = vi.fn().mockResolvedValue({
@@ -184,26 +186,64 @@ describe('GitHub Data Fetcher - Property Tests', () => {
           })
 
           const result = await fetchGitHubRepos('testuser')
+          const nonForkCount = repoData.filter((r) => !r.fork).length
 
-          // At most 12 items
-          expect(result.length).toBeLessThanOrEqual(12)
+          // Returns all non-forks
+          expect(result.length).toBe(nonForkCount)
 
           // No forks
           for (const repo of result) {
             expect(repo.fork).toBe(false)
           }
 
-          // Sorted by stargazers_count descending
+          // Sorted by stargazers_count descending, pushed_at as tiebreaker
           for (let i = 1; i < result.length; i++) {
-            expect(result[i - 1].stargazers_count).toBeGreaterThanOrEqual(
-              result[i].stargazers_count,
-            )
+            const prev = result[i - 1]
+            const curr = result[i]
+            if (prev.stargazers_count === curr.stargazers_count) {
+              expect(new Date(prev.pushed_at).getTime()).toBeGreaterThanOrEqual(
+                new Date(curr.pushed_at).getTime(),
+              )
+            } else {
+              expect(prev.stargazers_count).toBeGreaterThan(curr.stargazers_count)
+            }
           }
-
-          // Length should equal min(non-fork count, 12)
-          const nonForkCount = repoData.filter((r) => !r.fork).length
-          expect(result.length).toBe(Math.min(nonForkCount, 12))
         }),
+        { numRuns: 100 },
+      )
+    })
+
+    it('with limit: returns at most limit non-forks sorted by stars desc', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          arbGitHubRepoList,
+          fc.integer({ min: 1, max: 50 }),
+          async (repoData, limit) => {
+            globalThis.fetch = vi.fn().mockResolvedValue({
+              ok: true,
+              json: () => Promise.resolve(repoData),
+            })
+
+            const result = await fetchGitHubRepos('testuser', limit)
+            const nonForkCount = repoData.filter((r) => !r.fork).length
+
+            // At most limit items
+            expect(result.length).toBeLessThanOrEqual(limit)
+            expect(result.length).toBe(Math.min(nonForkCount, limit))
+
+            // No forks
+            for (const repo of result) {
+              expect(repo.fork).toBe(false)
+            }
+
+            // Sorted by stargazers_count descending
+            for (let i = 1; i < result.length; i++) {
+              expect(result[i - 1].stargazers_count).toBeGreaterThanOrEqual(
+                result[i].stargazers_count,
+              )
+            }
+          },
+        ),
         { numRuns: 100 },
       )
     })

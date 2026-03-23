@@ -140,10 +140,14 @@ export async function fetchGitHubProfile(
 
 
 // Fetch public repositories from GitHub API
+// When limit is provided: filter non-fork, sort by stars desc, slice to limit
+// When limit is omitted: filter non-fork, sort by stars desc with pushed_at as secondary sort
 export async function fetchGitHubRepos(
   username: string = USER_NAME,
+  limit?: number,
 ): Promise<GitHubRepo[]> {
-  return cachedFetch(`repos:${username}`, async () => {
+  const cacheKey = limit != null ? `repos:${username}:${limit}` : `repos:${username}:all`
+  return cachedFetch(cacheKey, async () => {
     try {
       const response = await fetch(
         `https://api.github.com/users/${username}/repos?type=public&per_page=100&sort=stars&direction=desc`,
@@ -155,44 +159,20 @@ export async function fetchGitHubRepos(
       }
 
       const data: GitHubRepo[] = await response.json()
+      const nonForks = data.filter((repo) => !repo.fork)
 
-      // Filter out forked repos, sort by stars descending, take first 12
-      return data
-        .filter((repo) => !repo.fork)
-        .sort((a, b) => b.stargazers_count - a.stargazers_count)
-        .slice(0, 12)
+      if (limit != null) {
+        return nonForks
+          .sort((a, b) => b.stargazers_count - a.stargazers_count)
+          .slice(0, limit)
+      }
+
+      return nonForks.sort((a, b) => {
+        if (b.stargazers_count !== a.stargazers_count) return b.stargazers_count - a.stargazers_count
+        return new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime()
+      })
     } catch (error) {
       console.warn('Failed to fetch GitHub repos, using fallback:', error)
-      return FALLBACK_REPOS
-    }
-  })
-}
-
-// Fetch all public repositories (no limit) for the projects page
-export async function fetchAllGitHubRepos(
-  username: string = USER_NAME,
-): Promise<GitHubRepo[]> {
-  return cachedFetch(`all-repos:${username}`, async () => {
-    try {
-      const response = await fetch(
-        `https://api.github.com/users/${username}/repos?type=public&per_page=100&sort=stars&direction=desc`,
-        { headers: githubHeaders(username) },
-      )
-
-      if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
-      }
-
-      const data: GitHubRepo[] = await response.json()
-
-      return data
-        .filter((repo) => !repo.fork)
-        .sort((a, b) => {
-          if (b.stargazers_count !== a.stargazers_count) return b.stargazers_count - a.stargazers_count
-          return new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime()
-        })
-    } catch (error) {
-      console.warn('Failed to fetch all GitHub repos, using fallback:', error)
       return FALLBACK_REPOS
     }
   })
