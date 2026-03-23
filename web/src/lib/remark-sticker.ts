@@ -1,5 +1,6 @@
 import type { Root, PhrasingContent, Paragraph } from 'mdast';
 import { visit } from 'unist-util-visit';
+import { BLOCK_STICKER_RE, INLINE_STICKER_RE } from './sticker-utils';
 
 /**
  * Remark plugin: transform sticker syntax into <img> elements.
@@ -10,8 +11,8 @@ import { visit } from 'unist-util-visit';
  * Sticker files are resolved from /stickers/<name> at runtime.
  */
 
-const BLOCK_RE = /^::sticker\[([^\]]+)\]::$/;
-const INLINE_RE = /:sticker\[([^\]]+)\]:/g;
+const BLOCK_RE = BLOCK_STICKER_RE;
+const INLINE_RE = new RegExp(INLINE_STICKER_RE.source, 'g');
 
 export default function remarkSticker() {
   return (tree: Root) => {

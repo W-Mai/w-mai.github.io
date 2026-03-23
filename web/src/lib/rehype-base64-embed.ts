@@ -5,35 +5,12 @@
 
 import { visit } from 'unist-util-visit';
 import type { Root, Element, Text } from 'hast';
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve, extname, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const MIME_MAP: Record<string, string> = {
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.png': 'image/png',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-};
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { readFileAsBase64DataUri, STICKERS_DIR } from './sticker-utils';
 
 // web/src/lib/ → project root (three levels up from web/)
-const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-
-function getMimeType(filePath: string): string {
-  return MIME_MAP[extname(filePath).toLowerCase()] ?? 'application/octet-stream';
-}
-
-function readFileAsBase64DataUri(filePath: string): string | null {
-  if (!existsSync(filePath)) return null;
-  try {
-    const buf = readFileSync(filePath);
-    const mime = getMimeType(filePath);
-    return `data:${mime};base64,${buf.toString('base64')}`;
-  } catch {
-    return null;
-  }
-}
+const PROJECT_ROOT = resolve(STICKERS_DIR, '..', '..');
 
 export interface RehypeBase64EmbedOptions {
   slug: string;
@@ -61,7 +38,7 @@ export default function rehypeBase64Embed(options: RehypeBase64EmbedOptions) {
         // /stickers/<name> → assets/stickers/<name>
         const name = decodeURIComponent(src.replace('/stickers/', ''));
         filename = name;
-        filePath = resolve(PROJECT_ROOT, 'assets', 'stickers', name);
+        filePath = resolve(STICKERS_DIR, name);
       } else {
         // Relative path → posts/<slug>/<path>
         const relPath = decodeURIComponent(src.startsWith('./') ? src.slice(2) : src);
