@@ -10,6 +10,22 @@ const fontPath = resolve(process.cwd(), 'public/fonts/ark-pixel-12px-monospaced-
 const fontData = readFileSync(fontPath);
 const STICKERS_DIR = resolve(process.cwd(), '..', 'assets', 'stickers');
 
+/** Lazy-loaded Noto Sans SC fallback font for characters missing in ArkPixel. */
+let fallbackFontData: ArrayBuffer | null = null;
+async function getFallbackFont(): Promise<ArrayBuffer> {
+  if (fallbackFontData) return fallbackFontData;
+  try {
+    const url = 'https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap';
+    const css = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }).then(r => r.text());
+    const fontUrl = css.match(/src:\s*url\(([^)]+)\)/)?.[1];
+    if (fontUrl) {
+      fallbackFontData = await fetch(fontUrl).then(r => r.arrayBuffer());
+    }
+  } catch { /* network failure — proceed without fallback */ }
+  if (!fallbackFontData) fallbackFontData = new ArrayBuffer(0);
+  return fallbackFontData;
+}
+
 const OG_W = 1200;
 const OG_H = 630;
 
@@ -83,58 +99,137 @@ function moodHue(emoji: string): number {
 
 /**
  * Parse thought content into satori-compatible children array.
- * Handles :sticker[name]: inline syntax and plain text segments.
+ * Supports: **bold**, `inline code`, :sticker[name]:, ::sticker[name]::,
+ * ### headings (stripped to bold text), and paragraph breaks.
  */
-function parseContentToChildren(text: string, fontSize: number): any[] {
-  // Check for block sticker (entire content is one sticker)
-  const blockMatch = text.match(BLOCK_STICKER_RE);
-  if (blockMatch) {
-    const sticker = loadSticker(blockMatch[1]);
-    if (sticker) {
-      const { width, height } = fitSize(imageDimensions(sticker.buf), 160);
-      return [{
-        type: 'img',
-        props: { src: sticker.uri, width, height, style: { borderRadius: '12px' } },
-      }];
+function parseContentToChildren(text: string, fontSize: number, accentHue: number): any[] {
+  // Check for block sticker lines and split into paragraphs
+  const lines = text.split(/\n\n+/);
+  const blocks: any[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Block sticker
+    const blockMatch = trimmed.match(BLOCK_STICKER_RE);
+    if (blockMatch) {
+      const sticker = loadSticker(blockMatch[1]);
+      if (sticker) {
+        const { width, height } = fitSize(imageDimensions(sticker.buf), 160);
+        blocks.push({
+          type: 'div',
+          props: {
+            style: { display: 'flex', justifyContent: 'center', width: '100%', margin: '8px 0' },
+            children: [{
+              type: 'img',
+              props: { src: sticker.uri, width, height, style: { borderRadius: '12px' } },
+            }],
+          },
+        });
+        continue;
+      }
     }
+
+    // Parse inline markdown for this paragraph
+    const inlineChildren = parseInlineMarkdown(trimmed, fontSize, accentHue);
+    blocks.push({
+      type: 'div',
+      props: {
+        style: {
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center',
+          width: '100%', margin: '4px 0',
+        },
+        children: inlineChildren,
+      },
+    });
   }
 
+  return blocks.length > 0 ? blocks : [text];
+}
+
+/** Parse inline markdown: **bold**, `code`, :sticker:, ### heading prefix. */
+function parseInlineMarkdown(text: string, fontSize: number, accentHue: number): any[] {
+  // Strip heading prefix, treat as bold
+  let isHeading = false;
+  let processed = text;
+  const headingMatch = processed.match(/^#{1,6}\s+/);
+  if (headingMatch) {
+    processed = processed.slice(headingMatch[0].length);
+    isHeading = true;
+  }
+
+  // Tokenize: **bold**, `code`, :sticker[name]:
+  const TOKEN_RE = /(\*\*(.+?)\*\*|`([^`]+)`|:sticker\[([^\]]+)\]:)/g;
   const children: any[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
-  const re = new RegExp(INLINE_STICKER_RE.source, 'g');
 
-  while ((match = re.exec(text)) !== null) {
-    // Text before sticker
+  while ((match = TOKEN_RE.exec(processed)) !== null) {
+    // Plain text before token
     if (match.index > lastIndex) {
-      children.push(text.slice(lastIndex, match.index));
+      children.push(wrapText(processed.slice(lastIndex, match.index), isHeading, fontSize));
     }
-    // Sticker image
-    const sticker = loadSticker(match[1]);
-    if (sticker) {
-      const maxSize = Math.round(fontSize * 1.6);
-      const { width, height } = fitSize(imageDimensions(sticker.buf), maxSize);
+
+    if (match[2] !== undefined) {
+      // **bold**
       children.push({
-        type: 'img',
+        type: 'span',
         props: {
-          src: sticker.uri,
-          width,
-          height,
-          style: { borderRadius: '4px' },
+          style: { fontWeight: 700 },
+          children: match[2],
         },
       });
-    } else {
-      children.push(`[${match[1]}]`);
+    } else if (match[3] !== undefined) {
+      // `inline code`
+      children.push({
+        type: 'span',
+        props: {
+          style: {
+            background: `hsl(${accentHue},30%,82%)`,
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontSize: `${Math.round(fontSize * 0.85)}px`,
+            color: `hsl(${accentHue},35%,30%)`,
+          },
+          children: match[3],
+        },
+      });
+    } else if (match[4] !== undefined) {
+      // :sticker[name]:
+      const sticker = loadSticker(match[4]);
+      if (sticker) {
+        const maxSize = Math.round(fontSize * 1.6);
+        const { width, height } = fitSize(imageDimensions(sticker.buf), maxSize);
+        children.push({
+          type: 'img',
+          props: { src: sticker.uri, width, height, style: { borderRadius: '4px' } },
+        });
+      } else {
+        children.push(`[${match[4]}]`);
+      }
     }
-    lastIndex = re.lastIndex;
+    lastIndex = TOKEN_RE.lastIndex;
   }
 
   // Remaining text
-  if (lastIndex < text.length) {
-    children.push(text.slice(lastIndex));
+  if (lastIndex < processed.length) {
+    children.push(wrapText(processed.slice(lastIndex), isHeading, fontSize));
   }
 
-  return children.length > 0 ? children : [text];
+  return children.length > 0 ? children : [processed];
+}
+
+/** Wrap plain text, applying heading style if needed. */
+function wrapText(text: string, isHeading: boolean, fontSize: number): any {
+  if (!isHeading) return text;
+  return {
+    type: 'span',
+    props: {
+      style: { fontWeight: 700, fontSize: `${Math.round(fontSize * 1.2)}px` },
+      children: text,
+    },
+  };
 }
 
 /** Fetch emoji SVG from Twemoji CDN for satori rendering. */
@@ -184,7 +279,7 @@ export const GET: APIRoute = async ({ props }) => {
 
   // Adaptive font size based on content length
   const fontSize = content.length > 120 ? 28 : content.length > 60 ? 34 : 42;
-  const contentChildren = parseContentToChildren(content, fontSize);
+  const contentChildren = parseContentToChildren(content, fontSize, accentHue);
 
   const dateStr = new Date(createdAt).toLocaleDateString('zh-CN', {
     year: 'numeric', month: 'long', day: 'numeric',
@@ -244,7 +339,8 @@ export const GET: APIRoute = async ({ props }) => {
                   style: {
                     fontSize: `${fontSize}px`, lineHeight: 1.6,
                     color: `hsl(${accentHue},30%,25%)`, textAlign: 'center',
-                    display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    width: '100%',
                   },
                   children: contentChildren,
                 },
@@ -313,6 +409,11 @@ export const GET: APIRoute = async ({ props }) => {
           return `data:image/svg+xml;base64,${Buffer.from(
             await loadEmoji(emojiToTwemojiCode(segment))
           ).toString('base64')}`;
+        }
+        // Fallback font for characters not covered by ArkPixel
+        const fallback = await getFallbackFont();
+        if (fallback.byteLength > 0) {
+          return [{ name: 'NotoSansSC', data: fallback, weight: 400, style: 'normal' as const }];
         }
         return '';
       },
