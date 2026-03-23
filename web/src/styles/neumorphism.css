@@ -1009,7 +1009,7 @@ button.neu-tag-chip.active {
 
 /* Reading settings — circular neumorphism toolbar */
 .reading-settings {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem;
