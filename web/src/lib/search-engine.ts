@@ -6,7 +6,7 @@
 import MiniSearch from 'minisearch';
 
 /** Content type for search index entries */
-export type SearchEntryType = 'blog' | 'thought';
+export type SearchEntryType = 'blog' | 'thought' | 'friend' | 'wish';
 
 /** Shape of each entry in the search index JSON */
 export interface SearchIndexEntry {

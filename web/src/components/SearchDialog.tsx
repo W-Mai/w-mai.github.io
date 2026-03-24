@@ -139,7 +139,6 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
         const anchorId = `thought-${result.slug}`;
         const onThoughtsPage = window.location.pathname.replace(/\/$/, '') === '/thoughts';
         if (onThoughtsPage) {
-          // Already on thoughts page — scroll directly
           handleClose();
           window.location.hash = anchorId;
           requestAnimationFrame(() => {
@@ -155,6 +154,10 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
           return;
         }
         window.location.assign(`/thoughts/#${anchorId}`);
+      } else if (result.type === 'friend') {
+        window.location.assign('/friends/');
+      } else if (result.type === 'wish') {
+        window.location.assign('/wishes/');
       } else {
         window.location.assign(`/blog/${result.slug}`);
       }
@@ -278,8 +281,8 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
                 type="text"
                 value={query}
                 onChange={handleInputChange}
-                placeholder="搜索博文..."
-                aria-label="搜索博文"
+                placeholder="搜索..."
+                aria-label="全站搜索"
                 aria-controls="search-results"
                 aria-activedescendant={
                   activeIndex >= 0 ? `search-result-${activeIndex}` : undefined
@@ -337,7 +340,7 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
                 className="text-center text-sm py-6"
                 style={{ color: 'var(--text-muted)' }}
               >
-                未找到相关文章
+                未找到相关内容
               </p>
             )}
 
@@ -354,7 +357,12 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
                     id={`search-result-${i}`}
                     role="option"
                     aria-selected={i === activeIndex}
-                    href={result.type === 'thought' ? '/thoughts/' : `/blog/${result.slug}`}
+                    href={
+                      result.type === 'thought' ? '/thoughts/'
+                      : result.type === 'friend' ? '/friends/'
+                      : result.type === 'wish' ? '/wishes/'
+                      : `/blog/${result.slug}`
+                    }
                     onClick={(e) => {
                       e.preventDefault();
                       navigateToResult(result);
@@ -368,7 +376,7 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
                       style={{ color: 'var(--text-heading)' }}
                     >
                       <span className="flex-shrink-0 text-xs">
-                        {result.type === 'thought' ? '🧠' : '✍️'}
+                        {result.type === 'thought' ? '🧠' : result.type === 'friend' ? '🤝' : result.type === 'wish' ? '✨' : '✍️'}
                       </span>
                       <span className="min-w-0">
                         <HighlightedText text={result.title} query={query} />
