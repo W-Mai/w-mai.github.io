@@ -1,28 +1,42 @@
 ---
+import { SITE_TZ_OFFSET } from '~/consts';
+
 interface Props {
 	date: Date;
 }
 
 const { date } = Astro.props;
 
-const now = new Date();
-const pad2 = (n: number) => String(n).padStart(2, '0');
-const time = `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+// Shift UTC timestamp by site timezone offset to get display time,
+// so the output is consistent regardless of build environment timezone.
+const shifted = new Date(date.getTime() + SITE_TZ_OFFSET * 60 * 60 * 1000);
 
-const sameYear = date.getFullYear() === now.getFullYear();
-const sameDay = sameYear && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const hours = shifted.getUTCHours();
+const minutes = shifted.getUTCMinutes();
+const seconds = shifted.getUTCSeconds();
+const year = shifted.getUTCFullYear();
+const month = shifted.getUTCMonth();
+const day = shifted.getUTCDate();
+const time = `${pad2(hours)}:${pad2(minutes)}`;
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const now = new Date();
+const nowShifted = new Date(now.getTime() + SITE_TZ_OFFSET * 60 * 60 * 1000);
+const sameYear = year === nowShifted.getUTCFullYear();
+const sameDay = sameYear && month === nowShifted.getUTCMonth() && day === nowShifted.getUTCDate();
 
 const display = sameDay
 	? time
 	: sameYear
-		? `${date.toLocaleDateString('en-us', { month: 'short', day: 'numeric' })} ${time}`
-		: `${date.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })} ${time}`;
+		? `${MONTHS[month]} ${day} ${time}`
+		: `${MONTHS[month]} ${day}, ${year} ${time}`;
 
-const off = date.getTimezoneOffset();
-const tzSign = off <= 0 ? '+' : '-';
-const tzAbs = Math.abs(off);
-const tz = `UTC${tzSign}${pad2(Math.floor(tzAbs / 60))}:${pad2(tzAbs % 60)}`;
-const full = `${date.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })} ${time}:${pad2(date.getSeconds())} ${tz}`;
+const tzSign = SITE_TZ_OFFSET >= 0 ? '+' : '-';
+const tzAbs = Math.abs(SITE_TZ_OFFSET);
+const tz = `UTC${tzSign}${pad2(tzAbs)}:00`;
+const full = `${MONTHS[month]} ${day}, ${year} ${time}:${pad2(seconds)} ${tz}`;
 ---
 
 <time datetime={date.toISOString()} title={full}>

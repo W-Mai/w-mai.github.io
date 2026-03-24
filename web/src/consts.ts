@@ -1,6 +1,10 @@
 // Place any global data in this file.
 // You can import this data from anywhere in your site by using the `import` keyword.
 
+// Site timezone offset in hours (UTC+8 for China Standard Time).
+// Used to render dates consistently regardless of build environment timezone.
+export const SITE_TZ_OFFSET = 8;
+
 export const USER_NAME = 'W-Mai';
 export const NICK_NAME = 'B3n1gn X';
 export const SITE_TITLE = 'B3n1gn X';

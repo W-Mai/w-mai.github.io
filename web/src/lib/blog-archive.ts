@@ -3,6 +3,7 @@
  * Pure functions that operate on a posts array for easy testing and reuse.
  */
 import type { CollectionEntry } from 'astro:content';
+import { siteYear, siteMonth } from './date-utils';
 
 export interface MonthGroup {
 	month: number; // 1-12
@@ -22,8 +23,8 @@ export function getArchiveGroups(posts: CollectionEntry<'blog'>[]): YearGroup[] 
 	const map = new Map<number, Map<number, number>>();
 
 	for (const post of posts) {
-		const year = post.data.pubDate.getFullYear();
-		const month = post.data.pubDate.getMonth() + 1;
+		const year = siteYear(post.data.pubDate);
+		const month = siteMonth(post.data.pubDate);
 		if (!map.has(year)) map.set(year, new Map());
 		const monthMap = map.get(year)!;
 		monthMap.set(month, (monthMap.get(month) ?? 0) + 1);
@@ -48,7 +49,7 @@ export function getPostsByYearMonth(
 	month: number,
 ): CollectionEntry<'blog'>[] {
 	return posts
-		.filter((p) => p.data.pubDate.getFullYear() === year && p.data.pubDate.getMonth() + 1 === month)
+		.filter((p) => siteYear(p.data.pubDate) === year && siteMonth(p.data.pubDate) === month)
 		.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 }
 
@@ -63,8 +64,8 @@ export function getAllYearMonthPairs(
 	const pairs: Array<{ year: number; month: number }> = [];
 
 	for (const post of posts) {
-		const year = post.data.pubDate.getFullYear();
-		const month = post.data.pubDate.getMonth() + 1;
+		const year = siteYear(post.data.pubDate);
+		const month = siteMonth(post.data.pubDate);
 		const key = `${year}-${month}`;
 		if (!seen.has(key)) {
 			seen.add(key);

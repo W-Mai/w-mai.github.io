@@ -1,11 +1,12 @@
 ---
+import { siteYear } from '~/lib/date-utils'
 const today = new Date();
 import {SOCIALS} from '../consts';
 import BusuanziFooter from './BusuanziFooter.astro';
 ---
 
 <footer>
-	&copy; {today.getFullYear()} Benign X. All rights reserved.
+	&copy; {siteYear(today)} Benign X. All rights reserved.
 	<a href="/gamev1.8" class="game-link">🎮</a>
 	<div class="social-links">
         {

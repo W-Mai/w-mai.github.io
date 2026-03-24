@@ -10,6 +10,7 @@ import WithSidebar from '~/layouts/WithSidebar.astro';
 import { extractFirstBodyImage } from '~/lib/blog-hero';
 import { truncateTags } from '~/lib/blog-tags';
 import { estimateReadingTime, stripMarkdown, countWords } from '~/lib/reading-stats';
+import { siteYear, siteMonth } from '~/lib/date-utils';
 
 // Glob-import all co-located post images for body image fallback
 const assetImages = import.meta.glob<{ default: ImageMetadata }>(
@@ -61,8 +62,8 @@ const posts = (await getCollection('blog')).sort(
 			const readMin = estimateReadingTime(post.body ?? '');
 			const wc = countWords(stripMarkdown(post.body ?? '')).total;
 			const postHref = `/blog/${post.id}/`;
-			const year = post.data.pubDate.getFullYear();
-			const month = post.data.pubDate.getMonth() + 1;
+			const year = siteYear(post.data.pubDate);
+			const month = siteMonth(post.data.pubDate);
 			const desc = post.data.description ? stripMarkdown(post.data.description) : '';
 			return (
 				<div class:list={[

@@ -1,4 +1,6 @@
 ---
+import { siteYear, siteDay, siteMonthLong, siteWeekdayLong } from '~/lib/date-utils'
+
 interface Props {
   level: 'year' | 'month' | 'day'
   date: Date
@@ -7,10 +9,10 @@ interface Props {
 
 const { level, date, delay = 0 } = Astro.props
 
-const year = date.getFullYear()
-const month = date.toLocaleDateString('zh-CN', { month: 'long' })
-const day = date.getDate()
-const weekday = date.toLocaleDateString('zh-CN', { weekday: 'long' })
+const year = siteYear(date)
+const month = siteMonthLong(date)
+const day = siteDay(date)
+const weekday = siteWeekdayLong(date)
 
 const label =
   level === 'year' ? `${year}` :

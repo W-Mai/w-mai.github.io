@@ -1,5 +1,7 @@
 ---
 // GitHub-style yearly contribution heatmap — canvas-based for minimal DOM footprint
+import { siteYear } from '~/lib/date-utils'
+
 interface Props {
   /** Map of ISO date string (YYYY-MM-DD) to count */
   dateCounts: Record<string, number>
@@ -7,7 +9,7 @@ interface Props {
   year?: number
 }
 
-const { dateCounts, year = new Date().getFullYear() } = Astro.props
+const { dateCounts, year = siteYear(new Date()) } = Astro.props
 const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
 ---
 
