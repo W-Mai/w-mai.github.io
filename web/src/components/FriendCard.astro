@@ -2,6 +2,7 @@
 import { hasAvatar, getFallbackChar } from '~/lib/friend-links'
 
 interface Props {
+  id?: string
   name: string
   url: string
   avatar: string
@@ -9,12 +10,13 @@ interface Props {
   tags?: string[]
 }
 
-const { name, url, avatar, description, tags } = Astro.props
+const { id, name, url, avatar, description, tags } = Astro.props
 const showAvatar = hasAvatar(avatar)
 const fallbackChar = getFallbackChar(name)
 ---
 
 <a
+  id={id}
   href={url}
   target="_blank"
   rel="noopener noreferrer"

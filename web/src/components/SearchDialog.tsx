@@ -149,9 +149,9 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
         // Cross-page: navigate with hash, thoughts page will handle it on load
         window.location.assign(`/thoughts/#${anchorId}`);
       } else if (result.type === 'friend') {
-        window.location.assign('/friends/');
+        window.location.assign(`/friends/#friend-${result.slug}`);
       } else if (result.type === 'wish') {
-        window.location.assign('/wishes/');
+        window.location.assign(`/wishes/#wish-${result.slug}`);
       } else {
         window.location.assign(`/blog/${result.slug}`);
       }
@@ -351,9 +351,9 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
                     role="option"
                     aria-selected={i === activeIndex}
                     href={
-                      result.type === 'thought' ? '/thoughts/'
-                      : result.type === 'friend' ? '/friends/'
-                      : result.type === 'wish' ? '/wishes/'
+                      result.type === 'thought' ? `/thoughts/#thought-${result.slug}`
+                      : result.type === 'friend' ? `/friends/#friend-${result.slug}`
+                      : result.type === 'wish' ? `/wishes/#wish-${result.slug}`
                       : `/blog/${result.slug}`
                     }
                     onClick={(e) => {

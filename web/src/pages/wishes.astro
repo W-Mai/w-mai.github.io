@@ -77,3 +77,22 @@ const categories = [...new Set(wishes.map((w) => w.category))]
 
   document.addEventListener('astro:page-load', initWishPage);
 </script>
+
+<script>
+  function initWishHighlight() {
+    const hash = window.location.hash
+    if (hash && hash.startsWith('#wish-')) {
+      const target = document.getElementById(hash.slice(1))
+      if (target) {
+        requestAnimationFrame(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          target.classList.add('neu-highlight-pulse')
+          target.addEventListener('animationend', () => {
+            target.classList.remove('neu-highlight-pulse')
+          }, { once: true })
+        })
+      }
+    }
+  }
+  document.addEventListener('astro:page-load', initWishHighlight)
+</script>

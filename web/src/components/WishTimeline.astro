@@ -19,6 +19,7 @@ const categoryColors: Record<string, string> = {
 <div class="flex flex-col gap-4">
   {wishes.map((wish, i) => (
     <div
+      id={`wish-${wish.id}`}
       class:list={[
         'wish-item anim-fade',
         wish.status === 'done' ? 'neu-inset rounded-2xl' : 'neu-card rounded-2xl',
