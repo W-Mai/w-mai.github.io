@@ -135,24 +135,18 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
 
   const navigateToResult = useCallback(
     (result: SearchResult) => {
+      handleClose();
       if (result.type === 'thought') {
         const anchorId = `thought-${result.slug}`;
         const onThoughtsPage = window.location.pathname.replace(/\/$/, '') === '/thoughts';
         if (onThoughtsPage) {
-          handleClose();
-          window.location.hash = anchorId;
-          requestAnimationFrame(() => {
-            const target = document.getElementById(anchorId);
-            if (target) {
-              target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              target.classList.add('neu-highlight-pulse');
-              target.addEventListener('animationend', () => {
-                target.classList.remove('neu-highlight-pulse');
-              }, { once: true });
-            }
-          });
+          // Already on thoughts page — dispatch custom event to trigger load-all + scroll
+          window.dispatchEvent(
+            new CustomEvent('search:scroll-to-thought', { detail: { anchorId } })
+          );
           return;
         }
+        // Cross-page: navigate with hash, thoughts page will handle it on load
         window.location.assign(`/thoughts/#${anchorId}`);
       } else if (result.type === 'friend') {
         window.location.assign('/friends/');
@@ -161,7 +155,6 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
       } else {
         window.location.assign(`/blog/${result.slug}`);
       }
-      handleClose();
     },
     [handleClose]
   );

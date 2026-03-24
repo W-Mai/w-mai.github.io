@@ -240,30 +240,52 @@ for (const t of thoughts) {
 
     observer.observe(sentinel)
 
+    // Load all remaining chunks then scroll to a specific thought
+    async function loadAllAndScrollTo(anchorId: string) {
+      loading = true
+      try {
+        while (await loadChunk()) { /* keep loading */ }
+        if (sentinel) sentinel.textContent = ''
+        observer.disconnect()
+      } catch { /* ignore */ } finally {
+        loading = false
+      }
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const target = document.getElementById(anchorId)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          target.classList.add('neu-highlight-pulse')
+          target.addEventListener('animationend', () => {
+            target.classList.remove('neu-highlight-pulse')
+          }, { once: true })
+        }
+      }))
+    }
+
     // If URL has a thought anchor, load all chunks then scroll to target
     const hash = window.location.hash
     if (hash && hash.startsWith('#thought-')) {
-      ;(async () => {
-        loading = true
-        try {
-          while (await loadChunk()) { /* keep loading */ }
-          sentinel.textContent = ''
-          observer.disconnect()
-        } catch { /* ignore */ } finally {
-          loading = false
-        }
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          const target = document.getElementById(hash.slice(1))
-          if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-            target.classList.add('neu-highlight-pulse')
-            target.addEventListener('animationend', () => {
-              target.classList.remove('neu-highlight-pulse')
-            }, { once: true })
-          }
-        }))
-      })()
+      loadAllAndScrollTo(hash.slice(1))
     }
+
+    // Listen for search-triggered scroll requests (same-page navigation)
+    function onSearchScroll(e: Event) {
+      const { anchorId } = (e as CustomEvent).detail
+      if (anchorId) {
+        // If target already exists in DOM, scroll directly
+        const existing = document.getElementById(anchorId)
+        if (existing) {
+          existing.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          existing.classList.add('neu-highlight-pulse')
+          existing.addEventListener('animationend', () => {
+            existing.classList.remove('neu-highlight-pulse')
+          }, { once: true })
+        } else {
+          loadAllAndScrollTo(anchorId)
+        }
+      }
+    }
+    window.addEventListener('search:scroll-to-thought', onSearchScroll)
   }
 
   document.addEventListener('astro:page-load', initThoughtPage)
