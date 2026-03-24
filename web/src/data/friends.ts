@@ -1,8 +1,9 @@
 // Friend link data — loaded from YAML files in friends/ directory
 
-import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse } from 'yaml';
+import { friendSchema } from './schemas';
+import { loadYamlCollection } from './yaml-loader';
 
 export interface FriendLink {
   id: string;
@@ -15,18 +16,13 @@ export interface FriendLink {
 
 const friendsDir = resolve(process.cwd(), '..', 'friends');
 
-/** Parse a single YAML file into a FriendLink (without id) */
-function yamlToFriend(yaml: string): Omit<FriendLink, 'id'> | null {
+/** Parse raw YAML string into FriendLink data (without id) */
+function parseFriend(raw: string): Omit<FriendLink, 'id'> | null {
   try {
-    const data = parse(yaml);
-    if (!data || typeof data.name !== 'string') return null;
-    return {
-      name: data.name,
-      url: typeof data.url === 'string' ? data.url : '#',
-      avatar: typeof data.avatar === 'string' ? data.avatar : '',
-      description: typeof data.description === 'string' ? data.description : '',
-      tags: Array.isArray(data.tags) ? data.tags.filter((t: unknown) => typeof t === 'string') : undefined,
-    };
+    const data = parse(raw);
+    const result = friendSchema.safeParse(data);
+    if (!result.success) return null;
+    return result.data;
   } catch {
     return null;
   }
@@ -45,25 +41,14 @@ const PLACEHOLDER_COUNT = 7;
 
 /** Load all friends from YAML files, sorted by filename, with placeholder padding */
 export async function loadFriends(): Promise<FriendLink[]> {
-  let files: string[];
-  try {
-    files = (await readdir(friendsDir)).filter(f => f.endsWith('.yaml')).sort();
-  } catch {
-    return [];
-  }
+  const friends = await loadYamlCollection<FriendLink>({
+    dir: friendsDir,
+    parser: parseFriend,
+    label: 'friends',
+  });
 
-  const friends: FriendLink[] = [];
-  for (const file of files) {
-    try {
-      const raw = await readFile(resolve(friendsDir, file), 'utf-8');
-      const data = yamlToFriend(raw);
-      if (data) {
-        friends.push({ id: file.replace(/\.yaml$/, ''), ...data });
-      }
-    } catch {
-      console.warn(`[friends] Failed to read: ${file}`);
-    }
-  }
+  // Sort by id (filename) for stable ordering
+  friends.sort((a, b) => a.id.localeCompare(b.id));
 
   // Pad with placeholders to fill the grid
   const totalSlots = Math.max(PLACEHOLDER_COUNT, friends.length);

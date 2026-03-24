@@ -1,6 +1,8 @@
-import { readdir, readFile } from 'node:fs/promises';
+// Wish data — loaded from YAML files in wishes/ directory
+
 import { resolve } from 'node:path';
 import { yamlToWish } from '../lib/wish-utils';
+import { loadYamlCollection } from './yaml-loader';
 
 export type WishStatus = 'wish' | 'doing' | 'done';
 
@@ -16,31 +18,16 @@ export interface Wish {
 
 const wishesDir = resolve(process.cwd(), '..', 'wishes');
 
+const STATUS_ORDER: Record<WishStatus, number> = { doing: 0, wish: 1, done: 2 };
+
 /** Load all wishes from YAML files, sorted by status priority then createdAt desc */
 export async function loadWishes(): Promise<Wish[]> {
-  let files: string[];
-  try {
-    files = (await readdir(wishesDir)).filter((f) => f.endsWith('.yaml'));
-  } catch {
-    return [];
-  }
-
-  const wishes: Wish[] = [];
-  for (const file of files) {
-    try {
-      const raw = await readFile(resolve(wishesDir, file), 'utf-8');
-      const data = yamlToWish(raw);
-      if (data) {
-        wishes.push({ id: file.replace(/\.yaml$/, ''), ...data });
-      }
-    } catch {
-      console.warn(`[wishes] Failed to read: ${file}`);
-    }
-  }
-
-  const order: Record<WishStatus, number> = { doing: 0, wish: 1, done: 2 };
-  return wishes.sort((a, b) =>
-    order[a.status] - order[b.status]
-    || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  return loadYamlCollection<Wish>({
+    dir: wishesDir,
+    parser: yamlToWish,
+    sorter: (a, b) =>
+      STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+      || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    label: 'wishes',
+  });
 }

@@ -20,11 +20,14 @@ const { title, description, image } = Astro.props;
 // Blog posts use auto-generated OG images; other pages use provided image
 const slug = Astro.url.pathname.replace(/^\/blog\//, '').replace(/\/$/, '').replace(/^\//, '');
 const isBlogPost = Astro.url.pathname.startsWith('/blog/');
+const isThought = Astro.url.pathname.startsWith('/thoughts/');
 const ogImageUrl = isBlogPost
-	? new URL(`/og/${slug}.png`, Astro.site).toString()
-	: image
-		? new URL(image.src, Astro.url).toString()
-		: new URL(`/og/${slug || 'index'}.png`, Astro.site).toString();
+	? new URL(`/og/posts/${slug}.png`, Astro.site).toString()
+	: isThought
+		? new URL(`/og/thoughts/${slug.replace(/^thoughts\//, '')}.png`, Astro.site).toString()
+		: image
+			? new URL(image.src, Astro.url).toString()
+			: new URL(`/og/posts/${slug || 'index'}.png`, Astro.site).toString();
 ---
 
 <!-- Global Metadata -->
