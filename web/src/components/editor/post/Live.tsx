@@ -474,22 +474,22 @@ const LiveEditor: FC = () => {
         }).catch(() => {});
         break;
       case 'insert-image':
-        import('@editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.image(view); view.focus(); });
+        import('~/lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.image(view); view.focus(); });
         break;
       case 'insert-link':
-        import('@editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.link(view); view.focus(); });
+        import('~/lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.link(view); view.focus(); });
         break;
       case 'insert-code-block':
-        import('@editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS['code-block'](view); view.focus(); });
+        import('~/lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS['code-block'](view); view.focus(); });
         break;
       case 'insert-table':
-        import('@editor/formatting').then(({ insertBlock }) => {
+        import('~/lib/editor/formatting').then(({ insertBlock }) => {
           insertBlock(view, '| Header | Header |\n| ------ | ------ |\n| Cell   | Cell   |');
           view.focus();
         });
         break;
       case 'insert-frontmatter':
-        import('@editor/formatting').then(({ insertBlock }) => {
+        import('~/lib/editor/formatting').then(({ insertBlock }) => {
           insertBlock(view, '---\ntitle: ""\ndescription: ""\npubDate: ""\nheroImage: ""\n---');
           view.focus();
         });
