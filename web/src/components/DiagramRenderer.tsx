@@ -17,7 +17,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import type { ArchitectureData, ArchLayerDef } from '~/data/architecture';
-import { getConnectedNodes, isEditorOnly, isNavigable, LAYOUT } from '~/lib/editor/diagram-layout';
+import { getConnectedNodes, isEditorOnly, isNavigable, LAYOUT } from '~/lib/editor/diagram';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                             */

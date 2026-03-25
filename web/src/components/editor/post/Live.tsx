@@ -17,7 +17,7 @@ import StickerPicker from './StickerPicker';
 import EnvConfigPanel from './EnvConfigPanel';
 import PostImageManager from './panels/ImageManager';
 import WechatExportModal from './WechatExportModal';
-import { setFrontmatterSlug } from '../../../lib/editor/frontmatter-extension';
+import { setFrontmatterSlug } from '../../../lib/editor/frontmatter-ext';
 
 interface PostInfo {
   slug: string;

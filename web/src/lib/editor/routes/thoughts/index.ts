@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { yamlToThought, thoughtToYaml, generateThoughtId, validateThought } from '../../thought-utils';
+import { yamlToThought, thoughtToYaml, generateThoughtId, validateThought } from '../../../thought';
 
 export const prerender = false;
 

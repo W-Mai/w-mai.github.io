@@ -1,7 +1,7 @@
 // Wish data — loaded from YAML files in wishes/ directory
 
 import { resolve } from 'node:path';
-import { yamlToWish } from '../lib/wish-utils';
+import { yamlToWish } from '../lib/wish';
 import { loadYamlCollection } from './yaml-loader';
 
 export type WishStatus = 'wish' | 'doing' | 'done';

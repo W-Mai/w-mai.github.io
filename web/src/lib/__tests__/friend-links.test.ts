@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { hasAvatar, getFallbackChar } from '../friend-links';
+import { hasAvatar, getFallbackChar } from '../friend';
 
 /**
  * Property 2: Fallback avatar uses first character of name

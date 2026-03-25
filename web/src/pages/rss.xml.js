@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 import rss from '@astrojs/rss';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { loadThoughts } from '../data/thoughts';
-import { INLINE_STICKER_RE, BLOCK_STICKER_RE } from '../lib/sticker-utils';
+import { INLINE_STICKER_RE, BLOCK_STICKER_RE } from '../lib/sticker';
 
 /** Strip sticker syntax from text for RSS output */
 function stripStickers(text) {

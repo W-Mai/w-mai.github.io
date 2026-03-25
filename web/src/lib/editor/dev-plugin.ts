@@ -52,95 +52,95 @@ export default function editorDevIntegration(): AstroIntegration {
         // Inject editor API routes and page only in dev mode
         injectRoute({
           pattern: '/admin/live-editor',
-          entrypoint: './src/lib/editor-routes/live-editor.astro',
+          entrypoint: './src/lib/editor/routes/live-editor.astro',
         });
         injectRoute({
           pattern: '/api/editor/posts',
-          entrypoint: './src/lib/editor-routes/posts/index.ts',
+          entrypoint: './src/lib/editor/routes/posts/index.ts',
         });
         injectRoute({
           pattern: '/api/editor/posts/[slug]',
-          entrypoint: './src/lib/editor-routes/posts/[slug].ts',
+          entrypoint: './src/lib/editor/routes/posts/[slug].ts',
         });
         injectRoute({
           pattern: '/api/editor/assets',
-          entrypoint: './src/lib/editor-routes/assets/index.ts',
+          entrypoint: './src/lib/editor/routes/assets/index.ts',
         });
         injectRoute({
           pattern: '/api/editor/assets/[name]',
-          entrypoint: './src/lib/editor-routes/assets/[name].ts',
+          entrypoint: './src/lib/editor/routes/assets/[name].ts',
         });
         injectRoute({
           pattern: '/api/editor/ai',
-          entrypoint: './src/lib/editor-routes/ai/index.ts',
+          entrypoint: './src/lib/editor/routes/ai/index.ts',
         });
         injectRoute({
           pattern: '/api/editor/posts/[slug]/rename',
-          entrypoint: './src/lib/editor-routes/posts/[slug]/rename.ts',
+          entrypoint: './src/lib/editor/routes/posts/[slug]/rename.ts',
         });
         injectRoute({
           pattern: '/api/editor/posts/[slug]/images',
-          entrypoint: './src/lib/editor-routes/posts/[slug]/images.ts',
+          entrypoint: './src/lib/editor/routes/posts/[slug]/images.ts',
         });
         injectRoute({
           pattern: '/api/editor/posts/[slug]/images/[name]',
-          entrypoint: './src/lib/editor-routes/posts/[slug]/images/[name].ts',
+          entrypoint: './src/lib/editor/routes/posts/[slug]/images/[name].ts',
         });
         injectRoute({
           pattern: '/api/editor/env',
-          entrypoint: './src/lib/editor-routes/env/index.ts',
+          entrypoint: './src/lib/editor/routes/env/index.ts',
         });
         injectRoute({
           pattern: '/api/editor/git',
-          entrypoint: './src/lib/editor-routes/posts/git.ts',
+          entrypoint: './src/lib/editor/routes/posts/git.ts',
         });
         injectRoute({
           pattern: '/api/editor/stickers',
-          entrypoint: './src/lib/editor-routes/stickers/index.ts',
+          entrypoint: './src/lib/editor/routes/stickers/index.ts',
         });
         injectRoute({
           pattern: '/api/editor/stickers/meta',
-          entrypoint: './src/lib/editor-routes/stickers/meta.ts',
+          entrypoint: './src/lib/editor/routes/stickers/meta.ts',
         });
         injectRoute({
           pattern: '/api/editor/stickers/recognize',
-          entrypoint: './src/lib/editor-routes/stickers/recognize.ts',
+          entrypoint: './src/lib/editor/routes/stickers/recognize.ts',
         });
         injectRoute({
           pattern: '/api/editor/stickers/[name]',
-          entrypoint: './src/lib/editor-routes/stickers/[name].ts',
+          entrypoint: './src/lib/editor/routes/stickers/[name].ts',
         });
         injectRoute({
           pattern: '/api/editor/thoughts',
-          entrypoint: './src/lib/editor-routes/thoughts/index.ts',
+          entrypoint: './src/lib/editor/routes/thoughts/index.ts',
         });
         injectRoute({
           pattern: '/api/editor/thoughts-git',
-          entrypoint: './src/lib/editor-routes/thoughts/git.ts',
+          entrypoint: './src/lib/editor/routes/thoughts/git.ts',
         });
         injectRoute({
           pattern: '/api/editor/suggest-thought-tags',
-          entrypoint: './src/lib/editor-routes/thoughts/suggest-tags.ts',
+          entrypoint: './src/lib/editor/routes/thoughts/suggest-tags.ts',
         });
         injectRoute({
           pattern: '/api/editor/thoughts-preview',
-          entrypoint: './src/lib/editor-routes/thoughts/preview.ts',
+          entrypoint: './src/lib/editor/routes/thoughts/preview.ts',
         });
         injectRoute({
           pattern: '/api/editor/thoughts/[id]',
-          entrypoint: './src/lib/editor-routes/thoughts/[id].ts',
+          entrypoint: './src/lib/editor/routes/thoughts/[id].ts',
         });
         injectRoute({
           pattern: '/api/editor/wechat-export',
-          entrypoint: './src/lib/editor-routes/wechat-export.ts',
+          entrypoint: './src/lib/editor/routes/wechat-export.ts',
         });
         injectRoute({
           pattern: '/api/editor/categories',
-          entrypoint: './src/lib/editor-routes/categories.ts',
+          entrypoint: './src/lib/editor/routes/categories.ts',
         });
         injectRoute({
           pattern: '/api/editor/diagram-layout',
-          entrypoint: './src/lib/editor-routes/diagram/layout.ts',
+          entrypoint: './src/lib/editor/routes/diagram/layout.ts',
         });
 
         updateConfig({

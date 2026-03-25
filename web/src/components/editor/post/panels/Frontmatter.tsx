@@ -3,7 +3,7 @@ import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
 import TagChipEditor from './TagChipEditor';
 import DateTimePicker from './DateTime';
 import CategoryPicker from './Category';
-import type { FrontmatterData } from '../../../lib/editor/frontmatter-utils';
+import type { FrontmatterData } from '../../../lib/editor/frontmatter';
 
 interface FrontmatterPanelProps {
   slug?: string;

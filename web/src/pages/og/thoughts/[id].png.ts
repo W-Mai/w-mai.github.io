@@ -8,7 +8,7 @@ import { loadThoughts } from '~/data/thoughts';
 import {
   BLOCK_STICKER_RE, INLINE_STICKER_RE,
   loadSticker, imageDimensions, fitSize,
-} from '~/lib/sticker-utils';
+} from '~/lib/sticker';
 
 const fontPath = resolve(process.cwd(), 'public/fonts/ark-pixel-12px-monospaced-zh_cn.ttf');
 const fontData = readFileSync(fontPath);

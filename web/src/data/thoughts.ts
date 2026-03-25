@@ -1,7 +1,7 @@
 // Thought data definitions — short-form timeline entries
 
 import { resolve } from 'node:path';
-import { yamlToThought } from '../lib/thought-utils';
+import { yamlToThought } from '../lib/thought';
 import { loadYamlCollection } from './yaml-loader';
 
 export interface Thought {

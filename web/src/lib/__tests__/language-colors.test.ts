@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
-import { LANGUAGE_COLORS, getLanguageColor } from '../editor/language-colors'
+import { LANGUAGE_COLORS, getLanguageColor } from '../editor/lang-colors'
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{3,8}$/
 const DEFAULT_COLOR = '#8b8b8b'

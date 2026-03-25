@@ -7,7 +7,7 @@ import { visit } from 'unist-util-visit';
 import type { Root, Element, Text } from 'hast';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { readFileAsBase64DataUri, STICKERS_DIR } from './sticker-utils';
+import { readFileAsBase64DataUri, STICKERS_DIR } from '../sticker';
 
 // web/src/lib/ → project root (three levels up from web/)
 const PROJECT_ROOT = resolve(STICKERS_DIR, '..', '..');

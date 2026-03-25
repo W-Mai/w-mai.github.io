@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
-import { getLanguageColor } from '../../lib/editor/language-colors'
+import { getLanguageColor } from '../../lib/editor/lang-colors'
 
 /**
  * Pure rendering helper that mimics ProjectCard.astro's HTML output.

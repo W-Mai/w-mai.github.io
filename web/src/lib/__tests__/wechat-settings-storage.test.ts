@@ -19,7 +19,7 @@ import {
   FONT_FAMILY_OPTIONS,
   FONT_SIZE_OPTIONS,
   type PersistedSettings,
-} from '../editor/wechat-templates';
+} from '../editor/wechat-tpl';
 
 beforeEach(() => {
   store.clear();

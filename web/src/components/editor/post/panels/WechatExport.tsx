@@ -8,7 +8,7 @@ import {
   getTemplateBaseFontSize, toStyleOverrides,
   loadSettings, saveSettings, clearSettings,
   type StyleOverrides, type PersistedSettings,
-} from '../../../lib/editor/wechat-templates';
+} from '../../../lib/editor/wechat-tpl';
 
 const STORAGE_KEY = 'editor:wechatTemplateId';
 

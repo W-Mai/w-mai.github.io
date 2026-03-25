@@ -11,7 +11,7 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import { editorKeymap } from '../../../lib/editor/shortcuts';
 import { detectActiveFormats } from '../../../lib/editor/formatting';
 import { editorAutocomplete } from '../../../lib/editor/autocomplete';
-import { frontmatterExtension } from '../../../lib/editor/frontmatter-extension';
+import { frontmatterExtension } from '../../../lib/editor/frontmatter-ext';
 
 export interface MdxEditorHandle {
   getView: () => EditorView | null;

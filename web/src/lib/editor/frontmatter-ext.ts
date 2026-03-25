@@ -16,7 +16,7 @@ import {
   type FrontmatterData,
   type FrontmatterRange,
   type ParseResult,
-} from './frontmatter-utils';
+} from './frontmatter';
 import FrontmatterPanel from '../components/editor/post/FrontmatterPanel';
 import { EDITOR_TOKENS as T } from '../../components/editor/shared/editor-tokens';
 import { CATEGORIES } from '../../data/categories';
