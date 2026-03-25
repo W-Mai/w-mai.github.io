@@ -38,9 +38,10 @@ export function generateThoughtId(createdAt: string): string {
   return `${Date.now()}`;
 }
 
-/** Validate raw input for creating/updating a thought */
+/** Validate raw input for creating/updating a thought (createdAt is server-generated) */
 export function validateThought(data: unknown): { valid: boolean; error?: string } {
-  const result = thoughtSchema.safeParse(data);
+  const inputSchema = thoughtSchema.omit({ createdAt: true });
+  const result = inputSchema.safeParse(data);
   if (!result.success) return { valid: false, error: result.error.issues[0]?.message ?? 'Invalid data' };
   return { valid: true };
 }
