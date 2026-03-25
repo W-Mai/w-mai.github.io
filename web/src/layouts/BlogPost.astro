@@ -13,7 +13,7 @@ import ShareCard from '~/components/shared/ShareCard';
 import Sidebar from '~/components/layout/Sidebar.astro';
 import TagChip from '~/components/blog/TagChip.astro';
 import type { SeriesData } from '~/lib/blog/series';
-import { AVATAR_URL } from '~/consts';
+import { AVATAR_URL, NICK_NAME, SITE_URL } from '~/consts';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	bodyHeroImage?: ImageMetadata | null;
@@ -41,6 +41,19 @@ if (hasSidebar) {
 <html lang="en">
 	<head>
 		<BaseHead title={title} description={description} />
+		<script type="application/ld+json" set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "BlogPosting",
+			"headline": title,
+			"description": description,
+			"image": `${SITE_URL}/og/posts/${postId}.png`,
+			"datePublished": pubDate.toISOString(),
+			...(updatedDate ? { "dateModified": updatedDate.toISOString() } : {}),
+			"author": { "@type": "Person", "name": NICK_NAME, "url": `${SITE_URL}/about` },
+			"publisher": { "@type": "Person", "name": NICK_NAME },
+			"mainEntityOfPage": { "@type": "WebPage", "@id": `${SITE_URL}/blog/${postId}/` },
+			...(tags.length > 0 ? { "keywords": tags.join(', ') } : {}),
+		})} />
 		<script is:inline>
 			// Embed mode: hide chrome and restore scroll position
 			if (new URLSearchParams(window.location.search).has('embed')) {
