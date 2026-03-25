@@ -148,6 +148,9 @@ html.dark .prose code       { background-color: var(--bg-code); }
 
 /* Prose table — thead keeps prose defaults, tbody gets neumorphism inset */
 .prose table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-collapse: separate;
   border-spacing: 0;
   border: none;

@@ -70,7 +70,7 @@ const recentPosts = allPosts.slice(0, 4)
           <a href="/blog" class="text-sm font-normal text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">瞅瞅 →</a>
           <span class="neu-section-divider"></span>
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {recentPosts.map((post) => (
             <RecentPostCard
               id={post.id}
@@ -90,7 +90,7 @@ const recentPosts = allPosts.slice(0, 4)
             <span class="neu-section-divider"></span>
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-12">
             {featured.map((project) => (
                 <FeaturedProjectCard
                     name={project.name}
@@ -113,7 +113,7 @@ const recentPosts = allPosts.slice(0, 4)
             <span class="neu-section-divider"></span>
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
             {repos.map((repo) => (
                 <ProjectCard
                     name={repo.name}

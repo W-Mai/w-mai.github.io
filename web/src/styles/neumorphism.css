@@ -571,6 +571,12 @@ button.neu-tag-chip.active {
       inset 1px 1px 2px var(--neu-shadow-dark-strong),
       inset -1px -1px 2px var(--neu-shadow-light-strong);
   }
+  .timeline-item {
+    padding-left: 1.25rem;
+  }
+  .timeline-separator {
+    padding-left: 1.25rem;
+  }
 }
 
 /* ---- Mood selector (neumorphism capsule) ---- */
