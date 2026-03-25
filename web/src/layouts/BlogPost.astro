@@ -9,6 +9,7 @@ import FormattedDate from '../components/shared/FormattedDate.astro';
 import Giscus from '../components/shared/Giscus.astro';
 import Header from '../components/layout/Header.astro';
 import SeriesNav from '../components/blog/SeriesNav.astro';
+import ShareCard from '../components/shared/ShareCard';
 import Sidebar from '../components/layout/Sidebar.astro';
 import TagChip from '../components/blog/TagChip.astro';
 import type { SeriesData } from '../lib/blog/series';
@@ -24,6 +25,8 @@ type Props = CollectionEntry<'blog'>['data'] & {
 const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, readingTime, wordCount, tags = [], category, seriesData, postId } = Astro.props;
 
 const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
+const ogImageUrl = `/og/posts/${postId}.png`;
+const pageFullUrl = `${import.meta.env.SITE ?? 'https://benign.host'}/blog/${postId}/`;
 
 // Pre-render sidebar slot if provided by the page
 const hasSidebar = Astro.slots.has('sidebar');
@@ -159,6 +162,9 @@ if (hasSidebar) {
 								<span>✏️</span>
 								<span>编辑</span>
 							</a>
+						)}
+						{postId && (
+							<ShareCard client:idle ogUrl={ogImageUrl} pageUrl={pageFullUrl} title={title} />
 						)}
 					</div>
 				</div>
