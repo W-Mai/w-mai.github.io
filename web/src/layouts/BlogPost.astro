@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/layout/BaseHead.astro';
 import BlogHeroFallback from '../components/blog/BlogHeroFallback.astro';
@@ -13,6 +13,7 @@ import ShareCard from '../components/shared/ShareCard';
 import Sidebar from '../components/layout/Sidebar.astro';
 import TagChip from '../components/blog/TagChip.astro';
 import type { SeriesData } from '../lib/blog/series';
+import { AVATAR_URL } from '../consts';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	bodyHeroImage?: ImageMetadata | null;
@@ -27,6 +28,7 @@ const { title, description, pubDate, updatedDate, heroImage, bodyHeroImage, read
 const isEditorMode = import.meta.env.DEV && import.meta.env.EDITOR_MODE;
 const ogImageUrl = `/og/posts/${postId}.png`;
 const pageFullUrl = `${import.meta.env.SITE ?? 'https://benign.host'}/blog/${postId}/`;
+const avatarImg = await getImage({ src: AVATAR_URL, width: 64, height: 64 });
 
 // Pre-render sidebar slot if provided by the page
 const hasSidebar = Astro.slots.has('sidebar');
@@ -164,7 +166,7 @@ if (hasSidebar) {
 							</a>
 						)}
 						{postId && (
-							<ShareCard client:idle ogUrl={ogImageUrl} pageUrl={pageFullUrl} title={title} />
+							<ShareCard client:idle ogUrl={ogImageUrl} pageUrl={pageFullUrl} title={title} avatarUrl={avatarImg.src} />
 						)}
 					</div>
 				</div>

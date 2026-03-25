@@ -7,6 +7,7 @@ export const SITE_TZ_OFFSET = 8;
 
 export const USER_NAME = 'W-Mai';
 export const NICK_NAME = 'B3n1gn X';
+export const AVATAR_URL = `https://avatars.githubusercontent.com/${USER_NAME}`;
 export const SITE_TITLE = 'B3n1gn X';
 export const SITE_DESCRIPTION = 'B3n1gn X | Personal Website';
 export const SITE_URL = 'https://benign.host';

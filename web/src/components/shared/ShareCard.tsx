@@ -11,6 +11,7 @@ interface ShareCardProps {
   ogUrl: string;
   pageUrl: string;
   title: string;
+  avatarUrl?: string;
 }
 
 const CARD_W = 1200;
@@ -22,6 +23,7 @@ async function generateCard(
   ogUrl: string,
   pageUrl: string,
   title: string,
+  avatarUrl?: string,
 ): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas');
   canvas.width = CARD_W;
@@ -40,6 +42,7 @@ async function generateCard(
   const qrDataUrl = await QRCode.toDataURL(pageUrl, {
     width: QR_SIZE * 2,
     margin: 1,
+    errorCorrectionLevel: 'H',
     color: { dark: '#1a1e23', light: '#ffffff' },
   });
   const qrImg = await loadImage(qrDataUrl);
@@ -51,6 +54,28 @@ async function generateCard(
   roundRect(ctx, qrX - 6, qrY - 6, QR_SIZE + 12, QR_SIZE + 12, 8);
   ctx.fill();
   ctx.drawImage(qrImg, qrX, qrY, QR_SIZE, QR_SIZE);
+
+  // Avatar in QR center
+  if (avatarUrl) {
+    try {
+      const avatar = await loadImage(avatarUrl);
+      const avatarSize = Math.round(QR_SIZE * 0.28);
+      const ax = qrX + (QR_SIZE - avatarSize) / 2;
+      const ay = qrY + (QR_SIZE - avatarSize) / 2;
+      // White circle background
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(ax + avatarSize / 2, ay + avatarSize / 2, avatarSize / 2 + 3, 0, Math.PI * 2);
+      ctx.fill();
+      // Clip avatar to circle
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(ax + avatarSize / 2, ay + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(avatar, ax, ay, avatarSize, avatarSize);
+      ctx.restore();
+    } catch { /* avatar load failed — QR still works */ }
+  }
 
   // Draw title text (truncated)
   ctx.fillStyle = 'rgba(241, 245, 249, 0.9)';
@@ -97,7 +122,7 @@ function roundRect(
   ctx.closePath();
 }
 
-const ShareCard: FC<ShareCardProps> = ({ ogUrl, pageUrl, title }) => {
+const ShareCard: FC<ShareCardProps> = ({ ogUrl, pageUrl, title, avatarUrl }) => {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -120,7 +145,7 @@ const ShareCard: FC<ShareCardProps> = ({ ogUrl, pageUrl, title }) => {
     setOpen(true);
     setGenerating(true);
     try {
-      const canvas = await generateCard(ogUrl, pageUrl, title);
+      const canvas = await generateCard(ogUrl, pageUrl, title, avatarUrl);
       canvasRef.current = canvas;
       setPreviewUrl(canvas.toDataURL('image/png'));
     } catch (e) {
@@ -128,7 +153,7 @@ const ShareCard: FC<ShareCardProps> = ({ ogUrl, pageUrl, title }) => {
     } finally {
       setGenerating(false);
     }
-  }, [ogUrl, pageUrl, title]);
+  }, [ogUrl, pageUrl, title, avatarUrl]);
 
   const handleCopy = useCallback(async () => {
     const canvas = canvasRef.current;
