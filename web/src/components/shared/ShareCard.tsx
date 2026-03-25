@@ -33,8 +33,8 @@ async function generateCard(
   inner.height = CARD_H;
   const ctx = inner.getContext('2d')!;
 
-  // Load OG image first
-  const ogImg = await loadImage(ogUrl);
+  // Load OG image (bust browser cache with timestamp)
+  const ogImg = await loadImage(`${ogUrl}?t=${Date.now()}`);
 
   // Extract dominant color for themed shadow
   const sampleCanvas = document.createElement('canvas');
