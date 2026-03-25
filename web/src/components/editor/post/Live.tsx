@@ -1,22 +1,22 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
-import AssetPanel from './AssetPanel';
+import AssetPanel from './panels/Asset';
 import StickerPanel from '../shared/StickerPanel';
 import PostList from './PostList';
 import MdxEditor, { type MdxEditorHandle } from './Mdx';
-import PreviewPanel from './PreviewPanel';
+import PreviewPanel from './panels/Preview';
 import Toolbar from './Toolbar';
 import ContextMenu from './panels/Context';
 import CreatePostModal from './panels/CreatePost';
-import ShortcutPanel from './ShortcutPanel';
+import ShortcutPanel from './panels/Shortcut';
 import AIDiffPanel from './panels/AIDiff';
-import GitCommitModal from './GitCommitModal';
+import GitCommitModal from './panels/GitCommit';
 import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
 import { persistEditorState, restoreEditorState } from '../../../lib/editor/utils';
 import { setStickerPickerCallback } from '../../../lib/editor/autocomplete';
-import StickerPicker from './StickerPicker';
-import EnvConfigPanel from './EnvConfigPanel';
+import StickerPicker from '../shared/StickerPicker';
+import EnvConfigPanel from './panels/EnvConfig';
 import PostImageManager from './panels/ImageManager';
-import WechatExportModal from './WechatExportModal';
+import WechatExportModal from './panels/WechatExport';
 import { setFrontmatterSlug } from '../../../lib/editor/frontmatter-ext';
 
 interface PostInfo {

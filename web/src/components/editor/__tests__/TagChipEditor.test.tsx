@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import TagChipEditor from '../post/panels/TagChipEditor';
+import TagChipEditor from '../post/panels/TagChip';
 
 describe('TagChipEditor', () => {
   const defaultTags = ['react', 'typescript', 'vitest'];

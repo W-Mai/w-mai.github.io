@@ -1,6 +1,6 @@
 import { keymap, type Extension } from '@codemirror/view';
 import { indentMore, indentLess } from '@codemirror/commands';
-import { FORMAT_ACTIONS, toggleComment } from './editor-formatting';
+import { FORMAT_ACTIONS, toggleComment } from './formatting';
 
 export interface ShortcutDef {
   key: string;

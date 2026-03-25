@@ -1,6 +1,6 @@
 import html2canvas from 'html2canvas';
 import { useEffect, useRef, useState, type FC } from 'react';
-import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
+import { EDITOR_TOKENS as T } from '../../shared/editor-tokens';
 
 interface PreviewPanelProps {
   slug: string | null;
