@@ -1,29 +1,23 @@
-# 个人博客 · 使用指南
+# B3n1gn X · 个人博客
 
-基于 [Astro](https://astro.build) 构建的静态个人博客，集成 GitHub 项目展示、MDX 文章、Mermaid 图表、内置在线编辑器等功能。
+基于 [Astro](https://astro.build) 构建的静态个人博客，新拟态（Neumorphism）设计风格，集成 GitHub 项目展示、MDX 文章、想法碎碎念、分享卡片、在线编辑器等功能。
+
+**在线访问：** [benign.host](https://benign.host)
 
 ---
 
 ## 快速开始
 
-**依赖要求：** [Bun](https://bun.sh) >= 1.0.0（本项目只支持 bun，不支持 npm/yarn/pnpm）
+**依赖要求：** [Bun](https://bun.sh) >= 1.0.0（本项目只支持 bun）
 
 ```bash
-# 安装依赖
 cd web
 bun install
-
-# 启动开发服务器
-bun run dev
-
-# 启动开发服务器（带在线编辑器，导航栏会出现 ✏️ 编辑器入口）
-bun run dev:editor
-
-# 构建生产版本
-bun run build
-
-# 预览构建结果
-bun run preview
+bun run dev          # 开发服务器
+bun run dev:editor   # 带在线编辑器的开发服务器
+bun run build        # 生产构建
+bun run preview      # 预览构建结果
+bun run quality      # 运行质量检查（token/contrast/aria/import/hardcoded 等）
 ```
 
 ---
@@ -32,200 +26,140 @@ bun run preview
 
 | 路由 | 说明 |
 |------|------|
-| `/` | 首页，展示 GitHub 个人资料、置顶项目卡片、最新开源项目列表 |
-| `/blog` | 博客文章列表 |
-| `/blog/[slug]` | 文章详情页 |
-| `/about` | 关于页面，展示个人信息和 GitHub 活动日历 |
-| `/projects` | 项目页面，展示所有 GitHub 仓库 |
-| `/gamev1.8` | 猜数字小游戏 |
-| `/rss.xml` | RSS 订阅 |
-| `/admin/live-editor` | 在线编辑器（仅 `dev:editor` 模式可见） |
-
-导航栏中「瞅瞅」下拉菜单包含小游戏和 RSS 入口。
-
----
-
-## 在线编辑器
-
-项目内置了一个浏览器端的 MDX 在线编辑器，仅在开发模式下可用。通过 Astro 的 `injectRoute` 在 dev 模式动态注入路由，不会影响生产构建。
-
-### 启动方式
-
-```bash
-bun run dev:editor
-```
-
-启动后导航栏会出现「✏️ 编辑器」链接，点击进入 `/admin/live-editor`。
-
-### 编辑器功能
-
-- **文章管理**：创建、编辑、删除文章，侧边栏支持文件名/文章标题切换显示，搜索过滤
-- **实时预览**：左侧 CodeMirror 编辑 MDX，右侧 iframe 实时预览渲染效果，滚动同步
-- **资源管理**：侧边栏 Assets 标签页，上传/删除图片资源，查看引用计数，点击缩略图放大预览
-- **智能创建**：输入标题自动生成 slug（中文通过 pinyin-pro 转拼音），可选 AI 生成 slug
-- **资源命名**：上传图片时弹出命名对话框，自动规范化文件名，支持 AI 建议
-- **Git 提交**：顶栏 Commit 按钮，批量提交待提交文章，每篇可编辑 commit message，支持 AI 生成提交说明
-- **格式化工具栏**：加粗、斜体、标题、链接、图片、代码块等快捷操作
-- **右键菜单**：剪切/复制/粘贴、插入元素、AI 文本操作（润色/翻译/续写/精简）
-- **AI Diff 面板**：选中文本后通过右键菜单触发 AI 操作，流式显示建议文本，可接受或拒绝
-- **快捷键**：`Cmd+S` 保存，`Cmd+B` 加粗，`Cmd+I` 斜体，`Cmd+/` 快捷键面板等
-- **自动保存**：编辑后 2 秒自动保存
-- **响应式**：窄屏自动折叠侧边栏
-
-### 编辑器 API 路由（仅 dev 模式）
-
-| 路由 | 方法 | 说明 |
-|------|------|------|
-| `/api/editor/posts` | GET | 文章列表（`?detail` 返回标题） |
-| `/api/editor/posts/[slug]` | GET/POST/PUT/DELETE | 文章 CRUD |
-| `/api/editor/posts/[slug]/rename` | POST | 文章重命名 |
-| `/api/editor/assets` | GET | 资源列表 |
-| `/api/editor/assets/[name]` | GET/POST/DELETE | 资源读取/上传/删除 |
-| `/api/editor/ai` | POST | AI 操作（polish/translate/continue/condense/suggest-slugs/suggest-asset-name/suggest-commit-msg） |
-| `/api/editor/git` | GET/POST | 待提交列表 / 执行提交 |
-
-### AI 功能配置
-
-编辑器的 AI 功能需要配置 OpenAI 兼容的 API：
-
-```bash
-# 在 web/.env 中配置
-OPENAI_API_BASE=https://api.openai.com/v1    # API 地址
-OPENAI_API_KEY=sk-xxx                         # API Key
-OPENAI_MODEL=gpt-4o                           # 模型名称
-```
-
-未配置时 AI 按钮自动隐藏，不影响其他功能。
+| `/` | 首页 — GitHub 资料、置顶项目、近期文章、近期想法 |
+| `/blog` | 博客文章列表（支持分类/标签/系列/归档筛选） |
+| `/blog/[slug]` | 文章详情页（带分享卡片、阅读进度条） |
+| `/thoughts` | 想法列表（懒加载、标签筛选、热力图） |
+| `/thoughts/[id]` | 想法详情页（带分享卡片） |
+| `/about` | 关于页面 — 个人信息、GitHub 活动日历、技能树、统计面板 |
+| `/stats` | 博客统计 |
+| `/friends` | 友链 |
+| `/wishes` | 心愿清单 |
+| `/projects` | 开源项目展示 |
+| `/architecture` | 架构图 |
+| `/rss.xml` | RSS 订阅（含文章 + 想法） |
+| `/admin/live-editor` | 在线编辑器（仅 `dev:editor` 模式） |
 
 ---
 
-## 个人信息配置
+## 站点配置
 
-编辑 `web/src/consts.ts`：
+编辑 `web/src/consts.ts`，所有站点信息集中在这里：
 
 ```ts
 export const USER_NAME = 'your-github-username';
 export const NICK_NAME = '你的昵称';
 export const SITE_TITLE = '网站标题';
 export const SITE_DESCRIPTION = '网站描述';
-
-// 首页置顶展示的 GitHub 项目，格式：'owner/repo' 或 'repo'（默认用 USER_NAME）
-export const PINNED_PROJECTS = [
-    'your-repo-1',
-    'your-repo-2',
-];
-
-// 社交链接（显示在导航栏右侧和首页/项目页侧边栏）
-export const SOCIALS = [
-    { name: 'GitHub', url: 'https://github.com/xxx', description: 'GitHub Homepage', icon: '/social/github.svg' },
-];
+export const SITE_URL = 'https://your-domain.com';
+export const SITE_LANG = 'zh-CN';
+export const NICK_ALIASES = ['别名1', '别名2'];  // SEO 名称变体
+export const PINNED_PROJECTS = ['repo1', 'repo2'];
+export const SOCIALS = [/* ... */];
+// Giscus、GA4 等配置也在这里
 ```
+
+路径别名：`~/` → `web/src/`，`@assets/` → `assets/`
 
 ---
 
 ## 写文章
 
-文章放在根目录 `posts/<slug>/index.mdx` 下，每篇文章一个目录，图片等资源放在同目录下。全局共享图片放在 `assets/images/`。
-
-**文章 frontmatter：**
+文章放在 `posts/<slug>/index.mdx`，每篇一个目录，图片放同目录下。
 
 ```yaml
 ---
 title: '文章标题'
 description: '文章描述'
 pubDate: 'Jan 1 2025'
-updatedDate: 'Feb 1 2025'          # 可选，更新日期
-heroImage: './your-image.png'       # 可选封面图，相对于文章目录
+updatedDate: 'Feb 1 2025'       # 可选
+heroImage: './your-image.png'    # 可选封面图
+tags: ['tag1', 'tag2']
+category: '分类'
+series: 'series-slug'            # 可选系列
+seriesOrder: 1                   # 可选系列排序
 ---
 ```
 
-### 题图 Fallback
-
-如果文章没有设置 `heroImage`，系统会自动处理：
-
-1. 从文章正文中提取第一张本地图片（`./assets/xxx`）作为题图
-2. 如果文章中也没有图片，根据标题自动生成渐变色题图（带 emoji 和标题文字）
-
-博客列表页和文章详情页均适用此逻辑，所有文章都会有题图展示。
-
-### 在 MDX 中使用组件
-
-Vite 别名：`~` → `web/src/`，`@posts` → `posts/`
-
-#### MultitabPreview — 多标签代码预览
-
-```mdx
-import MultitabPreview from "~/components/MultitabPreview.astro"
-import { Fragment } from "astro/jsx-runtime"
-
-<MultitabPreview labels={{tab0: "Python", tab1: "JavaScript", preview: "输出"}}>
-  <Fragment slot="tab0">
-    ```python
-    print("Hello!")
-    ```
-  </Fragment>
-  <Fragment slot="tab1">
-    ```javascript
-    console.log("Hello!")
-    ```
-  </Fragment>
-  <Fragment slot="preview">
-    ```
-    Hello!
-    ```
-  </Fragment>
-</MultitabPreview>
-```
-
-支持 `tab0` ~ `tab10` 共 11 个标签，`preview` 槽位用于展示输出结果。
-多个组件可通过 `syncKey` 属性同步切换标签。
-
-#### Mermaid 图表
-
-直接在代码块中使用 ` ```mermaid ` 语法，由 `astro-mermaid` 插件渲染。
-
-#### 代码高亮
-
-使用 `astro-expressive-code`（Starlight 内置），支持标题、行高亮、diff 标记等。
+没有 `heroImage` 时自动从正文提取第一张图片，都没有则根据标题生成渐变色封面。
 
 ---
 
-## GitHub 集成
+## 想法（Thoughts）
 
-### 首页和项目页
+YAML 文件放在 `thoughts/` 目录，格式：
 
-- 首页展示 GitHub 头像、bio、follower/following 数、置顶项目卡片、最新仓库列表
-- 项目页 `/projects` 展示所有公开仓库，置顶项目以大卡片展示（自动拉取 banner/logo/badges）
-- 没有 banner 图的项目会根据项目名自动生成渐变色封面
-- 关于页 `/about` 展示 GitHub 活动日历（contribution graph）
+```yaml
+content: '想法内容，支持 **markdown** 和 :sticker[name]: 语法'
+createdAt: '2025-01-01T12:00:00'
+tags: ['标签']
+mood: '🎉'
+```
 
-### GitHub Token
+---
 
-项目数据从 GitHub API 实时拉取，结果缓存 30 分钟（文件缓存在 `web/.astro/github-cache.json`）。如需提高 API 限额：
+## 分享卡片
+
+文章和想法详情页有「📤 分享」按钮，点击后在浏览器端用 Canvas 合成：OG 图片 + 底部信息栏（标题 + 二维码 + 头像），支持复制到剪贴板和下载。
+
+---
+
+## 在线编辑器
 
 ```bash
-# 在 web/.env 中添加
-GITHUB_TOKEN=your_github_personal_access_token
+bun run dev:editor
 ```
 
-### 远程图片域名
+功能：文章 CRUD、实时预览、资源管理、格式化工具栏、AI 辅助（润色/翻译/续写）、Git 提交、微信公众号导出。
 
-`astro.config.mjs` 已配置允许优化的远程图片域名：`github.com`、`raw.githubusercontent.com`、`avatars.githubusercontent.com`、`user-images.githubusercontent.com`、`opengraph.githubassets.com`。
+AI 功能需在 `web/.env` 配置 OpenAI 兼容 API，未配置时自动隐藏。
 
 ---
 
-## 部署
+## 质量检查
 
-构建产物在 `web/dist/` 目录，可直接部署到任何静态托管平台。
+```bash
+bun run quality
+```
 
-**GitHub Pages（推荐）：** 项目已配置 `.github/workflows/astro.yml`，推送到 `main` 分支自动触发 Bun 构建 + GitHub Pages 部署。
+包含 9 项检查：Token 完整性、Token 使用、WCAG 对比度、Aria 标签、CSS 质量、内容校验、Import 规范、硬编码字符串、Bundle 大小。
 
-部署前修改 `web/astro.config.mjs` 中的站点地址：
+---
 
-```js
-export default defineConfig({
-  site: 'https://your-domain.com',
-});
+## 项目结构
+
+```
+├── posts/                     # 文章（.mdx）
+├── thoughts/                  # 想法（.yaml）
+├── friends/                   # 友链（.yaml）
+├── wishes/                    # 心愿（.yaml）
+├── assets/                    # 全局静态资源（图片、贴纸）
+├── web/
+│   ├── public/                # 静态文件（字体、社交图标、CSS）
+│   ├── scripts/               # 质量检查脚本
+│   └── src/
+│       ├── components/
+│       │   ├── layout/        # Header, Footer, Sidebar, BaseHead, ThemeToggle
+│       │   ├── blog/          # BlogSidebar, ArticleTOC, SeriesNav, TagChip...
+│       │   ├── thought/       # ThoughtCard, ThoughtTimeline...
+│       │   ├── profile/       # ProfileSidebar, StatsDashboard, SkillTree...
+│       │   ├── search/        # SearchDialog, SearchTrigger
+│       │   ├── shared/        # FormattedDate, Giscus, ShareCard, FriendCard...
+│       │   └── editor/
+│       │       ├── shared/    # editor-tokens, StickerPanel
+│       │       ├── thought/   # Editor, Preview, use-api, use-draft
+│       │       └── post/      # Live, Mdx, Toolbar, PostList, panels/
+│       ├── lib/
+│       │   ├── blog/          # archive, series, tags, hero, related, filter
+│       │   ├── search/        # engine, highlight
+│       │   ├── markdown/      # rehype/remark plugins
+│       │   └── editor/        # formatting, shortcuts, utils, routes/
+│       ├── data/              # thoughts, friends, wishes, schemas, yaml-loader
+│       ├── pages/             # 路由页面
+│       ├── layouts/           # BlogPost, WithSidebar
+│       ├── styles/            # tokens.css, neumorphism.css, animations.css...
+│       └── types/             # TypeScript 类型
+└── .github/workflows/         # GitHub Actions 部署
 ```
 
 ---
@@ -235,47 +169,23 @@ export default defineConfig({
 | 类别 | 技术 |
 |------|------|
 | 框架 | Astro 5 + React 19 |
-| 样式 | Tailwind CSS 4 + PostCSS |
+| 样式 | Tailwind CSS 4 + 新拟态设计系统 |
 | 编辑器 | CodeMirror 6 |
-| 内容 | MDX + Astro Content Collections (glob loader) |
+| 内容 | MDX + Astro Content Collections |
 | 代码高亮 | Expressive Code (Starlight) |
-| 图表 | Mermaid (astro-mermaid) |
-| 图片处理 | Sharp |
+| 图表 | Mermaid |
+| OG 图片 | Satori + Resvg（构建时生成） |
+| 搜索 | MiniSearch（全站搜索） |
+| 评论 | Giscus |
 | 包管理 | Bun |
-| 测试 | Vitest + fast-check |
+| 测试 | Vitest |
 | 部署 | GitHub Actions → GitHub Pages |
 
 ---
 
-## 项目结构
+## 部署
 
-```
-├── .github/workflows/        # GitHub Actions 部署工作流
-├── posts/                     # 文章（.md / .mdx）
-│   └── assets/                # 文章图片资源
-├── web/
-│   ├── public/                # 静态资源（字体、社交图标）
-│   └── src/
-│       ├── components/        # Astro 通用组件
-│       │   ├── BlogHeroFallback.astro   # 题图 fallback 渐变生成
-│       │   ├── FeaturedProjectCard.astro # 置顶项目大卡片
-│       │   ├── GitHubActivityCalendar.astro # GitHub 活动日历
-│       │   ├── MultitabPreview.astro    # 多标签代码预览
-│       │   └── editor/        # 在线编辑器 React 组件
-│       ├── content.config.ts  # Content Collection schema
-│       ├── consts.ts          # 站点配置常量
-│       ├── layouts/           # 页面布局（BlogPost, WithSidebar）
-│       ├── lib/               # 工具函数
-│       │   ├── blog-hero.ts   # 题图 fallback 逻辑
-│       │   ├── github.ts      # GitHub API 集成（带文件缓存）
-│       │   ├── language-colors.ts # 编程语言颜色映射
-│       │   ├── editor-*.ts    # 编辑器工具函数
-│       │   └── editor-routes/ # 编辑器 API 路由（dev only）
-│       ├── pages/             # 路由页面
-│       ├── styles/            # 全局样式
-│       └── types.ts           # TypeScript 类型定义
-└── web/astro.config.mjs       # Astro 配置
-```
+推送到 `main` 分支自动触发 GitHub Actions 构建部署。部署前修改 `web/astro.config.mjs` 中的 `site` 和 `web/src/consts.ts` 中的站点信息。
 
 ---
 
