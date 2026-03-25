@@ -272,7 +272,7 @@ const ShareCard: FC<ShareCardProps> = ({ ogUrl, pageUrl, title, avatarUrl }) => 
             onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
           >
             <div
-              className="neu-card rounded-2xl max-w-lg w-full flex flex-col overflow-hidden"
+              className="neu-card rounded-2xl max-w-[calc(100vw-2rem)] sm:max-w-lg w-full flex flex-col overflow-hidden"
               style={{
                 animation: `${isOpen ? 'sharePanelIn 0.25s cubic-bezier(0.34,1.56,0.64,1)' : 'sharePanelOut 0.2s ease'} both`,
               }}

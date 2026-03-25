@@ -216,6 +216,8 @@ html:not(.no-transitions) .neu-tag-chip {
   border-radius: 0.75rem;
   font-size: 0.75rem;
   color: var(--text-link);
+  min-height: 2.5rem;
+  min-width: 2.5rem;
   transition: all 0.2s ease;
 }
 .neu-filter-btn.neu-filter-active {
@@ -254,6 +256,8 @@ html:not(.no-transitions) .neu-tag-chip {
   color: var(--text-secondary);
   cursor: pointer;
   box-shadow: none;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
   transition:
     box-shadow 200ms ease,
     background 200ms ease,

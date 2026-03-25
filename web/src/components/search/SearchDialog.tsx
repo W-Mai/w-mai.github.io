@@ -238,7 +238,7 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
 
       {/* Backdrop */}
       <div
-        className="search-overlay fixed inset-0 z-[2000] flex items-start justify-center pt-[15vh]"
+        className="search-overlay fixed inset-0 z-[2000] flex items-start justify-center pt-[10vh] sm:pt-[15vh]"
         style={{ background: 'var(--overlay-bg)' }}
         onClick={(e) => {
           if (e.target === e.currentTarget) handleClose();
@@ -249,7 +249,7 @@ export default function SearchDialog({ open, onClose }: SearchDialogProps) {
           ref={dialogRef}
           role="dialog"
           aria-modal="true"
-          className="search-panel neu-card rounded-2xl mx-4 w-full max-w-lg flex flex-col overflow-hidden outline-none"
+          className="search-panel neu-card rounded-2xl mx-4 w-full max-w-[calc(100vw-2rem)] sm:max-w-lg flex flex-col overflow-hidden outline-none"
           onKeyDown={handleKeyDown}
         >
           {/* Search input */}
