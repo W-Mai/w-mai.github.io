@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { readdir, stat } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
-import { computeAssetReferences } from '~/lib/editor-utils';
+import { computeAssetReferences } from '~/lib/editor/utils';
 
 export const prerender = false;
 

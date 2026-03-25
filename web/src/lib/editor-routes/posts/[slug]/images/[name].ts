@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { validateSlug } from '~/lib/editor-utils';
+import { validateSlug } from '~/lib/editor/utils';
 
 export const prerender = false;
 

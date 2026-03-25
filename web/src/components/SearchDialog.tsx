@@ -5,8 +5,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { SearchResult } from '~/lib/search-engine';
-import { highlightMatches } from '~/lib/search-highlight';
+import type { SearchResult } from '~/lib/search/engine';
+import { highlightMatches } from '~/lib/search/highlight';
 
 export interface SearchDialogProps {
   open: boolean;
@@ -28,7 +28,7 @@ function loadSearchEngine(): Promise<CachedEngine> {
   loadPromise = (async () => {
     const [indexRes, engineMod] = await Promise.all([
       fetch('/search-index.json'),
-      import('~/lib/search-engine'),
+      import('~/lib/search/engine'),
     ]);
     if (!indexRes.ok) throw new Error('Failed to load search index');
     const entries = await indexRes.json();

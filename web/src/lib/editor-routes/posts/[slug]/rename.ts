@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { access, rename } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { validatePostSlug } from '~/lib/editor-utils';
+import { validatePostSlug } from '~/lib/editor/utils';
 
 export const prerender = false;
 

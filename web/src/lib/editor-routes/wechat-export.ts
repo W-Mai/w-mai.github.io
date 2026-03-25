@@ -13,13 +13,13 @@ import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import rehypeStringify from 'rehype-stringify';
 import remarkSticker from '../remark-sticker';
-import remarkMdxToHtml from '../remark-mdx-to-html';
+import remarkMdxToHtml from '../markdown/remark-mdx-to-html.js';
 import rehypeBase64Embed from '../rehype-base64-embed';
-import rehypeCodeHighlight from '../rehype-code-highlight';
-import rehypeKatexSvg from '../rehype-katex-svg.js';
-import rehypeMermaidSvg from '../rehype-mermaid-svg.js';
-import rehypePangu from '../rehype-pangu';
-import rehypeWechatTag from '../rehype-wechat-tag';
+import rehypeCodeHighlight from '../markdown/rehype-code-highlight.js';
+import rehypeKatexSvg from '../markdown/rehype-katex-svg.js';
+import rehypeMermaidSvg from '../markdown/rehype-mermaid-svg.js';
+import rehypePangu from '../markdown/rehype-pangu.js';
+import rehypeWechatTag from '../markdown/rehype-wechat-tag.js';
 
 export const prerender = false;
 

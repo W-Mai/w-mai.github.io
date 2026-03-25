@@ -5,7 +5,7 @@ import rehypeParse from 'rehype-parse';
 import rehypeStringify from 'rehype-stringify';
 import type { Root, Element, Text, ElementContent } from 'hast';
 import pangu from 'pangu';
-import rehypePangu from '../rehype-pangu';
+import rehypePangu from '../markdown/rehype-pangu';
 
 // --- CJK detection helpers ---
 

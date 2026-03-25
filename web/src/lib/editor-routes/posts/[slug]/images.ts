@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { readdir, stat, writeFile, unlink, mkdir } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
-import { validateSlug, normalizeAssetName, deduplicateAssetName } from '~/lib/editor-utils';
+import { validateSlug, normalizeAssetName, deduplicateAssetName } from '~/lib/editor/utils';
 
 export const prerender = false;
 

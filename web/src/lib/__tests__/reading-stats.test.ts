@@ -4,7 +4,7 @@ import {
 	countWords,
 	formatReadingTime,
 	computeBlogStats,
-} from '../reading-stats';
+} from '../blog/reading-stats';
 
 // --- stripMarkdown ---
 
@@ -201,7 +201,7 @@ describe('computeBlogStats', () => {
 // --- Property-Based Tests (fast-check) ---
 
 import fc from 'fast-check';
-import { estimateReadingTime } from '../reading-stats';
+import { estimateReadingTime } from '../blog/reading-stats';
 
 // Shared generators
 

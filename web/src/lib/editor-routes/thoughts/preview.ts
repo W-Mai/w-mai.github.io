@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { renderMarkdown } from '~/lib/markdown';
+import { renderMarkdown } from '~/lib/markdown/markdown';
 
 export const prerender = false;
 

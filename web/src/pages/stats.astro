@@ -5,7 +5,7 @@ import ProfileSidebar from '~/components/ProfileSidebar.astro'
 import StatsDashboard from '~/components/StatsDashboard.astro'
 import FormattedDate from '~/components/FormattedDate.astro'
 import { fetchGitHubProfile } from '~/lib/github'
-import { computeBlogStats, stripMarkdown, countWords, estimateReadingTime } from '~/lib/reading-stats'
+import { computeBlogStats, stripMarkdown, countWords, estimateReadingTime } from '~/lib/blog/reading-stats'
 import { siteYear, siteMonth } from '~/lib/date-utils'
 
 const profile = await fetchGitHubProfile()

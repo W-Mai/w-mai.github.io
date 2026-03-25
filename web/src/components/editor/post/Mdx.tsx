@@ -8,10 +8,10 @@ import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { editorKeymap } from '../../../lib/editor-shortcuts';
-import { detectActiveFormats } from '../../../lib/editor-formatting';
-import { editorAutocomplete } from '../../../lib/editor-autocomplete';
-import { frontmatterExtension } from '../../../lib/frontmatter-extension';
+import { editorKeymap } from '../../../lib/editor/shortcuts';
+import { detectActiveFormats } from '../../../lib/editor/formatting';
+import { editorAutocomplete } from '../../../lib/editor/autocomplete';
+import { frontmatterExtension } from '../../../lib/editor/frontmatter-extension';
 
 export interface MdxEditorHandle {
   getView: () => EditorView | null;

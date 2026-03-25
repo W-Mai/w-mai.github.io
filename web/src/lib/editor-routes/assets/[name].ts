@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { writeFile, unlink, access, readdir } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { normalizeAssetName, deduplicateAssetName } from '~/lib/editor-utils';
+import { normalizeAssetName, deduplicateAssetName } from '~/lib/editor/utils';
 
 export const prerender = false;
 

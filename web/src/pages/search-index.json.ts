@@ -7,7 +7,7 @@ import { getCollection } from 'astro:content';
 import { loadThoughts } from '~/data/thoughts';
 import { loadFriends } from '~/data/friends';
 import { loadWishes } from '~/data/wishes';
-import { stripMdx, type SearchIndexEntry } from '~/lib/search-engine';
+import { stripMdx, type SearchIndexEntry } from '~/lib/search/engine';
 
 export const GET: APIRoute = async () => {
   const [posts, thoughts, friends, wishes] = await Promise.all([

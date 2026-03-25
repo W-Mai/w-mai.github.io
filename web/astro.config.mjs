@@ -7,8 +7,8 @@ import {defineConfig} from 'astro/config';
 import {astroExpressiveCode} from "@astrojs/starlight/expressive-code";
 import tailwindcss from '@tailwindcss/vite';
 import astroMermaid from 'astro-mermaid';
-import editorDev from './src/lib/editor-dev-plugin';
-import remarkSticker from './src/lib/remark-sticker';
+import editorDev from './src/lib/editor/dev-plugin';
+import remarkSticker from './src/lib/markdown/remark-sticker';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 

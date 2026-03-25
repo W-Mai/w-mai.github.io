@@ -1,6 +1,6 @@
 import type { Root, PhrasingContent, Paragraph } from 'mdast';
 import { visit } from 'unist-util-visit';
-import { BLOCK_STICKER_RE, INLINE_STICKER_RE } from './sticker-utils';
+import { BLOCK_STICKER_RE, INLINE_STICKER_RE } from '../sticker-utils';
 
 /**
  * Remark plugin: transform sticker syntax into <img> elements.

@@ -11,13 +11,13 @@ import ShortcutPanel from './ShortcutPanel';
 import AIDiffPanel from './panels/AIDiff';
 import GitCommitModal from './GitCommitModal';
 import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
-import { persistEditorState, restoreEditorState } from '../../../lib/editor-utils';
-import { setStickerPickerCallback } from '../../../lib/editor-autocomplete';
+import { persistEditorState, restoreEditorState } from '../../../lib/editor/utils';
+import { setStickerPickerCallback } from '../../../lib/editor/autocomplete';
 import StickerPicker from './StickerPicker';
 import EnvConfigPanel from './EnvConfigPanel';
 import PostImageManager from './panels/ImageManager';
 import WechatExportModal from './WechatExportModal';
-import { setFrontmatterSlug } from '../../../lib/frontmatter-extension';
+import { setFrontmatterSlug } from '../../../lib/editor/frontmatter-extension';
 
 interface PostInfo {
   slug: string;
@@ -474,22 +474,22 @@ const LiveEditor: FC = () => {
         }).catch(() => {});
         break;
       case 'insert-image':
-        import('../../../lib/editor-formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.image(view); view.focus(); });
+        import('../../../lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.image(view); view.focus(); });
         break;
       case 'insert-link':
-        import('../../../lib/editor-formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.link(view); view.focus(); });
+        import('../../../lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.link(view); view.focus(); });
         break;
       case 'insert-code-block':
-        import('../../../lib/editor-formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS['code-block'](view); view.focus(); });
+        import('../../../lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS['code-block'](view); view.focus(); });
         break;
       case 'insert-table':
-        import('../../../lib/editor-formatting').then(({ insertBlock }) => {
+        import('../../../lib/editor/formatting').then(({ insertBlock }) => {
           insertBlock(view, '| Header | Header |\n| ------ | ------ |\n| Cell   | Cell   |');
           view.focus();
         });
         break;
       case 'insert-frontmatter':
-        import('../../../lib/editor-formatting').then(({ insertBlock }) => {
+        import('../../../lib/editor/formatting').then(({ insertBlock }) => {
           insertBlock(view, '---\ntitle: ""\ndescription: ""\npubDate: ""\nheroImage: ""\n---');
           view.focus();
         });

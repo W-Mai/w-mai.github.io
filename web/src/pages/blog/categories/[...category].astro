@@ -7,9 +7,9 @@ import Footer from '../../../components/Footer.astro';
 import FormattedDate from '../../../components/FormattedDate.astro';
 import Header from '../../../components/Header.astro';
 import { SITE_TITLE } from '../../../consts';
-import { extractFirstBodyImage } from '../../../lib/blog-hero';
-import { getAllCategories, getPostsByCategory } from '../../../lib/blog-tags';
-import { estimateReadingTime, stripMarkdown, countWords } from '../../../lib/reading-stats';
+import { extractFirstBodyImage } from '../../../lib/blog/hero';
+import { getAllCategories, getPostsByCategory } from '../../../lib/blog/tags';
+import { estimateReadingTime, stripMarkdown, countWords } from '../../../lib/blog/reading-stats';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');

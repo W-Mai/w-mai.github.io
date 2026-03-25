@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { readdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { parseFrontmatter } from '../../frontmatter-utils';
+import { parseFrontmatter } from '../../editor/frontmatter-utils';
 
 export const prerender = false;
 

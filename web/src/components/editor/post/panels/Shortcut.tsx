@@ -1,6 +1,6 @@
 import { useEffect, type FC } from 'react';
 import { createPortal } from 'react-dom';
-import { SHORTCUTS } from '../../../lib/editor-shortcuts';
+import { SHORTCUTS } from '../../../lib/editor/shortcuts';
 import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
 
 interface ShortcutPanelProps {

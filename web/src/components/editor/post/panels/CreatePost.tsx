@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { pinyin } from 'pinyin-pro';
-import { validatePostSlug } from '../../../../lib/editor-utils';
+import { validatePostSlug } from '../../../../lib/editor/utils';
 import { EDITOR_TOKENS as T } from '../../shared/editor-tokens';
 
 interface CreatePostModalProps {

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { yamlToThought, thoughtToYaml, validateThought } from '../../thought-utils';
-import { validateSlug } from '../../editor-utils';
+import { validateSlug } from '../../editor/utils';
 
 export const prerender = false;
 

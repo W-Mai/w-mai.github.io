@@ -5,7 +5,7 @@ import {
 	getPostsByTag,
 	getPostsByCategory,
 	type TagInfo,
-} from '../blog-tags';
+} from '../blog/tags';
 import type { CollectionEntry } from 'astro:content';
 
 // Minimal mock that satisfies the fields used by blog-tags.ts
@@ -360,7 +360,7 @@ describe('Property 2: Duplicate tags are rejected', () => {
 // --- Property 6: Tag display truncation ---
 // Feature: blog-tag-system, Property 6: Tag display truncation
 // Validates: Requirements 5.4
-import { truncateTags, MAX_DISPLAY_TAGS } from '../blog-tags';
+import { truncateTags, MAX_DISPLAY_TAGS } from '../blog/tags';
 
 describe('Property 6: Tag display truncation', () => {
 	it('shows all tags with no remainder when length <= MAX_DISPLAY_TAGS', () => {

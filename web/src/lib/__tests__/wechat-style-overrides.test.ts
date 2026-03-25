@@ -15,7 +15,7 @@ import {
   ACCENT_BORDER_TAGS,
   INDENT_TAGS,
   type WechatTemplate,
-} from '../wechat-templates';
+} from '../editor/wechat-templates';
 
 // Set up global DOMParser for applyTemplate
 const dom = new JSDOM('');

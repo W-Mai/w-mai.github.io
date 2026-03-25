@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { pinyin } from 'pinyin-pro';
-import { normalizeAssetName, validateAssetName } from '../../../lib/editor-utils';
+import { normalizeAssetName, validateAssetName } from '../../../lib/editor/utils';
 import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
 
 interface AssetNameDialogProps {

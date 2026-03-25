@@ -5,7 +5,7 @@ import {
   parseFrontmatter,
   serializeFrontmatter,
   type FrontmatterData,
-} from '../frontmatter-utils';
+} from '../editor/frontmatter-utils';
 
 // --- detectFrontmatterRange ---
 

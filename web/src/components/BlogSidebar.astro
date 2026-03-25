@@ -1,9 +1,9 @@
 ---
 // Blog listing page sidebar — composes all listing widgets
 import { getCollection } from 'astro:content'
-import { getAllCategories, getAllTags } from '~/lib/blog-tags'
-import { getAllSeries } from '~/lib/blog-series'
-import { getArchiveGroups } from '~/lib/blog-archive'
+import { getAllCategories, getAllTags } from '~/lib/blog/tags'
+import { getAllSeries } from '~/lib/blog/series'
+import { getArchiveGroups } from '~/lib/blog/archive'
 
 import CategoryFilter from './CategoryFilter.astro'
 import TagsCloud from './TagsCloud.astro'

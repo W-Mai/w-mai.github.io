@@ -3,7 +3,7 @@
  * Pure functions that operate on a posts array for easy testing and reuse.
  */
 import type { CollectionEntry } from 'astro:content';
-import { siteYear, siteMonth } from './date-utils';
+import { siteYear, siteMonth } from '../date-utils';
 
 export interface MonthGroup {
 	month: number; // 1-12

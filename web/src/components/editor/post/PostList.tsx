@@ -4,7 +4,7 @@ import {
   filterAndSortPosts, collectTags, collectCategories,
   countActiveFilters, formatSmartDate, DEFAULT_FILTER,
   type PostInfo, type SortField, type FilterOptions,
-} from '../../../lib/post-filter';
+} from '../../../lib/blog/filter';
 
 export type { PostInfo };
 

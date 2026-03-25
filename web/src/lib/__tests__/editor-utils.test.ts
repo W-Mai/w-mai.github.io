@@ -8,7 +8,7 @@ import {
   deduplicateAssetName,
   persistEditorState,
   restoreEditorState,
-} from '../editor-utils';
+} from '../editor/utils';
 
 // --- Legacy validateSlug tests ---
 
