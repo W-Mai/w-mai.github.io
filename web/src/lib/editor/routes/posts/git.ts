@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { git, getRepoRoot, statusAction, json } from '../../git';
+import { git, getRepoRoot, statusAction, json } from '~/lib/editor/git';
 
 export const prerender = false;
 

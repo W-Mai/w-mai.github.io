@@ -40,6 +40,7 @@ const CHECKS: QualityCheck[] = [
   { name: 'Aria labels', script: 'check-aria.ts', failOnError: true },
   { name: 'CSS quality', script: 'check-css-quality.ts', failOnError: true },
   { name: 'Content validation', script: 'validate-content.ts', failOnError: true },
+  { name: 'Import conventions', script: 'check-imports.ts', failOnError: true },
   { name: 'Bundle size', script: 'measure-bundle.ts', failOnError: false },
 ]
 

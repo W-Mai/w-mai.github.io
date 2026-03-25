@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPendingFiles, commitDirectory, json } from '../../git';
+import { getPendingFiles, commitDirectory, json } from '~/lib/editor/git';
 
 export const prerender = false;
 
