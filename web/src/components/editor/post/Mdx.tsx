@@ -3,15 +3,15 @@ import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirro
 import { EditorState, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { editorKeymap } from '../../../lib/editor/shortcuts';
-import { detectActiveFormats } from '../../../lib/editor/formatting';
-import { editorAutocomplete } from '../../../lib/editor/autocomplete';
-import { frontmatterExtension } from '../../../lib/editor/frontmatter-ext';
+import { editorKeymap } from '~/lib/editor/shortcuts';
+import { detectActiveFormats } from '~/lib/editor/formatting';
+import { editorAutocomplete } from '~/lib/editor/autocomplete';
+import { frontmatterExtension } from '~/lib/editor/frontmatter-ext';
 
 export interface MdxEditorHandle {
   getView: () => EditorView | null;

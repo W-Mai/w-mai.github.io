@@ -17,9 +17,9 @@ import {
   type FrontmatterRange,
   type ParseResult,
 } from './frontmatter';
-import FrontmatterPanel from '../../components/editor/post/panels/Frontmatter';
-import { EDITOR_TOKENS as T } from '../../components/editor/shared/editor-tokens';
-import { CATEGORIES } from '../../data/categories';
+import FrontmatterPanel from '~/components/editor/post/panels/Frontmatter';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
+import { CATEGORIES } from '~/data/categories';
 
 // StateEffect to inject the EditorView reference into the state field
 const setViewEffect = StateEffect.define<EditorView>();

@@ -1,9 +1,9 @@
 import { type FC, useState, useEffect, useCallback, useRef } from 'react';
-import { EDITOR_TOKENS as T } from '../../shared/editor-tokens';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
 import TagChipEditor from './TagChip';
 import DateTimePicker from './DateTime';
 import CategoryPicker from './Category';
-import type { FrontmatterData } from '../../../../lib/editor/frontmatter';
+import type { FrontmatterData } from '~/lib/editor/frontmatter';
 
 interface FrontmatterPanelProps {
   slug?: string;

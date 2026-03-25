@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import { createPortal } from 'react-dom';
-import { EDITOR_TOKENS as T } from '../../shared/editor-tokens';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
 import WechatSettingsPanel from './WechatSettings';
 import {
   WECHAT_TEMPLATES, applyTemplate,
@@ -8,7 +8,7 @@ import {
   getTemplateBaseFontSize, toStyleOverrides,
   loadSettings, saveSettings, clearSettings,
   type StyleOverrides, type PersistedSettings,
-} from '../../../../lib/editor/wechat-tpl';
+} from '~/lib/editor/wechat-tpl';
 
 const STORAGE_KEY = 'editor:wechatTemplateId';
 

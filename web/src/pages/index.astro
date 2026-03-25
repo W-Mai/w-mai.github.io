@@ -1,13 +1,13 @@
 ---
 import { getCollection } from 'astro:content'
 import WithSidebar from '~/layouts/WithSidebar.astro'
-import ProjectCard from '../components/profile/ProjectCard.astro'
-import FeaturedProjectCard from '../components/profile/FeaturedProjectCard.astro'
-import ProfileSidebar from '../components/profile/ProfileSidebar.astro'
-import RecentThoughts from '../components/thought/RecentThoughts.astro'
-import RecentPostCard from '../components/blog/RecentPostCard.astro'
-import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '../lib/github'
-import { PINNED_PROJECTS, USER_NAME } from '../consts'
+import ProjectCard from '~/components/profile/ProjectCard.astro'
+import FeaturedProjectCard from '~/components/profile/FeaturedProjectCard.astro'
+import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
+import RecentThoughts from '~/components/thought/RecentThoughts.astro'
+import RecentPostCard from '~/components/blog/RecentPostCard.astro'
+import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '~/lib/github'
+import { PINNED_PROJECTS, USER_NAME } from '~/consts'
 
 const profile = await fetchGitHubProfile()
 const repos = await fetchGitHubRepos(USER_NAME, 12)

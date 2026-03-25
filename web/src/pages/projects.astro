@@ -1,10 +1,10 @@
 ---
 import WithSidebar from '~/layouts/WithSidebar.astro'
-import ProjectCard from '../components/profile/ProjectCard.astro'
-import FeaturedProjectCard from '../components/profile/FeaturedProjectCard.astro'
-import ProfileSidebar from '../components/profile/ProfileSidebar.astro'
-import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '../lib/github'
-import { PINNED_PROJECTS } from '../consts'
+import ProjectCard from '~/components/profile/ProjectCard.astro'
+import FeaturedProjectCard from '~/components/profile/FeaturedProjectCard.astro'
+import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
+import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '~/lib/github'
+import { PINNED_PROJECTS } from '~/consts'
 
 const profile = await fetchGitHubProfile()
 const allRepos = await fetchGitHubRepos()

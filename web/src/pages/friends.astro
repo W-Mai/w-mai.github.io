@@ -1,10 +1,10 @@
 ---
 import WithSidebar from '~/layouts/WithSidebar.astro'
-import ProfileSidebar from '../components/profile/ProfileSidebar.astro'
-import FriendCard from '../components/shared/FriendCard.astro'
-import Giscus from '../components/shared/Giscus.astro'
-import { fetchGitHubProfile } from '../lib/github'
-import { loadFriends } from '../data/friends'
+import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
+import FriendCard from '~/components/shared/FriendCard.astro'
+import Giscus from '~/components/shared/Giscus.astro'
+import { fetchGitHubProfile } from '~/lib/github'
+import { loadFriends } from '~/data/friends'
 
 const profile = await fetchGitHubProfile()
 const friends = await loadFriends()

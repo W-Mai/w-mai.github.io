@@ -1,9 +1,9 @@
 ---
 import WithSidebar from '~/layouts/WithSidebar.astro'
-import ProfileSidebar from '../components/profile/ProfileSidebar.astro'
-import WishTimeline from '../components/shared/WishTimeline.astro'
-import { fetchGitHubProfile } from '../lib/github'
-import { loadWishes } from '../data/wishes'
+import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
+import WishTimeline from '~/components/shared/WishTimeline.astro'
+import { fetchGitHubProfile } from '~/lib/github'
+import { loadWishes } from '~/data/wishes'
 
 const profile = await fetchGitHubProfile()
 const wishes = await loadWishes()

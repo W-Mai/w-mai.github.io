@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
-import { EDITOR_TOKENS as T } from '../../shared/editor-tokens';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
 
 interface EnvConfigPanelProps {
   isOpen: boolean;

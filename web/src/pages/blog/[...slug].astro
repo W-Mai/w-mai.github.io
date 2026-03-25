@@ -1,12 +1,12 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
-import ArticleSidebar from '../../components/blog/ArticleSidebar.astro';
-import RelatedPosts from '../../components/blog/RelatedPosts.astro';
-import BlogPost from '../../layouts/BlogPost.astro';
-import { extractFirstBodyImage } from '../../lib/blog/hero';
-import { getRelatedPosts } from '../../lib/blog/related';
-import { getSeriesForPost } from '../../lib/blog/series';
-import { formatReadingTime, stripMarkdown, countWords } from '../../lib/blog/reading-stats';
+import ArticleSidebar from '~/components/blog/ArticleSidebar.astro';
+import RelatedPosts from '~/components/blog/RelatedPosts.astro';
+import BlogPost from '~/layouts/BlogPost.astro';
+import { extractFirstBodyImage } from '~/lib/blog/hero';
+import { getRelatedPosts } from '~/lib/blog/related';
+import { getSeriesForPost } from '~/lib/blog/series';
+import { formatReadingTime, stripMarkdown, countWords } from '~/lib/blog/reading-stats';
 
 // Glob-import all co-located post images for body image fallback
 const assetImages = import.meta.glob<{ default: ImageMetadata }>(

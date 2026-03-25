@@ -1,10 +1,10 @@
 import { useState, useMemo, type FC } from 'react';
-import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
 import {
   filterAndSortPosts, collectTags, collectCategories,
   countActiveFilters, formatSmartDate, DEFAULT_FILTER,
   type PostInfo, type SortField, type FilterOptions,
-} from '../../../lib/blog/filter';
+} from '~/lib/blog/filter';
 
 export type { PostInfo };
 

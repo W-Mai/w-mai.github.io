@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import type { EditorView } from '@codemirror/view';
-import { FORMAT_ACTIONS, type FormatAction } from '../../../lib/editor/formatting';
-import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
+import { FORMAT_ACTIONS, type FormatAction } from '~/lib/editor/formatting';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
 
 interface ToolbarProps {
   editorView: EditorView | null;

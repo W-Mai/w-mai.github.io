@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import AssetPanel from './panels/Asset';
-import StickerPanel from '../shared/StickerPanel';
+import StickerPanel from '~/components/editor/shared/StickerPanel';
 import PostList from './PostList';
 import MdxEditor, { type MdxEditorHandle } from './Mdx';
 import PreviewPanel from './panels/Preview';
@@ -10,14 +10,14 @@ import CreatePostModal from './panels/CreatePost';
 import ShortcutPanel from './panels/Shortcut';
 import AIDiffPanel from './panels/AIDiff';
 import GitCommitModal from './panels/GitCommit';
-import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
-import { persistEditorState, restoreEditorState } from '../../../lib/editor/utils';
-import { setStickerPickerCallback } from '../../../lib/editor/autocomplete';
-import StickerPicker from '../shared/StickerPicker';
+import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
+import { persistEditorState, restoreEditorState } from '~/lib/editor/utils';
+import { setStickerPickerCallback } from '~/lib/editor/autocomplete';
+import StickerPicker from '~/components/editor/shared/StickerPicker';
 import EnvConfigPanel from './panels/EnvConfig';
 import PostImageManager from './panels/ImageManager';
 import WechatExportModal from './panels/WechatExport';
-import { setFrontmatterSlug } from '../../../lib/editor/frontmatter-ext';
+import { setFrontmatterSlug } from '~/lib/editor/frontmatter-ext';
 
 interface PostInfo {
   slug: string;
@@ -474,22 +474,22 @@ const LiveEditor: FC = () => {
         }).catch(() => {});
         break;
       case 'insert-image':
-        import('../../../lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.image(view); view.focus(); });
+        import('@editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.image(view); view.focus(); });
         break;
       case 'insert-link':
-        import('../../../lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.link(view); view.focus(); });
+        import('@editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS.link(view); view.focus(); });
         break;
       case 'insert-code-block':
-        import('../../../lib/editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS['code-block'](view); view.focus(); });
+        import('@editor/formatting').then(({ FORMAT_ACTIONS }) => { FORMAT_ACTIONS['code-block'](view); view.focus(); });
         break;
       case 'insert-table':
-        import('../../../lib/editor/formatting').then(({ insertBlock }) => {
+        import('@editor/formatting').then(({ insertBlock }) => {
           insertBlock(view, '| Header | Header |\n| ------ | ------ |\n| Cell   | Cell   |');
           view.focus();
         });
         break;
       case 'insert-frontmatter':
-        import('../../../lib/editor/formatting').then(({ insertBlock }) => {
+        import('@editor/formatting').then(({ insertBlock }) => {
           insertBlock(view, '---\ntitle: ""\ndescription: ""\npubDate: ""\nheroImage: ""\n---');
           view.focus();
         });
