@@ -15,9 +15,11 @@ interface ShareCardProps {
 }
 
 const CARD_W = 1200;
-const CARD_H = 630 + 120; // OG height + QR bar height
 const QR_SIZE = 96;
-const BAR_H = 120;
+const BAR_H = 140;
+const CARD_H = 630 + BAR_H;
+const PADDING = 64;
+const RADIUS = 32;
 
 async function generateCard(
   ogUrl: string,
@@ -25,13 +27,34 @@ async function generateCard(
   title: string,
   avatarUrl?: string,
 ): Promise<HTMLCanvasElement> {
-  const canvas = document.createElement('canvas');
-  canvas.width = CARD_W;
-  canvas.height = CARD_H;
-  const ctx = canvas.getContext('2d')!;
+  // Inner content canvas
+  const inner = document.createElement('canvas');
+  inner.width = CARD_W;
+  inner.height = CARD_H;
+  const ctx = inner.getContext('2d')!;
+
+  // Load OG image first
+  const ogImg = await loadImage(ogUrl);
+
+  // Extract dominant color for themed shadow
+  const sampleCanvas = document.createElement('canvas');
+  sampleCanvas.width = ogImg.width;
+  sampleCanvas.height = ogImg.height;
+  const sCtx = sampleCanvas.getContext('2d')!;
+  sCtx.drawImage(ogImg, 0, 0);
+  const sampleData = sCtx.getImageData(0, 0, ogImg.width, ogImg.height).data;
+  let rSum = 0, gSum = 0, bSum = 0, count = 0;
+  for (let i = 0; i < sampleData.length; i += 40 * 4) {
+    rSum += sampleData[i];
+    gSum += sampleData[i + 1];
+    bSum += sampleData[i + 2];
+    count++;
+  }
+  const avgR = Math.round(rSum / count);
+  const avgG = Math.round(gSum / count);
+  const avgB = Math.round(bSum / count);
 
   // Draw OG image
-  const ogImg = await loadImage(ogUrl);
   ctx.drawImage(ogImg, 0, 0, CARD_W, 630);
 
   // Draw bottom bar
@@ -46,7 +69,7 @@ async function generateCard(
     color: { dark: '#1a1e23', light: '#ffffff' },
   });
   const qrImg = await loadImage(qrDataUrl);
-  const qrX = CARD_W - QR_SIZE - 32;
+  const qrX = CARD_W - QR_SIZE - 48;
   const qrY = 630 + (BAR_H - QR_SIZE) / 2;
 
   // White rounded rect behind QR
@@ -88,6 +111,36 @@ async function generateCard(
   ctx.fillStyle = 'rgba(241, 245, 249, 0.4)';
   ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('扫码阅读原文', 40, 630 + BAR_H / 2 + 22);
+
+  // Compose onto outer canvas with rounded card + drop shadow on transparent bg
+  const outerW = CARD_W + PADDING * 2;
+  const outerH = CARD_H + PADDING * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = outerW;
+  canvas.height = outerH;
+  const oc = canvas.getContext('2d')!;
+
+  // Drop shadow using OG dominant color
+  oc.shadowColor = `rgba(${avgR}, ${avgG}, ${avgB}, 0.5)`;
+  oc.shadowBlur = 32;
+  oc.shadowOffsetX = 0;
+  oc.shadowOffsetY = 8;
+  oc.fillStyle = `rgb(${avgR}, ${avgG}, ${avgB})`;
+  roundRect(oc, PADDING, PADDING, CARD_W, CARD_H, RADIUS);
+  oc.fill();
+
+  // Reset shadow
+  oc.shadowColor = 'transparent';
+  oc.shadowBlur = 0;
+  oc.shadowOffsetX = 0;
+  oc.shadowOffsetY = 0;
+
+  // Clip to rounded rect and draw inner content
+  oc.save();
+  roundRect(oc, PADDING, PADDING, CARD_W, CARD_H, RADIUS);
+  oc.clip();
+  oc.drawImage(inner, PADDING, PADDING);
+  oc.restore();
 
   return canvas;
 }
