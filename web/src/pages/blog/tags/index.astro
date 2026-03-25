@@ -4,7 +4,7 @@ import BaseHead from '~/components/layout/BaseHead.astro';
 import Footer from '~/components/layout/Footer.astro';
 import Header from '~/components/layout/Header.astro';
 import TagChip from '~/components/blog/TagChip.astro';
-import { SITE_TITLE } from '~/consts';
+import { SITE_TITLE, SITE_LANG } from '~/consts';
 import { getAllTags } from '~/lib/blog/tags';
 
 const posts = await getCollection('blog');
@@ -12,7 +12,7 @@ const tags = getAllTags(posts);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={SITE_LANG}>
 	<head>
 		<BaseHead title={`标签 | ${SITE_TITLE}`} description="Browse all blog tags" />
 	</head>

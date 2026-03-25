@@ -13,7 +13,7 @@ import ShareCard from '~/components/shared/ShareCard';
 import Sidebar from '~/components/layout/Sidebar.astro';
 import TagChip from '~/components/blog/TagChip.astro';
 import type { SeriesData } from '~/lib/blog/series';
-import { AVATAR_URL, NICK_NAME, SITE_URL } from '~/consts';
+import { AVATAR_URL, NICK_NAME, SITE_URL, SITE_LANG } from '~/consts';
 
 type Props = CollectionEntry<'blog'>['data'] & {
 	bodyHeroImage?: ImageMetadata | null;
@@ -38,7 +38,7 @@ if (hasSidebar) {
 }
 ---
 
-<html lang="en">
+<html lang={SITE_LANG}>
 	<head>
 		<BaseHead title={title} description={description} />
 		<script type="application/ld+json" set:html={JSON.stringify({

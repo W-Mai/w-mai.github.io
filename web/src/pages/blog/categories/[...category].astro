@@ -6,7 +6,7 @@ import BlogHeroFallback from '~/components/blog/BlogHeroFallback.astro';
 import Footer from '~/components/layout/Footer.astro';
 import FormattedDate from '~/components/shared/FormattedDate.astro';
 import Header from '~/components/layout/Header.astro';
-import { SITE_TITLE } from '~/consts';
+import { SITE_TITLE, SITE_LANG } from '~/consts';
 import { extractFirstBodyImage } from '~/lib/blog/hero';
 import { getAllCategories, getPostsByCategory } from '~/lib/blog/tags';
 import { estimateReadingTime, stripMarkdown, countWords } from '~/lib/blog/reading-stats';
@@ -38,7 +38,7 @@ function resolveBodyImage(path: string): ImageMetadata | null {
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={SITE_LANG}>
 	<head>
 		<BaseHead title={`${category} (${posts.length}) | ${SITE_TITLE}`} description={`Posts in category "${category}"`} />
 	</head>

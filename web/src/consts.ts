@@ -11,6 +11,7 @@ export const AVATAR_URL = `https://avatars.githubusercontent.com/${USER_NAME}`;
 export const SITE_TITLE = 'B3n1gn X';
 export const SITE_DESCRIPTION = 'B3n1gn X (Benign X) 的个人博客 — 分享编程、图形学、嵌入式开发和开源项目的技术文章与想法';
 export const SITE_URL = 'https://benign.host';
+export const SITE_LANG = 'zh-CN';
 
 // Pinned projects displayed as featured cards on homepage
 // Format: 'owner/repo' or just 'repo' (defaults to USER_NAME as owner)

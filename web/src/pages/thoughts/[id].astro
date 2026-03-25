@@ -7,7 +7,7 @@ import Footer from '~/components/layout/Footer.astro'
 import ThoughtCard from '~/components/thought/ThoughtCard.astro'
 import Giscus from '~/components/shared/Giscus.astro'
 import ShareCard from '~/components/shared/ShareCard'
-import { GISCUS_THOUGHT_CATEGORY, GISCUS_THOUGHT_CATEGORY_ID, AVATAR_URL } from '~/consts'
+import { GISCUS_THOUGHT_CATEGORY, GISCUS_THOUGHT_CATEGORY_ID, AVATAR_URL, SITE_LANG } from '~/consts'
 import { loadThoughts, type Thought } from '~/data/thoughts'
 import { fetchThoughtComments } from '~/data/giscus-comments'
 
@@ -32,7 +32,7 @@ const pageFullUrl = `${import.meta.env.SITE ?? 'https://benign.host'}/thoughts/$
 const avatarImg = await getImage({ src: AVATAR_URL, width: 64, height: 64 })
 ---
 
-<html lang="en">
+<html lang={SITE_LANG}>
   <head>
     <BaseHead
       title={`想法 · ${date.toLocaleDateString('zh-CN')}`}
