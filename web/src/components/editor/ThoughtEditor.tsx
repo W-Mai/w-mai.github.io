@@ -18,6 +18,30 @@ interface ThoughtEditorProps {
 
 const MOOD_OPTIONS = ['🎉', '🤔', '✨', '😤', '🐛', '💡', '🔥', '😂', '🥲', '👀'];
 
+const DRAFT_KEY = 'thought-editor-draft';
+
+interface Draft {
+  content: string;
+  tagInput: string;
+  mood: string;
+  editingId: string | null;
+}
+
+function loadDraft(): Draft | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveDraft(draft: Draft) {
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch {}
+}
+
+function clearDraft() {
+  try { sessionStorage.removeItem(DRAFT_KEY); } catch {}
+}
+
 const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   const [content, setContent] = useState('');
   const [tagInput, setTagInput] = useState('');
@@ -34,6 +58,29 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
 
   const [previewHtml, setPreviewHtml] = useState('');
   const previewTimer = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // Restore draft from sessionStorage after mount
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      setContent(draft.content);
+      setTagInput(draft.tagInput);
+      setMood(draft.mood);
+      setEditingId(draft.editingId);
+    }
+  }, []);
+
+  // Persist draft to sessionStorage on change
+  const draftInited = useRef(false);
+  useEffect(() => {
+    // Skip the first effect triggered by draft restore
+    if (!draftInited.current) { draftInited.current = true; return; }
+    if (content || tagInput || mood || editingId) {
+      saveDraft({ content, tagInput, mood, editingId });
+    } else {
+      clearDraft();
+    }
+  }, [content, tagInput, mood, editingId]);
 
   // Debounced server-side markdown preview
   useEffect(() => {
@@ -79,6 +126,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
     setMood('');
     setEditingId(null);
     setError(null);
+    clearDraft();
   };
 
   const handleSave = useCallback(async () => {
