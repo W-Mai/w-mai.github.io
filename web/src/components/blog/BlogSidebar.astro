@@ -8,7 +8,7 @@ import { getArchiveGroups } from '~/lib/blog/archive'
 import CategoryFilter from './CategoryFilter.astro'
 import TagsCloud from './TagsCloud.astro'
 import SeriesWidget from './SeriesWidget.astro'
-import ArchiveTimeline from './ArchiveTimeline.astro'
+import ArchiveTimeline from '~/components/profile/ArchiveTimeline.astro'
 
 // Fetch all blog posts and sort by pubDate descending
 const posts = (await getCollection('blog'))

@@ -1,11 +1,11 @@
 ---
-import TagChip from './TagChip.astro'
-import FormattedDate from './FormattedDate.astro'
+import TagChip from '~/components/blog/TagChip.astro'
+import FormattedDate from '~/components/shared/FormattedDate.astro'
 import ThoughtCommentCount from './ThoughtCommentCount.astro'
 import ThoughtCommentPreview from './ThoughtCommentPreview.astro'
-import { renderMarkdown } from '../lib/markdown/markdown'
-import type { Thought } from '../data/thoughts'
-import type { ThoughtCommentData } from '../data/giscus-comments'
+import { renderMarkdown } from '~/lib/markdown/markdown'
+import type { Thought } from '~/data/thoughts'
+import type { ThoughtCommentData } from '~/data/giscus-comments'
 
 interface Props {
   thought: Thought

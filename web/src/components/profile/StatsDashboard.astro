@@ -1,5 +1,5 @@
 ---
-import FormattedDate from './FormattedDate.astro'
+import FormattedDate from '~/components/shared/FormattedDate.astro'
 
 interface Props {
   totalPosts: number
@@ -66,7 +66,7 @@ const { totalPosts, totalWords, averageWords, earliestDate, latestDate } = Astro
 </section>
 
 <script>
-  import { triggerReload } from '../lib/busuanzi';
+  import { triggerReload } from '~/lib/busuanzi';
 
   function initStatsBusuanzi() {
     const pvEl = document.getElementById('stats_site_pv');

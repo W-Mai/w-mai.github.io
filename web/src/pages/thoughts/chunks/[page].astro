@@ -1,7 +1,7 @@
 ---
 import type { GetStaticPaths } from 'astro'
-import ThoughtCard from '~/components/ThoughtCard.astro'
-import TimelineDateSeparator from '~/components/TimelineDateSeparator.astro'
+import ThoughtCard from '~/components/thought/ThoughtCard.astro'
+import TimelineDateSeparator from '~/components/thought/TimelineDateSeparator.astro'
 import type { Thought } from '~/data/thoughts'
 import { loadThoughts } from '~/data/thoughts'
 import { fetchThoughtComments, type ThoughtCommentData } from '~/data/giscus-comments'

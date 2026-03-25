@@ -1,9 +1,9 @@
 ---
 import { getCollection } from 'astro:content'
 import WithSidebar from '~/layouts/WithSidebar.astro'
-import ProfileSidebar from '~/components/ProfileSidebar.astro'
-import StatsDashboard from '~/components/StatsDashboard.astro'
-import FormattedDate from '~/components/FormattedDate.astro'
+import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
+import StatsDashboard from '~/components/profile/StatsDashboard.astro'
+import FormattedDate from '~/components/shared/FormattedDate.astro'
 import { fetchGitHubProfile } from '~/lib/github'
 import { computeBlogStats, stripMarkdown, countWords, estimateReadingTime } from '~/lib/blog/reading-stats'
 import { siteYear, siteMonth } from '~/lib/date-utils'

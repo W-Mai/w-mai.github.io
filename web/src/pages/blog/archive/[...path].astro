@@ -1,11 +1,11 @@
 ---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import BlogHeroFallback from '~/components/BlogHeroFallback.astro';
-import BlogSidebar from '~/components/BlogSidebar.astro';
-import FormattedDate from '~/components/FormattedDate.astro';
-import SeriesBadge from '~/components/SeriesBadge.astro';
-import TagChip from '~/components/TagChip.astro';
+import BlogHeroFallback from '~/components/blog/BlogHeroFallback.astro';
+import BlogSidebar from '~/components/blog/BlogSidebar.astro';
+import FormattedDate from '~/components/shared/FormattedDate.astro';
+import SeriesBadge from '~/components/blog/SeriesBadge.astro';
+import TagChip from '~/components/blog/TagChip.astro';
 import WithSidebar from '~/layouts/WithSidebar.astro';
 import { getAllYearMonthPairs, getPostsByYearMonth } from '~/lib/blog/archive';
 import { extractFirstBodyImage } from '~/lib/blog/hero';
