@@ -42,7 +42,9 @@ export default defineConfig({
       },
     }),
     mdx(),
-    sitemap(),
+    sitemap({
+      filter: (page) => !page.includes('/chunks/'),
+    }),
   ],
 
   image: {

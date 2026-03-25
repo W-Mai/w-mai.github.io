@@ -9,7 +9,7 @@ export const USER_NAME = 'W-Mai';
 export const NICK_NAME = 'B3n1gn X';
 export const AVATAR_URL = `https://avatars.githubusercontent.com/${USER_NAME}`;
 export const SITE_TITLE = 'B3n1gn X';
-export const SITE_DESCRIPTION = 'B3n1gn X | Personal Website';
+export const SITE_DESCRIPTION = 'B3n1gn X (Benign X) 的个人博客 — 分享编程、图形学、嵌入式开发和开源项目的技术文章与想法';
 export const SITE_URL = 'https://benign.host';
 
 // Pinned projects displayed as featured cards on homepage

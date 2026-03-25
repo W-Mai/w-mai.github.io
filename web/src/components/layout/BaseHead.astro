@@ -43,8 +43,26 @@ const ogImageUrl = isBlogPost
 />
 <meta name="generator" content={Astro.generator} />
 
+<!-- Structured data: site identity with name variants -->
+<script type="application/ld+json" set:html={JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	"name": "B3n1gn X",
+	"alternateName": ["Benign X", "BenignX", "Benign"],
+	"url": "https://benign.host",
+	"author": {
+		"@type": "Person",
+		"name": "B3n1gn X",
+		"alternateName": ["Benign X", "BenignX", "W-Mai"],
+		"url": "https://benign.host/about"
+	}
+})} />
+
 <!-- Baidu site verification -->
 <meta name="baidu-site-verification" content="codeva-RkbN591qFi" />
+
+<!-- SEO keywords for name variant discovery -->
+<meta name="keywords" content="B3n1gn X, Benign X, BenignX, Benign, W-Mai, benign.host, 个人博客, tech blog" />
 
 <!-- Theme initialization — runs before first paint to prevent FOUC -->
 <script is:inline>
@@ -130,8 +148,8 @@ const ogImageUrl = isBlogPost
 <link rel="canonical" href={canonicalURL} />
 
 <!-- Primary Meta Tags -->
-<title>{title}</title>
-<meta name="title" content={title} />
+<title>{title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`}</title>
+<meta name="title" content={title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`} />
 <meta name="description" content={description} />
 
 <!-- Open Graph / Facebook -->
