@@ -9,6 +9,7 @@ export const USER_NAME = 'W-Mai';
 export const NICK_NAME = 'B3n1gn X';
 export const AVATAR_URL = `https://avatars.githubusercontent.com/${USER_NAME}`;
 export const SITE_TITLE = 'B3n1gn X';
+export const SITE_TITLE_FULL = `${SITE_TITLE} — 个人博客 & 技术分享`;
 export const SITE_DESCRIPTION = 'B3n1gn X (Benign X) 的个人博客 — 分享编程、图形学、嵌入式开发和开源项目的技术文章与想法';
 export const SITE_URL = 'https://benign.host';
 export const SITE_DOMAIN = new URL(SITE_URL).hostname;

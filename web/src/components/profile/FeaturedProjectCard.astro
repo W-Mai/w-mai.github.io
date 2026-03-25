@@ -55,7 +55,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
     {bannerSrc ? (
       <img
         src={bannerSrc}
-        alt=""
+        alt={name}
         class="absolute inset-0 w-full h-full object-cover
                transition-transform duration-700 ease-out
                group-hover:scale-105"
@@ -127,7 +127,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
         <div class="flex items-center gap-1.5 mt-0.5">
           <img
             src={ownerAvatarSrc}
-            alt=""
+            alt={owner}
             class="size-3.5 rounded-full opacity-60"
             loading="lazy"
           />
@@ -145,7 +145,7 @@ const fallbackGradient = `linear-gradient(135deg, hsl(${hue}, 60%, 95%) 0%, hsl(
     {badges.length > 0 && (
       <div class="mt-2.5 flex flex-wrap gap-1.5">
         {badges.map((badge) => (
-          <img src={badge} alt="" class="h-5 rounded-sm" loading="lazy" />
+          <img src={badge} alt="badge" class="h-5 rounded-sm" loading="lazy" />
         ))}
       </div>
     )}

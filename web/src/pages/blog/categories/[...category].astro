@@ -69,14 +69,14 @@ function resolveBodyImage(path: string): ImageMetadata | null {
 										<Image
 											width={720} height={360}
 											src={post.data.heroImage}
-											alt=""
+											alt={post.data.title}
 											class="card-cover-img"
 										/>
 									) : bodyImgMeta ? (
 										<Image
 											width={720} height={360}
 											src={bodyImgMeta}
-											alt=""
+											alt={post.data.title}
 											class="card-cover-img"
 										/>
 									) : (

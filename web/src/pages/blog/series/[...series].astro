@@ -95,10 +95,10 @@ function resolveBodyImage(path: string): ImageMetadata | null {
 									{(post.data.heroImage || bodyImgMeta) && (
 										<div class="shrink-0 w-24 h-24 overflow-hidden self-center mr-4 rounded-xl">
 											{post.data.heroImage ? (
-												<Image width={96} height={96} src={post.data.heroImage} alt=""
+												<Image width={96} height={96} src={post.data.heroImage} alt={post.data.title}
 												       class="w-full h-full object-cover" />
 											) : bodyImgMeta ? (
-												<Image width={96} height={96} src={bodyImgMeta} alt=""
+												<Image width={96} height={96} src={bodyImgMeta} alt={post.data.title}
 												       class="w-full h-full object-cover" />
 											) : null}
 										</div>

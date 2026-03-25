@@ -1,5 +1,5 @@
 ---
-import {SITE_DESCRIPTION, SITE_TITLE, SITE_LANG} from "~/consts";
+import {SITE_DESCRIPTION, SITE_TITLE, SITE_TITLE_FULL, SITE_LANG} from "~/consts";
 import BaseHead from "~/components/layout/BaseHead.astro";
 import Header from "~/components/layout/Header.astro";
 import Footer from "~/components/layout/Footer.astro";
@@ -20,7 +20,7 @@ if (Astro.slots.has('sidebar')) {
 
 <html lang={SITE_LANG}>
 <head>
-    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION}/>
+    <BaseHead title={SITE_TITLE_FULL} description={SITE_DESCRIPTION}/>
 </head>
 
 <body class="neu-bg">
