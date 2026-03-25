@@ -45,6 +45,7 @@ body {
   background: var(--neu-bg);
   word-wrap: break-word;
   overflow-wrap: break-word;
+  overflow-x: hidden;
   color: rgb(var(--gray-dark));
   font-size: 20px;
   line-height: 1.7;
@@ -111,6 +112,10 @@ hr {
 
 @media (max-width: 720px) {
   body { font-size: 18px; }
+}
+
+@media (max-width: 400px) {
+  body { font-size: 16px; }
 }
 
 /* Dark mode base element overrides */

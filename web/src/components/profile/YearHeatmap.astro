@@ -13,7 +13,7 @@ const { dateCounts, year = siteYear(new Date()) } = Astro.props
 const totalThoughts = Object.values(dateCounts).reduce((a, b) => a + b, 0)
 ---
 
-<div class="year-heatmap neu-card rounded-[2rem] p-5 sm:p-6 mb-6 anim-fade overflow-hidden" style="--delay:1">
+<div class="year-heatmap neu-card rounded-[2rem] p-5 sm:p-6 mb-6 anim-fade overflow-x-auto overflow-y-hidden" style="--delay:1">
   <div class="flex items-center justify-between mb-3">
     <h3 class="neu-section-title text-base">
       {year} 年碎碎念
