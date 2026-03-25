@@ -5,7 +5,7 @@ import '~/styles/global.css';
 import 'katex/dist/katex.min.css';
 import { ClientRouter } from 'astro:transitions';
 import type { ImageMetadata } from 'astro';
-import { SITE_TITLE, SITE_LANG, GA4_MEASUREMENT_ID } from '~/consts';
+import { SITE_TITLE, SITE_URL, SITE_LANG, NICK_NAME, NICK_ALIASES, USER_NAME, SEO_KEYWORDS, FAVICON_URL, GA4_MEASUREMENT_ID } from '~/consts';
 
 interface Props {
 	title: string;
@@ -34,7 +34,7 @@ const ogImageUrl = isBlogPost
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="language" content={SITE_LANG} />
-<link rel="icon" type="image/svg+xml" href="https://github.com/w-mai.png" />
+<link rel="icon" type="image/svg+xml" href={FAVICON_URL} />
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link
 	rel="alternate"
@@ -48,14 +48,14 @@ const ogImageUrl = isBlogPost
 <script type="application/ld+json" set:html={JSON.stringify({
 	"@context": "https://schema.org",
 	"@type": "WebSite",
-	"name": "B3n1gn X",
-	"alternateName": ["Benign X", "BenignX", "Benign"],
-	"url": "https://benign.host",
+	"name": SITE_TITLE,
+	"alternateName": NICK_ALIASES,
+	"url": SITE_URL,
 	"author": {
 		"@type": "Person",
-		"name": "B3n1gn X",
-		"alternateName": ["Benign X", "BenignX", "W-Mai"],
-		"url": "https://benign.host/about"
+		"name": NICK_NAME,
+		"alternateName": [...NICK_ALIASES, USER_NAME],
+		"url": `${SITE_URL}/about`
 	}
 })} />
 
@@ -63,7 +63,7 @@ const ogImageUrl = isBlogPost
 <meta name="baidu-site-verification" content="codeva-RkbN591qFi" />
 
 <!-- SEO keywords for name variant discovery -->
-<meta name="keywords" content="B3n1gn X, Benign X, BenignX, Benign, W-Mai, benign.host, 个人博客, tech blog" />
+<meta name="keywords" content={SEO_KEYWORDS.join(', ')} />
 
 <!-- Theme initialization — runs before first paint to prevent FOUC -->
 <script is:inline>

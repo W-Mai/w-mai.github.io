@@ -9,7 +9,7 @@ import StatsDashboard from '~/components/profile/StatsDashboard.astro'
 import { fetchGitHubProfile } from '~/lib/github'
 import { computeBlogStats } from '~/lib/blog/reading-stats'
 import SkillTree from '~/components/profile/SkillTree.astro'
-import { USER_NAME, NICK_NAME, SITE_DESCRIPTION, SOCIALS } from '~/consts'
+import { USER_NAME, NICK_NAME, NICK_ALIASES, SITE_DOMAIN, SITE_DESCRIPTION, SOCIALS } from '~/consts'
 import HeroImage from '@assets/images/my_hero_img.png'
 
 const profile = await fetchGitHubProfile()
@@ -51,7 +51,7 @@ const afterCount = Math.floor(Math.random() * 60) + 20
         </div>
         <h1 class="mt-4 sm:mt-6 text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--text-heading)]">{profile.name ?? NICK_NAME}</h1>
         <p class="mt-1 text-base sm:text-lg text-[var(--text-muted)]">@{USER_NAME}</p>
-        <p class="sr-only">B3n1gn X, Benign X, BenignX — personal blog and portfolio by W-Mai at benign.host</p>
+        <p class="sr-only">{NICK_NAME}, {NICK_ALIASES.join(', ')} — personal blog and portfolio by {USER_NAME} at {SITE_DOMAIN}</p>
         {profile.bio && (
             <p class="mt-2 sm:mt-3 text-sm sm:text-base md:text-lg text-[var(--text-secondary)] max-w-md px-2">{profile.bio}</p>
         )}

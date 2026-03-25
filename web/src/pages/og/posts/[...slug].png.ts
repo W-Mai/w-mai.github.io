@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { readFileSync } from 'node:fs';
-import { SITE_TITLE } from '~/consts';
+import { SITE_TITLE, SITE_DOMAIN } from '~/consts';
 import { pinyin } from 'pinyin-pro';
 import {
   OG_W, OG_H, fontData,
@@ -160,7 +160,7 @@ export const GET: APIRoute = async ({ props }) => {
                   style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' },
                   children: [
                     { type: 'span', props: { style: { fontSize: '20px', color: 'rgba(241,245,249,0.4)' }, children: SITE_TITLE } },
-                    { type: 'span', props: { style: { fontSize: '20px', color: 'rgba(241,245,249,0.3)' }, children: 'benign.host' } },
+                    { type: 'span', props: { style: { fontSize: '20px', color: 'rgba(241,245,249,0.3)' }, children: SITE_DOMAIN } },
                   ],
                 },
               },

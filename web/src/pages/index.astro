@@ -7,7 +7,7 @@ import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
 import RecentThoughts from '~/components/thought/RecentThoughts.astro'
 import RecentPostCard from '~/components/blog/RecentPostCard.astro'
 import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '~/lib/github'
-import { PINNED_PROJECTS, USER_NAME } from '~/consts'
+import { PINNED_PROJECTS, USER_NAME, NICK_NAME, NICK_ALIASES, SITE_DOMAIN } from '~/consts'
 
 const profile = await fetchGitHubProfile()
 const repos = await fetchGitHubRepos(USER_NAME, 12)
@@ -27,7 +27,7 @@ const recentPosts = allPosts.slice(0, 4)
     <h1 class="page-title anim-fade" style="--delay:0">👋 恁好，吃了冇</h1>
 
     <!-- SEO: name variants for search engine discovery -->
-    <p class="sr-only">B3n1gn X, also known as Benign X, BenignX, Benign. Personal tech blog at benign.host by W-Mai.</p>
+    <p class="sr-only">{NICK_NAME}, also known as {NICK_ALIASES.join(', ')}. Personal tech blog at {SITE_DOMAIN} by {USER_NAME}.</p>
 
     <p class="page-subtitle anim-fade" style="--delay:1">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
 

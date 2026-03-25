@@ -11,7 +11,14 @@ export const AVATAR_URL = `https://avatars.githubusercontent.com/${USER_NAME}`;
 export const SITE_TITLE = 'B3n1gn X';
 export const SITE_DESCRIPTION = 'B3n1gn X (Benign X) 的个人博客 — 分享编程、图形学、嵌入式开发和开源项目的技术文章与想法';
 export const SITE_URL = 'https://benign.host';
+export const SITE_DOMAIN = new URL(SITE_URL).hostname;
 export const SITE_LANG = 'zh-CN';
+export const FAVICON_URL = `https://github.com/${USER_NAME.toLowerCase()}.png`;
+
+// Name variants for SEO — search engines associate these with the site
+export const NICK_ALIASES = ['Benign X', 'BenignX', 'Benign'];
+export const SEO_KEYWORDS = [NICK_NAME, ...NICK_ALIASES, USER_NAME, SITE_DOMAIN, '个人博客', 'tech blog'];
+export const COPYRIGHT = `${NICK_ALIASES[0]}. All rights reserved.`;
 
 // Pinned projects displayed as featured cards on homepage
 // Format: 'owner/repo' or just 'repo' (defaults to USER_NAME as owner)
