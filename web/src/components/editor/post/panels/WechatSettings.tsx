@@ -5,7 +5,7 @@ import {
   PRESET_COLORS,
   isValidHexColor,
   type StyleOverrides,
-} from '../../lib/wechat-templates';
+} from '../../../lib/wechat-templates';
 
 interface WechatSettingsPanelProps {
   overrides: StyleOverrides;

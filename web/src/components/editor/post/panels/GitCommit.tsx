@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import { createPortal } from 'react-dom';
-import { EDITOR_TOKENS as T } from './editor-tokens';
+import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
 
 interface PendingPost {
   slug: string;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, type FC } from 'react';
-import { EDITOR_TOKENS as T } from './editor-tokens';
+import { EDITOR_TOKENS as T } from '../../shared/editor-tokens';
 
 interface ContextMenuProps {
   position: { x: number; y: number } | null;

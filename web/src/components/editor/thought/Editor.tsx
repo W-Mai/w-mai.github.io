@@ -6,11 +6,11 @@
 import { useRef, useCallback, useEffect, type FC } from 'react';
 import { createPortal } from 'react-dom';
 import { useState } from 'react';
-import { EDITOR_TOKENS as T } from '../editor-tokens';
+import { EDITOR_TOKENS as T } from '../shared/editor-tokens';
 import { useThoughtDraft } from './use-draft';
 import { useThoughtApi } from './use-api';
 import ThoughtPreview from './Preview';
-import StickerPanel from '../StickerPanel';
+import StickerPanel from '../shared/StickerPanel';
 
 interface ThoughtData {
   id: string;
