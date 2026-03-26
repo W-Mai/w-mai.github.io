@@ -56,12 +56,13 @@ if (Astro.slots.has('sidebar')) {
   </button>
 
   <div id="sidebar-overlay" class="md:hidden fixed inset-0 z-40 pointer-events-none opacity-0 transition-opacity duration-200"
-       style="background: var(--overlay-bg);">
+       style="background: var(--overlay-bg); height: 100dvh;">
   </div>
 
   <!-- Mobile drawer -->
   <div id="sidebar-drawer"
        class="md:hidden fixed top-0 left-0 z-40
+              hidden
               h-full w-[min(18rem,80vw)]
               neu-bg
               p-4 pt-6
@@ -108,6 +109,9 @@ if (Astro.slots.has('sidebar')) {
     if (!toggle || !overlay || !drawer) return;
 
     function open() {
+      drawer!.style.display = 'block';
+      // Force reflow before adding transform class
+      void drawer!.offsetHeight;
       drawer!.classList.remove('-translate-x-full');
       drawer!.classList.add('translate-x-0');
       overlay!.classList.remove('opacity-0', 'pointer-events-none');
@@ -121,6 +125,8 @@ if (Astro.slots.has('sidebar')) {
       overlay!.classList.remove('opacity-100', 'pointer-events-auto');
       overlay!.classList.add('opacity-0', 'pointer-events-none');
       toggle!.setAttribute('aria-expanded', 'false');
+      // Hide after transition completes
+      setTimeout(() => { drawer!.style.display = 'none'; }, 200);
     }
 
     toggle.addEventListener('click', () => {
