@@ -151,7 +151,6 @@ const moreBtnLabel = activeDropdown?.label ?? activeCollapse?.label ?? '瞅瞅';
 		align-items: center;
 		justify-content: space-between;
 		gap: 1em;
-		overflow-x: hidden;
 	}
 
 	/* Tab bar — inset capsule container */
@@ -164,7 +163,6 @@ const moreBtnLabel = activeDropdown?.label ?? activeCollapse?.label ?? '瞅瞅';
 		box-shadow: inset 2px 2px 5px var(--neu-shadow-dark-strong),
 		            inset -2px -2px 5px var(--neu-shadow-light-strong);
 		flex-wrap: nowrap;
-		overflow: hidden;
 	}
 	/* Tab links — flat default, gradient hover, reverse gradient active */
 	.tab-bar :global(a) {
@@ -378,7 +376,7 @@ const moreBtnLabel = activeDropdown?.label ?? activeCollapse?.label ?? '瞅瞅';
 		.social-links {
 			position: absolute;
 			top: 0;
-			right: 0;
+			right: 0.5em;
 		}
 	}
 
