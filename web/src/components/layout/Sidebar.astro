@@ -10,6 +10,7 @@ const { collapsible = true } = Astro.props
 {collapsible ? (
   <!-- Collapsible mode: hidden on mobile, drawer toggle -->
   <aside
+    id="sidebar-content"
     class=" box-border
             hidden
             md:block
@@ -65,7 +66,7 @@ const { collapsible = true } = Astro.props
               transition-transform duration-200 ease
               -translate-x-full"
   >
-    <slot name="sidebar"/>
+    <!-- Content moved here dynamically when drawer opens -->
   </div>
 ) : (
   <!-- Always-visible mode: shown on all screen sizes -->
@@ -98,9 +99,16 @@ const { collapsible = true } = Astro.props
     const toggle = document.getElementById('sidebar-toggle');
     const overlay = document.getElementById('sidebar-overlay');
     const drawer = document.getElementById('sidebar-drawer');
-    if (!toggle || !overlay || !drawer) return;
+    const aside = document.getElementById('sidebar-content');
+    if (!toggle || !overlay || !drawer || !aside) return;
+
+    // Move child nodes between aside and drawer
+    function moveChildren(from: HTMLElement, to: HTMLElement) {
+      while (from.firstChild) to.appendChild(from.firstChild);
+    }
 
     function open() {
+      moveChildren(aside!, drawer!);
       drawer!.classList.remove('-translate-x-full');
       drawer!.classList.add('translate-x-0');
       overlay!.classList.remove('opacity-0', 'pointer-events-none');
@@ -114,6 +122,8 @@ const { collapsible = true } = Astro.props
       overlay!.classList.remove('opacity-100', 'pointer-events-auto');
       overlay!.classList.add('opacity-0', 'pointer-events-none');
       toggle!.setAttribute('aria-expanded', 'false');
+      // Move content back after transition
+      setTimeout(() => moveChildren(drawer!, aside!), 200);
     }
 
     toggle.addEventListener('click', () => {

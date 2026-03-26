@@ -50,7 +50,6 @@
     const FONT_KEY = 'rs-font-mode'
     const ZEN_KEY = 'rs-zen-mode'
 
-    // Font modes: 'pixel' (default), 'sans', 'serif'
     type FontMode = 'pixel' | 'sans' | 'serif'
     let fontMode = (localStorage.getItem(FONT_KEY) || 'pixel') as FontMode
     let zenActive = localStorage.getItem(ZEN_KEY) === 'on'
@@ -81,7 +80,6 @@
       localStorage.setItem(ZEN_KEY, active ? 'on' : 'off')
     }
 
-    // Apply initial states
     applyFontMode(fontMode)
     applyZenMode(zenActive)
 
@@ -96,7 +94,6 @@
     zenMode.addEventListener('click', () => applyZenMode(!zenActive))
     document.getElementById('rs-zen-exit')?.addEventListener('click', () => applyZenMode(false))
 
-    // Scroll to top
     document.getElementById('rs-scroll-top')?.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     })
