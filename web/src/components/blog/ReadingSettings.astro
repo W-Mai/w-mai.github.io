@@ -42,10 +42,12 @@
 
 <script>
   function initReadingSettings() {
-    const fontToggle = document.getElementById('rs-font-toggle')
-    const serifToggle = document.getElementById('rs-serif-toggle')
-    const zenMode = document.getElementById('rs-zen-mode')
-    if (!fontToggle || !serifToggle || !zenMode) return
+    // Both desktop aside and mobile drawer have copies — bind all instances
+    const fontToggles = document.querySelectorAll<HTMLButtonElement>('[id="rs-font-toggle"]')
+    const serifToggles = document.querySelectorAll<HTMLButtonElement>('[id="rs-serif-toggle"]')
+    const zenModes = document.querySelectorAll<HTMLButtonElement>('[id="rs-zen-mode"]')
+    const scrollTops = document.querySelectorAll<HTMLButtonElement>('[id="rs-scroll-top"]')
+    if (fontToggles.length === 0) return
 
     const FONT_KEY = 'rs-font-mode'
     const ZEN_KEY = 'rs-zen-mode'
@@ -58,15 +60,15 @@
       fontMode = mode
       const html = document.documentElement
       html.classList.remove('no-pixel-font', 'serif-font')
-      fontToggle!.classList.remove('neu-rs-active')
-      serifToggle!.classList.remove('neu-rs-active')
+      fontToggles.forEach(b => b.classList.remove('neu-rs-active'))
+      serifToggles.forEach(b => b.classList.remove('neu-rs-active'))
 
       if (mode === 'sans') {
         html.classList.add('no-pixel-font')
-        fontToggle!.classList.add('neu-rs-active')
+        fontToggles.forEach(b => b.classList.add('neu-rs-active'))
       } else if (mode === 'serif') {
         html.classList.add('no-pixel-font', 'serif-font')
-        serifToggle!.classList.add('neu-rs-active')
+        serifToggles.forEach(b => b.classList.add('neu-rs-active'))
       }
       localStorage.setItem(FONT_KEY, mode)
     }
@@ -74,7 +76,7 @@
     function applyZenMode(active: boolean) {
       zenActive = active
       document.documentElement.classList.toggle('zen-mode', active)
-      zenMode!.classList.toggle('neu-rs-active', active)
+      zenModes.forEach(b => b.classList.toggle('neu-rs-active', active))
       const exitBtn = document.getElementById('rs-zen-exit')
       exitBtn?.classList.toggle('neu-rs-zen-exit-visible', active)
       localStorage.setItem(ZEN_KEY, active ? 'on' : 'off')
@@ -83,20 +85,20 @@
     applyFontMode(fontMode)
     applyZenMode(zenActive)
 
-    fontToggle.addEventListener('click', () => {
+    fontToggles.forEach(b => b.addEventListener('click', () => {
       applyFontMode(fontMode === 'sans' ? 'pixel' : 'sans')
-    })
+    }))
 
-    serifToggle.addEventListener('click', () => {
+    serifToggles.forEach(b => b.addEventListener('click', () => {
       applyFontMode(fontMode === 'serif' ? 'pixel' : 'serif')
-    })
+    }))
 
-    zenMode.addEventListener('click', () => applyZenMode(!zenActive))
+    zenModes.forEach(b => b.addEventListener('click', () => applyZenMode(!zenActive)))
     document.getElementById('rs-zen-exit')?.addEventListener('click', () => applyZenMode(false))
 
-    document.getElementById('rs-scroll-top')?.addEventListener('click', () => {
+    scrollTops.forEach(b => b.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' })
-    })
+    }))
 
     // ESC exits zen mode
     document.addEventListener('keydown', (e) => {

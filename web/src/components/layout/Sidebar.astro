@@ -5,12 +5,17 @@ interface Props {
 }
 
 const { collapsible = true } = Astro.props
+
+// Pre-render slot so it can be injected into both desktop aside and mobile drawer
+let sidebarHtml = ''
+if (Astro.slots.has('sidebar')) {
+  sidebarHtml = await Astro.slots.render('sidebar')
+}
 ---
 
 {collapsible ? (
-  <!-- Collapsible mode: hidden on mobile, drawer toggle -->
+  <!-- Desktop sidebar -->
   <aside
-    id="sidebar-content"
     class=" box-border
             hidden
             md:block
@@ -30,7 +35,7 @@ const { collapsible = true } = Astro.props
             md:[scrollbar-width:none]
             md:[&::-webkit-scrollbar]:hidden
   ">
-    <slot name="sidebar"/>
+    <Fragment set:html={sidebarHtml} />
   </aside>
 
   <button
@@ -54,6 +59,7 @@ const { collapsible = true } = Astro.props
        style="background: var(--overlay-bg);">
   </div>
 
+  <!-- Mobile drawer -->
   <div id="sidebar-drawer"
        class="md:hidden fixed top-0 left-0 z-40
               h-full w-[min(18rem,80vw)]
@@ -66,10 +72,10 @@ const { collapsible = true } = Astro.props
               transition-transform duration-200 ease
               -translate-x-full"
   >
-    <!-- Content moved here dynamically when drawer opens -->
+    <Fragment set:html={sidebarHtml} />
   </div>
 ) : (
-  <!-- Always-visible mode: shown on all screen sizes -->
+  <!-- Always-visible mode -->
   <aside
     class=" box-border
             w-full
@@ -90,7 +96,7 @@ const { collapsible = true } = Astro.props
             md:[scrollbar-width:none]
             md:[&::-webkit-scrollbar]:hidden
   ">
-    <slot name="sidebar"/>
+    <Fragment set:html={sidebarHtml} />
   </aside>
 )}
 
@@ -99,16 +105,9 @@ const { collapsible = true } = Astro.props
     const toggle = document.getElementById('sidebar-toggle');
     const overlay = document.getElementById('sidebar-overlay');
     const drawer = document.getElementById('sidebar-drawer');
-    const aside = document.getElementById('sidebar-content');
-    if (!toggle || !overlay || !drawer || !aside) return;
-
-    // Move child nodes between aside and drawer
-    function moveChildren(from: HTMLElement, to: HTMLElement) {
-      while (from.firstChild) to.appendChild(from.firstChild);
-    }
+    if (!toggle || !overlay || !drawer) return;
 
     function open() {
-      moveChildren(aside!, drawer!);
       drawer!.classList.remove('-translate-x-full');
       drawer!.classList.add('translate-x-0');
       overlay!.classList.remove('opacity-0', 'pointer-events-none');
@@ -122,8 +121,6 @@ const { collapsible = true } = Astro.props
       overlay!.classList.remove('opacity-100', 'pointer-events-auto');
       overlay!.classList.add('opacity-0', 'pointer-events-none');
       toggle!.setAttribute('aria-expanded', 'false');
-      // Move content back after transition
-      setTimeout(() => moveChildren(drawer!, aside!), 200);
     }
 
     toggle.addEventListener('click', () => {
