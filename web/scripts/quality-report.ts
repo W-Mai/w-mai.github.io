@@ -42,6 +42,7 @@ const CHECKS: QualityCheck[] = [
   { name: 'Content validation', script: 'validate-content.ts', failOnError: true },
   { name: 'Import conventions', script: 'check-imports.ts', failOnError: true },
   { name: 'Hardcoded strings', script: 'check-hardcoded.ts', failOnError: true },
+  { name: 'Mobile responsive', script: 'check-mobile.ts', failOnError: true },
   { name: 'Bundle size', script: 'measure-bundle.ts', failOnError: false },
 ]
 
