@@ -450,6 +450,7 @@ function DiagramFlow({ data }: DiagramRendererProps) {
                 padding: '0.35rem 0.85rem', fontSize: '0.8rem',
                 border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 whiteSpace: 'nowrap', filter: 'none',
+                color: showEditorNodes === opt.key ? 'var(--text-primary)' : 'var(--text-secondary)',
               }}>
               {opt.label}
             </button>
