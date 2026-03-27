@@ -5,7 +5,7 @@ import {
   BLOCK_STICKER_RE, INLINE_STICKER_RE,
   loadSticker, imageDimensions, fitSize,
 } from '~/lib/sticker';
-import { OG_W, OG_H, renderToPng, pngResponse } from '~/lib/og-utils';
+import { renderToPng, pngResponse } from '~/lib/og-utils';
 
 /** Mood emoji to base hue based on color psychology. */
 const moodBaseHue: Record<string, number> = {
@@ -19,7 +19,18 @@ function moodHue(emoji: string): number {
 
 /** Parse thought content into satori-compatible children array. */
 function parseContentToChildren(text: string, fontSize: number, accentHue: number): any[] {
-  const lines = text.split(/\n\n+/);
+  // Split paragraphs on double newlines
+  const paragraphs = text.split(/\n\n+/);
+  const lines: string[] = [];
+  for (const p of paragraphs) {
+    const sub = p.split('\n');
+    // If any sub-line is a list or quote, split them individually
+    if (sub.some(s => /^[-*>]\s/.test(s.trim()))) {
+      lines.push(...sub);
+    } else {
+      lines.push(p);
+    }
+  }
   const blocks: any[] = [];
 
   for (const line of lines) {
@@ -42,16 +53,78 @@ function parseContentToChildren(text: string, fontSize: number, accentHue: numbe
       }
     }
 
+    // > blockquote
+    if (trimmed.startsWith('> ')) {
+      const quoteText = trimmed.replace(/^>\s?/gm, '');
+      blocks.push({
+        type: 'div',
+        props: {
+          style: {
+            display: 'flex', alignItems: 'center', width: '100%', margin: '6px 0',
+            paddingLeft: '16px', borderLeft: `3px solid hsl(${accentHue},40%,70%)`,
+          },
+          children: [{
+            type: 'div',
+            props: {
+              style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', opacity: 0.8, fontStyle: 'italic' },
+              children: parseInlineMarkdown(quoteText, fontSize, accentHue),
+            },
+          }],
+        },
+      });
+      continue;
+    }
+
+    // - list item / * list item
+    const listMatch = trimmed.match(/^[-*]\s+(.+)/);
+    if (listMatch) {
+      blocks.push({
+        type: 'div',
+        props: {
+          style: { display: 'flex', alignItems: 'center', width: '100%', margin: '2px 0', gap: '8px' },
+          children: [
+            { type: 'span', props: { style: { color: `hsl(${accentHue},50%,50%)`, fontSize: `${Math.round(fontSize * 0.7)}px` }, children: '●' } },
+            {
+              type: 'div',
+              props: {
+                style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center' },
+                children: parseInlineMarkdown(listMatch[1], fontSize, accentHue),
+              },
+            },
+          ],
+        },
+      });
+      continue;
+    }
+
     blocks.push({
       type: 'div',
       props: {
         style: { display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', width: '100%', margin: '4px 0' },
-        children: parseInlineMarkdown(trimmed, fontSize, accentHue),
+        children: parseInlineWithBreaks(trimmed, fontSize, accentHue),
       },
     });
   }
 
   return blocks.length > 0 ? blocks : [text];
+}
+
+/** Handle backslash line breaks within a paragraph, then parse inline markdown per line. */
+function parseInlineWithBreaks(text: string, fontSize: number, accentHue: number): any[] {
+  // Split on backslash-newline (markdown hard line break)
+  const segments = text.split(/\\\n/);
+  if (segments.length <= 1) return parseInlineMarkdown(text, fontSize, accentHue);
+
+  const children: any[] = [];
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i].trim();
+    if (seg) children.push(...parseInlineMarkdown(seg, fontSize, accentHue));
+    // Insert a full-width break between lines (not after last)
+    if (i < segments.length - 1) {
+      children.push({ type: 'div', props: { style: { width: '100%', height: '0px' } } });
+    }
+  }
+  return children;
 }
 
 function parseInlineMarkdown(text: string, fontSize: number, accentHue: number): any[] {
@@ -60,16 +133,29 @@ function parseInlineMarkdown(text: string, fontSize: number, accentHue: number):
   const headingMatch = processed.match(/^#{1,6}\s+/);
   if (headingMatch) { processed = processed.slice(headingMatch[0].length); isHeading = true; }
 
-  const TOKEN_RE = new RegExp(`(\\*\\*(.+?)\\*\\*|\`([^\`]+)\`|${INLINE_STICKER_RE.source})`, 'g');
+  // Order matters: bold before italic, link before plain brackets
+  // Groups: 2=bold, 3=code, 4=sticker, 5=strikethrough, 6=link-text, 7=italic
+  const TOKEN_RE = new RegExp(
+    `(\\*\\*(.+?)\\*\\*` +
+    `|\`([^\`]+)\`` +
+    `|${INLINE_STICKER_RE.source}` +
+    `|~~(.+?)~~` +
+    `|\\[([^\\]]+)\\]\\([^)]+\\)` +
+    `|(?<![*\\w])\\*([^*]+?)\\*(?![*\\w]))`,
+    'g',
+  );
   const children: any[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
   while ((match = TOKEN_RE.exec(processed)) !== null) {
     if (match.index > lastIndex) children.push(wrapText(processed.slice(lastIndex, match.index), isHeading, fontSize));
+
     if (match[2] !== undefined) {
+      // **bold**
       children.push({ type: 'span', props: { style: { fontWeight: 700 }, children: match[2] } });
     } else if (match[3] !== undefined) {
+      // `code`
       children.push({
         type: 'span',
         props: {
@@ -78,6 +164,7 @@ function parseInlineMarkdown(text: string, fontSize: number, accentHue: number):
         },
       });
     } else if (match[4] !== undefined) {
+      // sticker
       const sticker = loadSticker(match[4]);
       if (sticker) {
         const maxSize = Math.round(fontSize * 1.6);
@@ -86,6 +173,15 @@ function parseInlineMarkdown(text: string, fontSize: number, accentHue: number):
       } else {
         children.push(`[${match[4]}]`);
       }
+    } else if (match[5] !== undefined) {
+      // ~~strikethrough~~
+      children.push({ type: 'span', props: { style: { textDecoration: 'line-through', opacity: 0.6 }, children: match[5] } });
+    } else if (match[6] !== undefined) {
+      // [link text](url) — render text only, underlined
+      children.push({ type: 'span', props: { style: { textDecoration: 'underline', color: `hsl(${accentHue},50%,40%)` }, children: match[6] } });
+    } else if (match[7] !== undefined) {
+      // *italic*
+      children.push({ type: 'span', props: { style: { fontStyle: 'italic' }, children: match[7] } });
     }
     lastIndex = TOKEN_RE.lastIndex;
   }
