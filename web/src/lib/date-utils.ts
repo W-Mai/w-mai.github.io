@@ -1,6 +1,23 @@
 import { SITE_TZ_OFFSET } from '~/consts';
 
 /**
+ * Parse a timezone-naive datetime string as site-local time.
+ * Strings like "2026-03-12T01:40:58" are treated as SITE_TZ_OFFSET,
+ * producing a correct UTC Date regardless of build environment timezone.
+ * If the string already has a timezone suffix (Z, +XX:XX), it is parsed as-is.
+ */
+export function parseSiteDate(dateStr: string): Date {
+  if (/[Zz]$/.test(dateStr) || /[+-]\d{2}:\d{2}$/.test(dateStr)) {
+    return new Date(dateStr);
+  }
+  // Append explicit offset so Date parsing is deterministic
+  const sign = SITE_TZ_OFFSET >= 0 ? '+' : '-';
+  const abs = Math.abs(SITE_TZ_OFFSET);
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  return new Date(`${dateStr}${sign}${pad2(abs)}:00`);
+}
+
+/**
  * Shift a Date to the site timezone and return UTC-based accessors.
  * This ensures consistent year/month/day extraction regardless of
  * the build environment's local timezone (e.g. UTC on GitHub CI).

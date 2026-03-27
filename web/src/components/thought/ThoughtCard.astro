@@ -4,6 +4,7 @@ import FormattedDate from '~/components/shared/FormattedDate.astro'
 import ThoughtCommentCount from './ThoughtCommentCount.astro'
 import ThoughtCommentPreview from './ThoughtCommentPreview.astro'
 import { renderMarkdown } from '~/lib/markdown/markdown'
+import { parseSiteDate } from '~/lib/date-utils'
 import type { Thought } from '~/data/thoughts'
 import type { ThoughtCommentData } from '~/data/giscus-comments'
 
@@ -16,7 +17,7 @@ interface Props {
 
 const { thought, isEditorMode = false, showCommentAction = true, commentData } = Astro.props
 const html = await renderMarkdown(thought.content)
-const date = new Date(thought.createdAt)
+const date = parseSiteDate(thought.createdAt)
 const detailUrl = `/thoughts/${thought.id}/`
 ---
 

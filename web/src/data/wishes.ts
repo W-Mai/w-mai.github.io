@@ -3,6 +3,7 @@
 import { resolve } from 'node:path';
 import { yamlToWish } from '../lib/wish';
 import { loadYamlCollection } from './yaml-loader';
+import { parseSiteDate } from '~/lib/date-utils';
 
 export type WishStatus = 'wish' | 'doing' | 'done';
 
@@ -27,7 +28,7 @@ export async function loadWishes(): Promise<Wish[]> {
     parser: yamlToWish,
     sorter: (a, b) =>
       STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
-      || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      || parseSiteDate(b.createdAt).getTime() - parseSiteDate(a.createdAt).getTime(),
     label: 'wishes',
   });
 }

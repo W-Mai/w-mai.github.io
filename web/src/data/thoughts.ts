@@ -3,6 +3,7 @@
 import { resolve } from 'node:path';
 import { yamlToThought } from '../lib/thought';
 import { loadYamlCollection } from './yaml-loader';
+import { parseSiteDate } from '~/lib/date-utils';
 
 export interface Thought {
   id: string;
@@ -19,7 +20,7 @@ export async function loadThoughts(): Promise<Thought[]> {
   return loadYamlCollection<Thought>({
     dir: thoughtsDir,
     parser: yamlToThought,
-    sorter: (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    sorter: (a, b) => parseSiteDate(b.createdAt).getTime() - parseSiteDate(a.createdAt).getTime(),
     label: 'thoughts',
   });
 }

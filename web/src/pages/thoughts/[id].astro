@@ -10,7 +10,7 @@ import ShareCard from '~/components/shared/ShareCard'
 import { GISCUS_THOUGHT_CATEGORY, GISCUS_THOUGHT_CATEGORY_ID, AVATAR_URL, SITE_LANG } from '~/consts'
 import { loadThoughts, type Thought } from '~/data/thoughts'
 import { fetchThoughtComments } from '~/data/giscus-comments'
-import { siteLocaleDateString, siteTimeString } from '~/lib/date-utils'
+import { siteLocaleDateString, siteTimeString, parseSiteDate } from '~/lib/date-utils'
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const thoughts = await loadThoughts()
@@ -27,7 +27,7 @@ interface Props {
 }
 
 const { thought, commentData } = Astro.props
-const date = new Date(thought.createdAt)
+const date = parseSiteDate(thought.createdAt)
 const dateLabel = `${siteLocaleDateString(date, 'zh-CN')} ${siteTimeString(date)}`
 const ogImageUrl = `/og/thoughts/${thought.id}.png`
 const pageFullUrl = `${import.meta.env.SITE ?? 'https://benign.host'}/thoughts/${thought.id}/`

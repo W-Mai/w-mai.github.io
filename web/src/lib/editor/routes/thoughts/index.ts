@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { yamlToThought, thoughtToYaml, generateThoughtId, validateThought } from '~/lib/thought';
+import { parseSiteDate } from '~/lib/date-utils';
 
 export const prerender = false;
 
@@ -26,7 +27,7 @@ export const GET: APIRoute = async () => {
         if (data) thoughts.push({ id: file.replace(/\.yaml$/, ''), ...data });
       } catch { /* skip invalid files */ }
     }
-    thoughts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    thoughts.sort((a, b) => parseSiteDate(b.createdAt).getTime() - parseSiteDate(a.createdAt).getTime());
     return json(thoughts);
   } catch {
     return json([]);

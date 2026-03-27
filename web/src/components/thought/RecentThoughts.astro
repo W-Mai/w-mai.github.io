@@ -3,7 +3,7 @@
 
 import { loadThoughts } from '~/data/thoughts'
 import { renderMarkdown } from '~/lib/markdown/markdown'
-import { siteLocaleDateString } from '~/lib/date-utils'
+import { siteLocaleDateString, parseSiteDate } from '~/lib/date-utils'
 
 interface Props {
   count?: number;
@@ -17,7 +17,7 @@ const items = await Promise.all(
     id: t.id,
     mood: t.mood,
     html: await renderMarkdown(t.content),
-    date: new Date(t.createdAt),
+    date: parseSiteDate(t.createdAt),
   }))
 );
 ---

@@ -5,7 +5,7 @@ import TimelineDateSeparator from '~/components/thought/TimelineDateSeparator.as
 import type { Thought } from '~/data/thoughts'
 import { loadThoughts } from '~/data/thoughts'
 import { fetchThoughtComments, type ThoughtCommentData } from '~/data/giscus-comments'
-import { siteYear, siteMonth, siteDay } from '~/lib/date-utils'
+import { siteYear, siteMonth, siteDay, parseSiteDate } from '~/lib/date-utils'
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const CHUNK_SIZE = 2
@@ -18,7 +18,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return Array.from({ length: totalChunks }, (_, i) => {
     const chunkItems = remaining.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
     const prevItem = i > 0 ? remaining[i * CHUNK_SIZE - 1] : thoughts[CHUNK_SIZE - 1]
-    const pd = new Date(prevItem.createdAt)
+    const pd = parseSiteDate(prevItem.createdAt)
 
     // Extract only relevant comment data for this chunk
     const chunkComments: Record<string, ThoughtCommentData> = {}
@@ -59,7 +59,7 @@ let curDay = prevDay
 ---
 <html><body data-has-more={String(hasMore)} data-prev-year={String(prevYear)} data-prev-month={String(prevMonth)} data-prev-day={String(prevDay)}>
 {items.map((thought, i) => {
-  const d = new Date(thought.createdAt)
+  const d = parseSiteDate(thought.createdAt)
   const y = siteYear(d)
   const m = siteMonth(d)
   const day = siteDay(d)

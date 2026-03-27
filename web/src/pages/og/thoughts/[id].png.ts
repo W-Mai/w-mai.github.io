@@ -1,11 +1,12 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
-import { NICK_NAME, SITE_TZ_OFFSET } from '~/consts';
+import { NICK_NAME } from '~/consts';
 import { loadThoughts } from '~/data/thoughts';
 import {
   BLOCK_STICKER_RE, INLINE_STICKER_RE,
   loadSticker, imageDimensions, fitSize,
 } from '~/lib/sticker';
 import { renderToPng, pngResponse } from '~/lib/og-utils';
+import { siteLocaleDateString, siteTimeString, parseSiteDate } from '~/lib/date-utils';
 
 /** Mood emoji to base hue based on color psychology. */
 const moodBaseHue: Record<string, number> = {
@@ -212,10 +213,9 @@ export const GET: APIRoute = async ({ props }) => {
   const accentHue = moodHue(moodEmoji);
   const fontSize = content.length > 120 ? 28 : content.length > 60 ? 34 : 42;
   const contentChildren = parseContentToChildren(content, fontSize, accentHue);
-  const shifted = new Date(new Date(createdAt).getTime() + SITE_TZ_OFFSET * 60 * 60 * 1000);
-  const dateStr = shifted.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
-  const pad2 = (n: number) => String(n).padStart(2, '0');
-  const timeStr = `${pad2(shifted.getUTCHours())}:${pad2(shifted.getUTCMinutes())}`;
+  const date = parseSiteDate(createdAt);
+  const dateStr = siteLocaleDateString(date, 'zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = siteTimeString(date);
   const dateTimeStr = `${dateStr} ${timeStr}`;
   const tagStr = (tags ?? []).map(t => `#${t}`).join('  ');
 

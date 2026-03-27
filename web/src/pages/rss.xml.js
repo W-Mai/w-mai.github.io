@@ -3,6 +3,7 @@ import rss from '@astrojs/rss';
 import { SITE_DESCRIPTION, SITE_TITLE } from '~/consts';
 import { loadThoughts } from '~/data/thoughts';
 import { INLINE_STICKER_RE, BLOCK_STICKER_RE } from '~/lib/sticker';
+import { parseSiteDate } from '~/lib/date-utils';
 
 /** Strip sticker syntax from text for RSS output */
 function stripStickers(text) {
@@ -27,7 +28,7 @@ export async function GET(context) {
 		return {
 		title: `💭 ${clean.slice(0, 50)}${clean.length > 50 ? '…' : ''}`,
 		description: clean,
-		pubDate: new Date(t.createdAt),
+		pubDate: parseSiteDate(t.createdAt),
 		link: `/thoughts/#thought-${t.id}`,
 		categories: ['想法', ...(t.tags ?? [])],
 	};
