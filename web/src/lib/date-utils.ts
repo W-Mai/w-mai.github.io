@@ -52,3 +52,10 @@ export function siteLocaleDateString(date: Date, locale: string, options?: Intl.
   const s = shifted(date);
   return s.toLocaleDateString(locale, { ...options, timeZone: 'UTC' });
 }
+
+/** HH:MM time string in site timezone */
+export function siteTimeString(date: Date): string {
+  const s = shifted(date);
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  return `${pad2(s.getUTCHours())}:${pad2(s.getUTCMinutes())}`;
+}

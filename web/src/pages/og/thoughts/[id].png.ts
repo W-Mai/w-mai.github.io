@@ -214,6 +214,9 @@ export const GET: APIRoute = async ({ props }) => {
   const contentChildren = parseContentToChildren(content, fontSize, accentHue);
   const shifted = new Date(new Date(createdAt).getTime() + SITE_TZ_OFFSET * 60 * 60 * 1000);
   const dateStr = shifted.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  const timeStr = `${pad2(shifted.getUTCHours())}:${pad2(shifted.getUTCMinutes())}`;
+  const dateTimeStr = `${dateStr} ${timeStr}`;
   const tagStr = (tags ?? []).map(t => `#${t}`).join('  ');
 
   const element = {
@@ -247,7 +250,7 @@ export const GET: APIRoute = async ({ props }) => {
               ] } },
               { type: 'div', props: { style: { display: 'flex', alignItems: 'center', gap: '16px' }, children: [
                 tagStr ? { type: 'span', props: { style: { fontSize: '18px', color: `hsl(${accentHue},40%,50%)` }, children: tagStr } } : null,
-                { type: 'span', props: { style: { fontSize: '18px', color: `hsl(${accentHue},15%,55%)` }, children: dateStr } },
+                { type: 'span', props: { style: { fontSize: '18px', color: `hsl(${accentHue},15%,55%)` }, children: dateTimeStr } },
               ].filter(Boolean) } },
             ],
           },
