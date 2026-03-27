@@ -46,3 +46,9 @@ export function siteISODate(date: Date): string {
   const d = String(s.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
+
+/** Locale-formatted date string in site timezone */
+export function siteLocaleDateString(date: Date, locale: string, options?: Intl.DateTimeFormatOptions): string {
+  const s = shifted(date);
+  return s.toLocaleDateString(locale, { ...options, timeZone: 'UTC' });
+}

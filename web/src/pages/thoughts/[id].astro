@@ -10,6 +10,7 @@ import ShareCard from '~/components/shared/ShareCard'
 import { GISCUS_THOUGHT_CATEGORY, GISCUS_THOUGHT_CATEGORY_ID, AVATAR_URL, SITE_LANG } from '~/consts'
 import { loadThoughts, type Thought } from '~/data/thoughts'
 import { fetchThoughtComments } from '~/data/giscus-comments'
+import { siteLocaleDateString } from '~/lib/date-utils'
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const thoughts = await loadThoughts()
@@ -27,6 +28,7 @@ interface Props {
 
 const { thought, commentData } = Astro.props
 const date = new Date(thought.createdAt)
+const dateLabel = siteLocaleDateString(date, 'zh-CN')
 const ogImageUrl = `/og/thoughts/${thought.id}.png`
 const pageFullUrl = `${import.meta.env.SITE ?? 'https://benign.host'}/thoughts/${thought.id}/`
 const avatarImg = await getImage({ src: AVATAR_URL, width: 64, height: 64 })
@@ -35,7 +37,7 @@ const avatarImg = await getImage({ src: AVATAR_URL, width: 64, height: 64 })
 <html lang={SITE_LANG}>
   <head>
     <BaseHead
-      title={`想法 · ${date.toLocaleDateString('zh-CN')}`}
+      title={`想法 · ${dateLabel}`}
       description={thought.content.slice(0, 120)}
     />
   </head>
@@ -49,7 +51,7 @@ const avatarImg = await getImage({ src: AVATAR_URL, width: 64, height: 64 })
           <span class="group-hover:-translate-x-0.5 transition-transform">←</span>
           <span>返回想法</span>
         </a>
-        <ShareCard client:idle ogUrl={ogImageUrl} pageUrl={pageFullUrl} title={`想法 · ${date.toLocaleDateString('zh-CN')}`} avatarUrl={avatarImg.src} />
+        <ShareCard client:idle ogUrl={ogImageUrl} pageUrl={pageFullUrl} title={`想法 · ${dateLabel}`} avatarUrl={avatarImg.src} />
       </div>
 
       <ThoughtCard thought={thought} showCommentAction={false} commentData={commentData} />

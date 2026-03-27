@@ -3,6 +3,7 @@
 
 import { loadThoughts } from '~/data/thoughts'
 import { renderMarkdown } from '~/lib/markdown/markdown'
+import { siteLocaleDateString } from '~/lib/date-utils'
 
 interface Props {
   count?: number;
@@ -37,7 +38,7 @@ const items = await Promise.all(
               {item.mood && <span class="text-[0.6rem] sm:text-xs">{item.mood}</span>}
               <time class="text-[0.55rem] sm:text-[0.65rem] text-[var(--text-muted)]"
                     datetime={item.date.toISOString()}>
-                {item.date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                {siteLocaleDateString(item.date, 'zh-CN', { month: 'short', day: 'numeric' })}
               </time>
             </div>
             <div class="neu-recent-thought-text text-[0.65rem] sm:text-xs text-[var(--text-secondary)] leading-tight sm:leading-relaxed"
