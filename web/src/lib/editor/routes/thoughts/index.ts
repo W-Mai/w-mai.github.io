@@ -3,6 +3,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { yamlToThought, thoughtToYaml, generateThoughtId, validateThought } from '~/lib/thought';
 import { parseSiteDate } from '~/lib/date-utils';
+import { SITE_TZ_OFFSET } from '~/consts';
 
 export const prerender = false;
 
@@ -43,7 +44,11 @@ export const POST: APIRoute = async ({ request }) => {
 
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
-    const now = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    const tzOffset = SITE_TZ_OFFSET;
+    const tzSign = tzOffset >= 0 ? '+' : '-';
+    const tzAbs = Math.abs(tzOffset);
+    const tz = `${tzSign}${pad(tzAbs)}:00`;
+    const now = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${tz}`;
     const id = generateThoughtId(now);
     const filename = `${id}.yaml`;
     const filePath = resolve(thoughtsDir, filename);
