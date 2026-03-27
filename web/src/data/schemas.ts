@@ -31,3 +31,25 @@ export const wishSchema = z.object({
   doneAt: z.union([z.string(), z.date().transform((d) => d.toISOString().slice(0, 10))]).optional(),
   note: z.string().optional(),
 });
+
+/** Image variant descriptor */
+export const imageVariantSchema = z.object({
+  name: z.string().min(1),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  format: z.enum(['webp', 'avif', 'jpg', 'png', 'gif']).optional(),
+});
+
+/** Gallery image entry schema */
+export const galleryImageSchema = z.object({
+  alt: z.string().min(1),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  format: z.enum(['webp', 'avif', 'jpg', 'png', 'gif']),
+  variants: z.array(imageVariantSchema).min(1),
+  album: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  title: z.string().optional(),
+  source: z.enum(['cdn', 'local']).default('cdn'),
+  takenAt: z.string().optional(),
+});

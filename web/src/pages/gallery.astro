@@ -1,0 +1,169 @@
+---
+import WithSidebar from '~/layouts/WithSidebar.astro'
+import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
+import GalleryLightbox from '~/components/gallery/GalleryLightbox.tsx'
+import { fetchGitHubProfile } from '~/lib/github'
+import { loadGalleryImages } from '~/data/gallery'
+import { resolveImageUrl } from '~/lib/cdn/url-resolver'
+
+const profile = await fetchGitHubProfile()
+const images = await loadGalleryImages()
+
+// Extract unique albums and tags for filter bar
+const albums = [...new Set(images.map((img) => img.album).filter(Boolean))] as string[]
+const tags = [...new Set(images.flatMap((img) => img.tags ?? []))]
+
+// Prepare lightbox data (full-res URLs)
+const lightboxImages = images.map((img) => ({
+  src: resolveImageUrl(img),
+  alt: img.alt,
+  title: img.title,
+  tags: img.tags,
+}))
+---
+
+<WithSidebar>
+  <Fragment slot="sidebar">
+    <ProfileSidebar profile={profile} showBio />
+  </Fragment>
+
+  <h1 class="page-title anim-fade" style="--delay:0">📷 怼点照片</h1>
+  <p class="page-subtitle anim-fade" style="--delay:1">随手拍的，看看就中</p>
+
+  <!-- Filter bar -->
+  <div class="flex flex-wrap gap-2 mb-6 anim-fade" style="--delay:2">
+    <button class="neu-btn neu-filter-btn" data-filter="all">全部</button>
+    {albums.map((album) => (
+      <button class="neu-btn neu-filter-btn" data-album={album}>{album}</button>
+    ))}
+    {tags.map((tag) => (
+      <button class="neu-btn neu-filter-btn" data-tag={tag}>{tag}</button>
+    ))}
+  </div>
+
+  {images.length > 0 ? (
+    <section class="neu-board anim-fade" style="--delay:3">
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {images.map((img, i) => (
+          <div
+            class="gallery-card neu-card rounded-2xl overflow-hidden cursor-pointer
+                   transition-all duration-200 ease-out"
+            data-album={img.album ?? ''}
+            data-tags={img.tags?.join(',') ?? ''}
+            data-index={i}
+          >
+            <div class="relative aspect-[4/3] overflow-hidden">
+              <img
+                src={resolveImageUrl(img, 'thumb')}
+                alt={img.alt}
+                width={img.variants.find((v) => v.name === 'thumb')?.width ?? img.width}
+                height={img.variants.find((v) => v.name === 'thumb')?.height ?? img.height}
+                loading="lazy"
+                class="w-full h-full object-cover transition-transform duration-300 ease-out hover:scale-105"
+              />
+              {img.title && (
+                <div class="absolute inset-x-0 bottom-0 p-3
+                            bg-gradient-to-t from-black/50 to-transparent">
+                  <span class="text-sm font-semibold text-white">{img.title}</span>
+                </div>
+              )}
+            </div>
+            {img.tags && img.tags.length > 0 && (
+              <div class="flex flex-wrap gap-1.5 p-3">
+                {img.tags.map((tag) => (
+                  <span class="neu-tags-capsule px-2 py-0.5 text-xs text-[var(--text-muted)]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  ) : (
+    <p class="text-[var(--text-muted)] text-center py-12 anim-fade" style="--delay:3">
+      还没有照片呢，再等等～
+    </p>
+  )}
+
+  <GalleryLightbox
+    client:only="react"
+    images={lightboxImages}
+    initialIndex={0}
+    open={false}
+    onClose={() => {}}
+  />
+</WithSidebar>
+
+<style>
+  .gallery-card {
+    will-change: transform, box-shadow;
+  }
+  .gallery-card:hover {
+    box-shadow:
+      2px 2px 5px var(--neu-shadow-dark),
+      -2px -2px 5px var(--neu-shadow-light);
+    transform: translateY(-4px);
+  }
+  .gallery-card:active {
+    box-shadow:
+      inset 2px 2px 5px var(--neu-shadow-dark-strong),
+      inset -2px -2px 5px var(--neu-shadow-light-strong);
+    transform: translateY(0);
+  }
+</style>
+
+<script>
+  function initGalleryPage() {
+    const filterBtns = document.querySelectorAll<HTMLButtonElement>('[data-filter], [data-album], [data-tag]')
+    const cards = document.querySelectorAll<HTMLElement>('.gallery-card')
+    let activeAlbum: string | null = null
+    let activeTag: string | null = null
+
+    function applyFilters() {
+      cards.forEach((card) => {
+        const album = card.dataset.album ?? ''
+        const cardTags = card.dataset.tags ?? ''
+        const matchAlbum = !activeAlbum || album === activeAlbum
+        const matchTag = !activeTag || cardTags.split(',').includes(activeTag)
+        card.style.display = matchAlbum && matchTag ? '' : 'none'
+      })
+    }
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.filter === 'all') {
+          activeAlbum = null
+          activeTag = null
+        } else if (btn.dataset.album) {
+          const a = btn.dataset.album
+          activeAlbum = activeAlbum === a ? null : a
+          activeTag = null
+        } else if (btn.dataset.tag) {
+          const t = btn.dataset.tag
+          activeTag = activeTag === t ? null : t
+          activeAlbum = null
+        }
+        filterBtns.forEach((b) => {
+          const isActive =
+            (b.dataset.filter === 'all' && !activeAlbum && !activeTag) ||
+            (b.dataset.album && b.dataset.album === activeAlbum) ||
+            (b.dataset.tag && b.dataset.tag === activeTag)
+          b.classList.toggle('neu-filter-active', !!isActive)
+        })
+        applyFilters()
+      })
+    })
+
+    // Lightbox wiring — dispatch custom event on card click
+    cards.forEach((card) => {
+      card.addEventListener('click', () => {
+        const index = parseInt(card.dataset.index ?? '0', 10)
+        window.dispatchEvent(new CustomEvent('gallery:open-lightbox', { detail: { index } }))
+      })
+    })
+  }
+
+  document.addEventListener('astro:page-load', initGalleryPage)
+</script>

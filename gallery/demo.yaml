@@ -1,0 +1,51 @@
+# Demo gallery entries for local development
+
+sunset-park:
+  alt: "Sunset over the park"
+  width: 4032
+  height: 3024
+  format: jpg
+  variants:
+    - name: thumb
+      width: 400
+      height: 300
+    - name: medium
+      width: 1200
+      height: 900
+  album: demo
+  tags: [nature, sunset]
+  title: "Golden Hour"
+  source: local
+  takenAt: "2025-01-15"
+
+city-night:
+  alt: "City skyline at night"
+  width: 3840
+  height: 2160
+  format: jpg
+  variants:
+    - name: thumb
+      width: 400
+      height: 225
+    - name: medium
+      width: 1920
+      height: 1080
+  album: demo
+  tags: [city, night]
+  title: "Night Lights"
+  source: local
+  takenAt: "2025-02-20"
+
+morning-coffee:
+  alt: "Morning coffee on the desk"
+  width: 3024
+  height: 3024
+  format: jpg
+  variants:
+    - name: thumb
+      width: 400
+      height: 400
+  album: demo
+  tags: [daily, coffee]
+  title: "Morning Ritual"
+  source: local

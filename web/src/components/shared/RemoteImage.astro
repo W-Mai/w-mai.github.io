@@ -1,0 +1,39 @@
+---
+// Remote image component with CDN URL resolution, srcset generation,
+// and client-side fallback (onerror → fallback URL → placeholder div).
+
+import { resolveImageUrl, resolveFallbackUrl } from '~/lib/cdn/url-resolver'
+import type { GalleryImage } from '~/data/gallery'
+
+interface Props {
+  image: GalleryImage
+  variant?: string
+  class?: string
+  loading?: 'lazy' | 'eager'
+  sizes?: string
+}
+
+const { image, variant, class: className, loading = 'lazy', sizes } = Astro.props
+
+const src = resolveImageUrl(image, variant)
+const fallbackSrc = resolveFallbackUrl(image.id)
+
+// Build srcset from available variants
+const srcsetEntries = image.variants
+  .map((v) => `${resolveImageUrl(image, v.name)} ${v.width}w`)
+  .join(', ')
+---
+
+<img
+  src={src}
+  alt={image.alt}
+  width={image.width}
+  height={image.height}
+  loading={loading}
+  class={className}
+  srcset={srcsetEntries || undefined}
+  sizes={sizes}
+  data-fallback={fallbackSrc}
+  data-placeholder-alt={image.alt}
+  onerror="if(!this.__retried){this.__retried=1;this.src=this.dataset.fallback}else{this.style.display='none';this.insertAdjacentHTML('afterend','<div class=\'neu-inset rounded-lg p-4 flex items-center justify-center text-[var(--text-muted)] text-sm\'>'+this.dataset.placeholderAlt+'</div>')}"
+/>
