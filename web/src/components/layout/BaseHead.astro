@@ -110,13 +110,19 @@ const ogImageUrl = isBlogPost
   window.__toggleTheme = function () {
     var isDark = doc.classList.contains('dark');
     var newTheme = isDark ? 'light' : 'dark';
-    applyTheme(newTheme);
-    try {
-      localStorage.setItem('theme', newTheme);
-    } catch (e) {}
-    window.dispatchEvent(
-      new CustomEvent('theme-change', { detail: { theme: newTheme } })
-    );
+
+    function doSwitch() {
+      applyTheme(newTheme);
+      try { localStorage.setItem('theme', newTheme); } catch (e) {}
+      window.dispatchEvent(new CustomEvent('theme-change', { detail: { theme: newTheme } }));
+    }
+
+    // Use View Transition API for smooth crossfade if available
+    if (document.startViewTransition) {
+      document.startViewTransition(doSwitch);
+    } else {
+      doSwitch();
+    }
   };
 
   // Watch system preference changes — only apply when no explicit user preference
@@ -131,9 +137,14 @@ const ogImageUrl = isBlogPost
     });
   }
 
-  // Re-apply theme after View Transitions page swap (prevent flicker)
-  document.addEventListener('astro:after-swap', function () {
-    applyTheme(resolveTheme());
+  // Apply theme to incoming document BEFORE swap to prevent flash
+  document.addEventListener('astro:before-swap', function (e) {
+    var theme = resolveTheme();
+    if (theme === 'dark') {
+      e.newDocument.documentElement.classList.add('dark');
+    } else {
+      e.newDocument.documentElement.classList.remove('dark');
+    }
   });
 })();
 </script>

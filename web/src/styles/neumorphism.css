@@ -2,18 +2,7 @@
    § 7  NEUMORPHISM COMPONENT CLASSES
    ========================================================================== */
 
-/* Theme switch transition */
-html:not(.no-transitions) body,
-html:not(.no-transitions) .neu-card,
-html:not(.no-transitions) .neu-btn,
-html:not(.no-transitions) .neu-inset,
-html:not(.no-transitions) .neu-tag-chip {
-  transition:
-    background-color 300ms ease,
-    color 300ms ease,
-    box-shadow 300ms ease,
-    transform 300ms ease;
-}
+/* Theme switch — instant swap, animated via View Transition API in JS */
 
 @media (prefers-reduced-motion: reduce) {
   * {
