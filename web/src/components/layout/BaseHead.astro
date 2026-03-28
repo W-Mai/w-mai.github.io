@@ -146,35 +146,8 @@ const ogImageUrl = isBlogPost
 <!-- Page transition animations -->
 <ClientRouter />
 
-<!-- Abort pending image loads on navigation to free connections -->
-<!-- Show neumorphic loading indicator if navigation takes too long -->
-<script is:inline>
-document.addEventListener('astro:before-preparation', function(e) {
-  document.querySelectorAll('img').forEach(function(img) {
-    if (!img.complete) { img.src = ''; img.removeAttribute('srcset'); }
-  });
-
-  var timer = setTimeout(function() {
-    var overlay = document.createElement('div');
-    overlay.id = 'nav-loading';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--neu-bg,#e0e5ec);opacity:0;transition:opacity .3s ease';
-    overlay.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 32px;border-radius:20px;background:var(--neu-bg,#e0e5ec);box-shadow:4px 4px 8px var(--neu-shadow-dark,rgb(163 177 198/.6)),-4px -4px 8px var(--neu-shadow-light,rgb(255 255 255/.5))">'
-      + '<div style="width:40px;height:40px;border-radius:50%;box-shadow:inset 4px 4px 8px var(--neu-shadow-dark-strong,rgb(163 177 198/.7)),inset -4px -4px 8px var(--neu-shadow-light-strong,rgb(255 255 255/.8));display:flex;align-items:center;justify-content:center"><div id="nav-spinner" style="width:24px;height:24px;border:3px solid var(--neu-shadow-dark,rgb(163 177 198/.6));border-top-color:var(--text-link,#4a90d9);border-radius:50%;animation:nav-spin .8s linear infinite"></div></div>'
-      + '<div style="font-size:14px;color:var(--text-secondary,#64748b)">去求吧…… 网速真慢，加载中……</div>'
-      + '</div>';
-    var style = document.createElement('style');
-    style.textContent = '@keyframes nav-spin{to{transform:rotate(360deg)}}';
-    overlay.appendChild(style);
-    document.body.appendChild(overlay);
-    requestAnimationFrame(function() { overlay.style.opacity = '1'; });
-  }, 1500);
-
-  document.addEventListener('astro:after-swap', function() {
-    clearTimeout(timer);
-    var el = document.getElementById('nav-loading');
-    if (el) { el.style.opacity = '0'; setTimeout(function() { el.remove(); }, 300); }
-  }, { once: true });
-});
+<script>
+import '~/components/shared/nav-loading';
 </script>
 
 <!-- Canonical URL -->

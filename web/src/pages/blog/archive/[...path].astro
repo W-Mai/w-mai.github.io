@@ -60,11 +60,8 @@ const monthLabel = `${year} 年 ${month} 月`;
 				const wc = countWords(stripMarkdown(post.body ?? '')).total;
 				const postHref = `/blog/${post.id}/`;
 				return (
-					<div class="blog-post-card neu-card neu-card-hover group block rounded-2xl overflow-hidden
-					            transition-all duration-300 ease-out cursor-pointer"
-					     onclick={`window.location.href='${postHref}'`}
-					     role="link" tabindex="0"
-					     onkeydown={`if(event.key==='Enter')window.location.href='${postHref}'`}>
+					<a href={postHref} class="blog-post-card neu-card neu-card-hover group block rounded-2xl overflow-hidden
+					            transition-all duration-300 ease-out cursor-pointer no-underline">
 						<div class="overflow-hidden h-44">
 							{post.data.heroImage ? (
 								<Image
@@ -113,7 +110,7 @@ const monthLabel = `${year} 年 ${month} 月`;
 								);
 							})()}
 						</div>
-					</div>
+					</a>
 				);
 			})}
 		</div>

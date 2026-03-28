@@ -21,6 +21,9 @@ export const NICK_ALIASES = ['Benign X', 'BenignX', 'Benign'];
 export const SEO_KEYWORDS = [NICK_NAME, ...NICK_ALIASES, USER_NAME, SITE_DOMAIN, '个人博客', 'tech blog'];
 export const COPYRIGHT = `${NICK_ALIASES[0]}. All rights reserved.`;
 
+// Loading overlay text shown on slow network navigation
+export const NAV_LOADING_TEXT = '去求吧…… 网速真慢，加载中……';
+
 // Pinned projects displayed as featured cards on homepage
 // Format: 'owner/repo' or just 'repo' (defaults to USER_NAME as owner)
 export const PINNED_PROJECTS = [
