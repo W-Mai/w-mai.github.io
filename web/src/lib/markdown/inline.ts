@@ -21,11 +21,11 @@ function renderLine(line: string): string {
   );
   html = html.replace(
     /::sticker\[([^\]]+)\]::/g,
-    '<div class="sticker-block"><img src="/stickers/$1" alt="$1" loading="lazy" /></div>',
+    '<div class="sticker-block"><img src="/stickers/$1" alt="$1" loading="lazy" decoding="async" fetchpriority="low" /></div>',
   );
   html = html.replace(
     /:sticker\[([^\]]+)\]:/g,
-    '<img class="sticker-inline" src="/stickers/$1" alt="$1" loading="lazy" />',
+    '<img class="sticker-inline" src="/stickers/$1" alt="$1" loading="lazy" decoding="async" fetchpriority="low" />',
   );
   return html;
 }

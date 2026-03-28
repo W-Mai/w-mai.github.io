@@ -26,7 +26,7 @@ export default function remarkSticker() {
           const name = match[1];
           (parent.children as any[])[index] = {
             type: 'html',
-            value: `<div class="sticker-block"><img src="/stickers/${encodeURIComponent(name)}" alt="${name}" loading="lazy" /></div>`,
+            value: `<div class="sticker-block"><img src="/stickers/${encodeURIComponent(name)}" alt="${name}" loading="lazy" decoding="async" fetchpriority="low" /></div>`,
           };
           return;
         }
@@ -57,7 +57,7 @@ export default function remarkSticker() {
           const name = m[1];
           newChildren.push({
             type: 'html',
-            value: `<img class="sticker-inline" src="/stickers/${encodeURIComponent(name)}" alt="${name}" loading="lazy" />`,
+            value: `<img class="sticker-inline" src="/stickers/${encodeURIComponent(name)}" alt="${name}" loading="lazy" decoding="async" fetchpriority="low" />`,
           } as any);
           lastIndex = INLINE_RE.lastIndex;
         }
