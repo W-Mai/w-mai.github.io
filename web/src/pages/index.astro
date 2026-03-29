@@ -294,6 +294,25 @@ const recentPosts = allPosts.slice(0, 4)
       -4px -4px 8px var(--neu-shadow-light);
     z-index: 2;
     transform: rotate(6deg);
+    animation: bubble-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s both;
+    transition: box-shadow 200ms ease, transform 200ms ease;
+    cursor: default;
+  }
+  .greeting-bubble:hover {
+    box-shadow:
+      8px 8px 16px var(--neu-shadow-dark),
+      -8px -8px 16px var(--neu-shadow-light);
+    transform: rotate(6deg) translateY(-4px) translateZ(0);
+  }
+  @keyframes bubble-enter {
+    0% {
+      opacity: 0;
+      transform: rotate(6deg) scale(0.5) translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: rotate(6deg) scale(1) translateY(0);
+    }
   }
   .bubble-tail {
     position: absolute;
@@ -315,6 +334,15 @@ const recentPosts = allPosts.slice(0, 4)
       padding: 0.5rem 1rem;
       border-radius: 1.25rem;
       transform: rotate(3deg);
+      animation: bubble-enter-mobile 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      animation-delay: 0.6s;
+    }
+    .greeting-bubble:hover {
+      transform: rotate(3deg) translateY(-4px);
+    }
+    @keyframes bubble-enter-mobile {
+      0% { opacity: 0; transform: rotate(3deg) scale(0.5) translateY(8px); }
+      100% { opacity: 1; transform: rotate(3deg) scale(1) translateY(0); }
     }
     .bubble-tail {
       bottom: -8px;
