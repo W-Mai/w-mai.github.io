@@ -11,6 +11,7 @@ import { useThoughtDraft } from './use-draft';
 import { useThoughtApi } from './use-api';
 import ThoughtPreview from './Preview';
 import StickerPanel from '~/components/editor/shared/StickerPanel';
+import TagInput from './TagInput';
 
 interface ThoughtData {
   id: string;
@@ -51,25 +52,25 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   // Trigger debounced preview on content change
   useEffect(() => { api.updatePreview(draft.content); }, [draft.content]);
 
-  const parsedTags = draft.tagInput.split(',').map(t => t.trim()).filter(Boolean);
-
   const handleSave = useCallback(async () => {
     const ok = await api.save({
       content: draft.content,
-      tags: parsedTags.length > 0 ? parsedTags : undefined,
+      tags: draft.tags.length > 0 ? draft.tags : undefined,
       mood: draft.mood || undefined,
       editingId: draft.editingId,
     });
     if (ok) draft.reset();
-  }, [draft.content, draft.tagInput, draft.mood, draft.editingId, api, parsedTags]);
+  }, [draft.content, draft.tags, draft.mood, draft.editingId, api]);
 
   const handleSuggestTags = useCallback(async () => {
-    const result = await api.suggestTags(draft.content, parsedTags, allTags);
+    const result = await api.suggestTags(draft.content, draft.tags, allTags);
     if (result) {
-      draft.update({ tagInput: result.tags.join(', ') });
+      // Merge suggested tags with current, dedup
+      const merged = [...new Set([...draft.tags, ...result.tags])];
+      draft.update({ tags: merged });
       if (result.mood && !draft.mood) draft.update({ mood: result.mood });
     }
-  }, [draft.content, parsedTags, allTags, draft.mood, api]);
+  }, [draft.content, draft.tags, allTags, draft.mood, api]);
 
   const insertSticker = useCallback((syntax: string) => {
     const ta = textareaRef.current;
@@ -87,7 +88,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
   const startEdit = useCallback((thought: ThoughtData) => {
     draft.update({
       content: thought.content,
-      tagInput: thought.tags?.join(', ') ?? '',
+      tags: thought.tags ?? [],
       mood: thought.mood ?? '',
       editingId: thought.id,
     });
@@ -145,12 +146,10 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
         marginTop: T.spacingLg,
         flexWrap: 'wrap', alignItems: 'center',
       }}>
-        <input
-          type="text"
-          value={draft.tagInput}
-          onChange={(e) => draft.update({ tagInput: e.target.value })}
-          placeholder="Tags (comma separated)"
-          style={{ ...insetInput, flex: 1, minWidth: '140px' }}
+        <TagInput
+          tags={draft.tags}
+          allTags={allTags}
+          onChange={(tags) => draft.update({ tags })}
         />
         <button
           onClick={handleSuggestTags}
@@ -178,7 +177,7 @@ const ThoughtEditor: FC<ThoughtEditorProps> = ({ onSaved, allTags = [] }) => {
       {/* Live preview — portaled into timeline */}
       <ThoughtPreview
         content={draft.content}
-        tagInput={draft.tagInput}
+        tags={draft.tags}
         mood={draft.mood}
         previewHtml={api.previewHtml}
       />

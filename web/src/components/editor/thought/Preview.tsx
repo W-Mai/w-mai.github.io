@@ -3,13 +3,13 @@ import { createPortal } from 'react-dom';
 
 interface ThoughtPreviewProps {
   content: string;
-  tagInput: string;
+  tags: string[];
   mood: string;
   previewHtml: string;
 }
 
 /** Portaled timeline preview card for the thought editor. */
-const ThoughtPreview: FC<ThoughtPreviewProps> = ({ content, tagInput, mood, previewHtml }) => {
+const ThoughtPreview: FC<ThoughtPreviewProps> = ({ content, tags, mood, previewHtml }) => {
   const [slot, setSlot] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -17,8 +17,6 @@ const ThoughtPreview: FC<ThoughtPreviewProps> = ({ content, tagInput, mood, prev
   }, []);
 
   if (!slot || !content.trim()) return null;
-
-  const tags = tagInput.split(',').map(t => t.trim()).filter(Boolean);
 
   return createPortal(
     <div className="timeline-item timeline-preview-item">

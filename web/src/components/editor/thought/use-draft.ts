@@ -4,17 +4,24 @@ const DRAFT_KEY = 'thought-editor-draft';
 
 export interface DraftState {
   content: string;
-  tagInput: string;
+  tags: string[];
   mood: string;
   editingId: string | null;
 }
 
-const EMPTY_DRAFT: DraftState = { content: '', tagInput: '', mood: '', editingId: null };
+const EMPTY_DRAFT: DraftState = { content: '', tags: [], mood: '', editingId: null };
 
 function load(): DraftState | null {
   try {
     const raw = sessionStorage.getItem(DRAFT_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Migrate old tagInput string format
+    if (typeof parsed.tagInput === 'string') {
+      parsed.tags = parsed.tagInput.split(',').map((t: string) => t.trim()).filter(Boolean);
+      delete parsed.tagInput;
+    }
+    return parsed;
   } catch { return null; }
 }
 
@@ -40,7 +47,7 @@ export function useThoughtDraft() {
   // Persist on change (skip initial restore)
   useEffect(() => {
     if (!inited.current) { inited.current = true; return; }
-    const hasData = state.content || state.tagInput || state.mood || state.editingId;
+    const hasData = state.content || state.tags.length > 0 || state.mood || state.editingId;
     hasData ? save(state) : clear();
   }, [state]);
 
