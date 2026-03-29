@@ -13,7 +13,7 @@ const navItems: NavItem[] = [
 	{ href: '/',          label: '🏠 当门' },
 	{ href: '/blog',      label: '✍️ 怼点文章' },
 	{ href: '/thoughts',  label: '🧠 想法' },
-	{ href: '/about',     label: '🙋 自个儿' },
+	{ href: '/about',     label: '🙋 自个儿', collapse: true },
 	{ href: '/stats',     label: '📊 统计',  collapse: true },
 	{ href: '/friends',   label: '🤝 友链',  collapse: true },
 	...(isEditorMode ? [{ href: '/admin/live-editor', label: '✏️ 编辑器' }] : []),
