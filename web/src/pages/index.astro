@@ -1,13 +1,15 @@
 ---
+import { Image } from 'astro:assets'
 import { getCollection } from 'astro:content'
-import WithSidebar from '~/layouts/WithSidebar.astro'
+import BaseHead from '~/components/layout/BaseHead.astro'
+import Header from '~/components/layout/Header.astro'
+import Footer from '~/components/layout/Footer.astro'
 import ProjectCard from '~/components/profile/ProjectCard.astro'
 import FeaturedProjectCard from '~/components/profile/FeaturedProjectCard.astro'
-import ProfileSidebar from '~/components/profile/ProfileSidebar.astro'
-import RecentThoughts from '~/components/thought/RecentThoughts.astro'
 import RecentPostCard from '~/components/blog/RecentPostCard.astro'
+import RecentThoughts from '~/components/thought/RecentThoughts.astro'
 import { fetchGitHubProfile, fetchGitHubRepos, fetchFeaturedProjects } from '~/lib/github'
-import { PINNED_PROJECTS, USER_NAME, NICK_NAME, NICK_ALIASES, SITE_DOMAIN } from '~/consts'
+import { PINNED_PROJECTS, USER_NAME, NICK_NAME, NICK_ALIASES, SITE_DOMAIN, SITE_TITLE_FULL, SITE_DESCRIPTION, SITE_LANG, SOCIALS } from '~/consts'
 
 const profile = await fetchGitHubProfile()
 const repos = await fetchGitHubRepos(USER_NAME, 12)
@@ -18,117 +20,282 @@ const allPosts = (await getCollection('blog'))
 const recentPosts = allPosts.slice(0, 4)
 ---
 
-<WithSidebar collapsible={false}>
-    <Fragment slot="sidebar">
-        <ProfileSidebar profile={profile} showBio />
-        <RecentThoughts />
-    </Fragment>
+<html lang={SITE_LANG}>
+<head>
+  <BaseHead title={SITE_TITLE_FULL} description={SITE_DESCRIPTION} />
+</head>
 
-    <h1 class="page-title anim-fade" style="--delay:0">👋 恁好，吃了冇</h1>
+<body class="neu-bg">
+<Header />
 
-    <!-- SEO: name variants for search engine discovery -->
-    <p class="sr-only">{NICK_NAME}, also known as {NICK_ALIASES.join(', ')}. Personal tech blog at {SITE_DOMAIN} by {USER_NAME}.</p>
+<div class="home-snap" id="home-snap">
+  <!-- ===== Screen 1: Hero ===== -->
+  <section class="home-screen hero-screen">
+    <div class="hero-split">
+      <!-- Left: profile, mobile: profile + thoughts stacked -->
+      <div class="hero-left anim-fade" style="--delay:0">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-heading)] mb-6">👋 恁好，吃了冇</h1>
 
-    <p class="page-subtitle anim-fade" style="--delay:1">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
+        <!-- Profile card with embedded thoughts -->
+        <div class="neu-card relative z-[1] rounded-[3rem] p-6 md:p-8
+          flex flex-col md:flex-row gap-4 md:gap-12 text-sm text-[var(--text-primary)]
+          items-center
+          bg-gradient-to-br from-[var(--bg-surface-gradient-from)] to-[var(--bg-surface-gradient-to)]
+          w-full">
 
-    <div class="flex flex-wrap gap-3 mb-12 anim-fade" style="--delay:2">
-        <a href="/blog" class="group flex items-center gap-2 rounded-full neu-btn
-                                px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300
-                                hover:bg-gradient-to-r hover:from-[var(--nav-blog-hover-from)] hover:to-transparent">
+          <!-- Profile section: same layout as ProfileSidebar -->
+          <div class="flex flex-row md:flex-col gap-3 md:gap-5 items-center md:items-stretch shrink-0">
+            <!-- Avatar + name -->
+            <div class="flex flex-col items-center shrink-0">
+              <div class="neu-avatar-ring rounded-full p-1 aspect-square inline-flex"
+                   style="box-shadow: 8px 8px 16px var(--neu-shadow-dark), -8px -8px 16px var(--neu-shadow-light)">
+                <Image
+                  class="size-24 md:size-36 rounded-full aspect-square object-cover"
+                  src={profile.avatar_url}
+                  alt={USER_NAME}
+                  width={144} height={144}
+                />
+              </div>
+              <h4 class="mt-2 md:mt-4 font-bold text-[var(--text-heading)]">{NICK_NAME}</h4>
+              <h5 class="m-1 md:m-2 text-[var(--text-secondary)]">@{USER_NAME}</h5>
+              <h6 class="m-1.5 text-center text-[var(--text-secondary)]">{profile.bio ?? 'Overflow Stack Developer.'}</h6>
+            </div>
+
+            <!-- Stats + social -->
+            <div class="flex flex-row md:flex-col gap-3 md:gap-5 items-center justify-center flex-wrap">
+              <div class="neu-btn flex items-center gap-4 px-5 py-2 rounded-full">
+                <div class="flex flex-col items-center leading-tight">
+                  <span class="font-bold text-[var(--text-primary)]">{profile.followers}</span>
+                  <span class="text-[0.6rem] text-[var(--text-secondary)]">followers</span>
+                </div>
+                <div class="w-px h-6 bg-[var(--border-subtle)]"></div>
+                <div class="flex flex-col items-center leading-tight">
+                  <span class="font-bold text-[var(--text-primary)]">{profile.following}</span>
+                  <span class="text-[0.6rem] text-[var(--text-secondary)]">following</span>
+                </div>
+              </div>
+              <div class="neu-btn flex items-center gap-0.5 px-2 py-1 rounded-full">
+                {SOCIALS.map((social) => (
+                  <a class="flex items-center justify-center size-8 rounded-full transition-colors hover:bg-[var(--hover-bg)]"
+                     href={social.url} target="_blank" rel="noopener">
+                    <span class="sr-only">{social.description}</span>
+                    <img class="size-4 rounded-none invert-[var(--icon-invert)]" src={social.icon} alt={social.description} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent thoughts (concentric: reset margin, match inner radius) -->
+          <div class="flex-1 min-w-0 md:mr-4 [&>div]:rounded-3xl [&>div]:md:rounded-2xl [&>div]:!mt-0 [&>div]:!max-w-none [&>div]:!mx-0 [&>div]:!pb-2">
+            <RecentThoughts count={3} />
+          </div>
+        </div>
+
+        <p class="sr-only">{NICK_NAME}, also known as {NICK_ALIASES.join(', ')}. Personal tech blog at {SITE_DOMAIN} by {USER_NAME}.</p>
+      </div>
+    </div>
+
+    <div class="scroll-hint anim-fade" style="--delay:6">
+      <span>↓</span>
+    </div>
+  </section>
+
+  <!-- ===== Screen 2: Content ===== -->
+  <section class="home-screen content-screen">
+    <div class="content-inner">
+      <!-- Welcome nav buttons -->
+      <div class="mb-10 anim-fade" style="--delay:0">
+        <p class="text-[var(--text-secondary)] text-xl sm:text-2xl mb-6">可求欢迎恁来俺嘞网站，还能搁这儿：</p>
+        <div class="flex flex-wrap gap-3">
+          <a href="/blog" class="group flex items-center gap-2 rounded-full neu-btn px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300 hover:bg-gradient-to-r hover:from-[var(--nav-blog-hover-from)] hover:to-transparent">
             <span class="text-base">🚀</span>
             <span class="text-xs font-semibold group-hover:text-[var(--nav-blog-group-text)] truncate">怼点文章</span>
             <span class="text-[var(--nav-blog-text)] text-xs group-hover:text-[var(--nav-blog-text-hover)] transition-colors">›</span>
-        </a>
-        <a href="/thoughts" class="group flex items-center gap-2 rounded-full neu-btn
-                    px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300
-                    hover:bg-gradient-to-r hover:from-[var(--nav-blog-hover-from)] hover:to-transparent">
+          </a>
+          <a href="/thoughts" class="group flex items-center gap-2 rounded-full neu-btn px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300 hover:bg-gradient-to-r hover:from-[var(--nav-blog-hover-from)] hover:to-transparent">
             <span class="text-base">⭐</span>
             <span class="text-xs font-semibold group-hover:text-[var(--nav-blog-group-text)] truncate">怼点想法</span>
             <span class="text-[var(--nav-blog-text)] text-xs group-hover:text-[var(--nav-blog-text-hover)] transition-colors">›</span>
-        </a>
-        <a href="/projects" class="group flex items-center gap-2 rounded-full neu-btn
-                    px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300
-                    hover:bg-gradient-to-r hover:from-[var(--nav-proj-hover-from)] hover:to-transparent">
+          </a>
+          <a href="/projects" class="group flex items-center gap-2 rounded-full neu-btn px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300 hover:bg-gradient-to-r hover:from-[var(--nav-proj-hover-from)] hover:to-transparent">
             <span class="text-base">🧩</span>
             <span class="text-xs font-semibold group-hover:text-[var(--nav-proj-group-text)] truncate">怼点项目</span>
             <span class="text-[var(--nav-proj-text)] text-xs group-hover:text-[var(--nav-proj-text-hover)] transition-colors">›</span>
-        </a>
-        <a href="/wishes" class="group flex items-center gap-2 rounded-full neu-btn
-                    px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300
-                    hover:bg-gradient-to-r hover:from-[var(--nav-proj-hover-from)] hover:to-transparent">
+          </a>
+          <a href="/wishes" class="group flex items-center gap-2 rounded-full neu-btn px-4 py-2 no-underline text-[var(--text-primary)] transition-all duration-300 hover:bg-gradient-to-r hover:from-[var(--nav-proj-hover-from)] hover:to-transparent">
             <span class="text-base">✅</span>
             <span class="text-xs font-semibold group-hover:text-[var(--nav-proj-group-text)] truncate">怼点想怼嘞</span>
             <span class="text-[var(--nav-proj-text)] text-xs group-hover:text-[var(--nav-proj-text-hover)] transition-colors">›</span>
-        </a>
-    </div>
+          </a>
+        </div>
+      </div>
 
-    <!-- Recent posts -->
-    {recentPosts.length > 0 && (
-      <section class="mb-12 anim-fade" style="--delay:3">
+      <!-- Recent posts -->
+      {recentPosts.length > 0 && (
+        <div class="mb-12 anim-fade" style="--delay:1">
+          <h2 class="neu-section-title mb-6">
+            ✍️ 近期文章
+            <a href="/blog" class="text-sm font-normal text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">瞅瞅 →</a>
+            <span class="neu-section-divider"></span>
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {recentPosts.map((post) => (
+              <RecentPostCard
+                id={post.id}
+                title={post.data.title}
+                pubDate={post.data.pubDate}
+                heroImage={post.data.heroImage}
+                description={post.data.description}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Pinned + open source projects -->
+      <div class="board-container neu-board anim-fade" style="--delay:2">
         <h2 class="neu-section-title mb-6">
-          ✍️ 近期文章
-          <a href="/blog" class="text-sm font-normal text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">瞅瞅 →</a>
+          📌 置顶项目
           <span class="neu-section-divider"></span>
         </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {recentPosts.map((post) => (
-            <RecentPostCard
-              id={post.id}
-              title={post.data.title}
-              pubDate={post.data.pubDate}
-              heroImage={post.data.heroImage}
-              description={post.data.description}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-12">
+          {featured.map((project) => (
+            <FeaturedProjectCard
+              name={project.name}
+              description={project.description}
+              language={project.language}
+              stars={project.stargazers_count}
+              url={project.html_url}
+              homepage={project.homepage}
+              bannerUrl={project.bannerUrl}
+              logoUrl={project.logoUrl}
+              owner={project.owner}
+              badges={project.badges}
             />
           ))}
         </div>
-      </section>
-    )}
-
-    <section class="board-container neu-board anim-fade" style="--delay:4">
-        <h2 class="neu-section-title mb-6">
-            📌 置顶项目
-            <span class="neu-section-divider"></span>
-        </h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-12">
-            {featured.map((project) => (
-                <FeaturedProjectCard
-                    name={project.name}
-                    description={project.description}
-                    language={project.language}
-                    stars={project.stargazers_count}
-                    url={project.html_url}
-                    homepage={project.homepage}
-                    bannerUrl={project.bannerUrl}
-                    logoUrl={project.logoUrl}
-                    owner={project.owner}
-                    badges={project.badges}
-                />
-            ))}
-        </div>
 
         <h2 class="neu-section-title mb-6">
-            开源项目
-            <a href="/projects" class="text-sm font-normal text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">瞅瞅 →</a>
-            <span class="neu-section-divider"></span>
+          开源项目
+          <a href="/projects" class="text-sm font-normal text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">瞅瞅 →</a>
+          <span class="neu-section-divider"></span>
         </h2>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-            {repos.map((repo) => (
-                <ProjectCard
-                    name={repo.name}
-                    description={repo.description}
-                    language={repo.language}
-                    stars={repo.stargazers_count}
-                    url={repo.html_url}
-                />
-            ))}
+          {repos.map((repo) => (
+            <ProjectCard
+              name={repo.name}
+              description={repo.description}
+              language={repo.language}
+              stars={repo.stargazers_count}
+              url={repo.html_url}
+            />
+          ))}
         </div>
-
         <div class="mt-6 text-center">
-            <a href="/projects" class="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">
-                瞅瞅全部项目 →
-            </a>
+          <a href="/projects" class="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-link)] no-underline transition-colors">
+            瞅瞅全部项目 →
+          </a>
         </div>
-    </section>
-</WithSidebar>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</div>
+
+</body>
+</html>
+
+<style>
+  /* Snap container: full viewport minus header */
+  .home-snap {
+    scroll-snap-type: y proximity;
+    overflow-y: auto;
+    height: calc(100vh - var(--header-height, 80px));
+    scroll-behavior: smooth;
+  }
+
+  /* Each screen snaps to start */
+  .home-screen {
+    scroll-snap-align: start;
+  }
+
+  /* Hero: full viewport height, centered */
+  .hero-screen {
+    min-height: calc(100vh - var(--header-height, 80px));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* On mobile: no snap, no fixed height — just normal scroll */
+  @media (max-width: 767px) {
+    .home-snap {
+      scroll-snap-type: none;
+      height: auto;
+      overflow: visible;
+    }
+    .home-screen {
+      scroll-snap-align: none;
+    }
+    .hero-screen {
+      min-height: auto;
+      padding: 1rem 0;
+    }
+  }
+
+  .hero-split {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 3.5rem;
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* Content screen: normal flow */
+  .content-screen {
+    min-height: auto;
+  }
+  .content-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+  @media (min-width: 768px) {
+    .content-inner {
+      padding: 4rem 3rem 4rem;
+    }
+  }
+
+  /* Scroll hint */
+  .scroll-hint {
+    margin-top: 1rem;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    animation: bounce-hint 2s ease-in-out infinite;
+    opacity: 0.4;
+  }
+  @media (min-width: 768px) {
+    .scroll-hint {
+      margin-top: 2rem;
+    }
+  }
+  @keyframes bounce-hint {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+</style>
