@@ -28,7 +28,7 @@ const ogImageUrl = isBlogPost
 		? new URL(`/og/thoughts/${slug.replace(/^thoughts\//, '')}.png`, Astro.site).toString()
 		: image
 			? new URL(image.src, Astro.url).toString()
-			: new URL(`/og/posts/${slug || 'index'}.png`, Astro.site).toString();
+			: new URL('/og/site.png', Astro.site).toString();
 ---
 
 <!-- Global Metadata -->
