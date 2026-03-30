@@ -66,3 +66,120 @@ pre.mermaid .edgePath .path {
 pre.mermaid .edgePath marker path {
   fill: var(--text-muted) !important;
 }
+
+/* Sequence Diagram — actors */
+pre.mermaid rect.actor {
+  fill: var(--neu-bg) !important;
+  stroke: none !important;
+  rx: 8 !important;
+  ry: 8 !important;
+  filter: drop-shadow(3px 3px 4px var(--neu-shadow-dark))
+          drop-shadow(-3px -3px 4px var(--neu-shadow-light));
+}
+
+pre.mermaid .actor-line {
+  stroke: var(--text-muted) !important;
+  stroke-width: 1px !important;
+}
+
+pre.mermaid text.actor > tspan {
+  fill: var(--text-primary) !important;
+}
+
+/* Sequence Diagram — messages */
+pre.mermaid .messageLine0 {
+  stroke: var(--text-muted) !important;
+  stroke-width: 1.5px !important;
+}
+
+pre.mermaid .messageLine1 {
+  stroke: var(--text-muted) !important;
+  stroke-width: 1.5px !important;
+}
+
+pre.mermaid .messageText {
+  fill: var(--text-primary) !important;
+}
+
+/* Sequence Diagram — arrows */
+pre.mermaid .arrowMarkerPath {
+  fill: var(--text-muted) !important;
+}
+
+/* Sequence Diagram — notes (recessed neumorphism look) */
+pre.mermaid rect.note {
+  fill: var(--neu-cluster-bg) !important;
+  stroke: none !important;
+  rx: 6 !important;
+  ry: 6 !important;
+  filter: drop-shadow(-1px -1px 1px var(--neu-shadow-light))
+          drop-shadow(1px 1px 2px var(--neu-shadow-dark-strong)) !important;
+}
+
+pre.mermaid .noteText {
+  fill: var(--text-secondary) !important;
+}
+
+/* Sequence Diagram — activation bars */
+pre.mermaid .activation0,
+pre.mermaid .activation1,
+pre.mermaid .activation2 {
+  fill: var(--neu-cluster-bg) !important;
+  stroke: none !important;
+}
+
+/* Sequence Diagram — label backgrounds */
+pre.mermaid .labelBkg {
+  fill: var(--neu-bg) !important;
+}
+
+/* Class Diagram — classes */
+pre.mermaid .classGroup rect {
+  fill: var(--neu-bg) !important;
+  stroke: none !important;
+  rx: 8 !important;
+  ry: 8 !important;
+  filter: drop-shadow(3px 3px 4px var(--neu-shadow-dark))
+          drop-shadow(-3px -3px 4px var(--neu-shadow-light));
+}
+
+pre.mermaid .classGroup line {
+  stroke: var(--text-muted) !important;
+  stroke-width: 1px !important;
+}
+
+pre.mermaid .classLabel .label {
+  fill: var(--text-primary) !important;
+}
+
+pre.mermaid .classTitle {
+  fill: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+/* Class Diagram — relations */
+pre.mermaid .relation {
+  stroke: var(--text-muted) !important;
+  stroke-width: 1.5px !important;
+}
+
+pre.mermaid .dashed-line {
+  stroke: var(--text-muted) !important;
+}
+
+pre.mermaid #compositionStart,
+pre.mermaid #compositionEnd,
+pre.mermaid #aggregationStart,
+pre.mermaid #aggregationEnd,
+pre.mermaid #dependencyStart,
+pre.mermaid #dependencyEnd,
+pre.mermaid #extensionStart,
+pre.mermaid #extensionEnd {
+  fill: var(--text-muted) !important;
+  stroke: var(--text-muted) !important;
+}
+
+pre.mermaid .classLabel .box {
+  fill: var(--neu-bg) !important;
+  stroke: none !important;
+}
