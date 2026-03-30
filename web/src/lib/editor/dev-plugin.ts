@@ -76,7 +76,7 @@ export default function editorDevIntegration(): AstroIntegration {
         });
         injectRoute({
           pattern: '/api/editor/suggest-meta',
-          entrypoint: './src/lib/editor/routes/posts/suggest-meta.ts',
+          entrypoint: './src/lib/editor/routes/ai/suggest-meta.ts',
         });
         injectRoute({
           pattern: '/api/editor/posts/[slug]/rename',
@@ -124,7 +124,7 @@ export default function editorDevIntegration(): AstroIntegration {
         });
         injectRoute({
           pattern: '/api/editor/suggest-thought-tags',
-          entrypoint: './src/lib/editor/routes/thoughts/suggest-tags.ts',
+          entrypoint: './src/lib/editor/routes/ai/suggest-tags.ts',
         });
         injectRoute({
           pattern: '/api/editor/thoughts-preview',

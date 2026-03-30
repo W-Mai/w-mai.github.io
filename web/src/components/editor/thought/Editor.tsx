@@ -11,7 +11,7 @@ import { useThoughtDraft } from './use-draft';
 import { useThoughtApi } from './use-api';
 import ThoughtPreview from './Preview';
 import StickerPanel from '~/components/editor/shared/StickerPanel';
-import TagInput from './TagInput';
+import TagInput from '../shared/TagInput';
 
 interface ThoughtData {
   id: string;

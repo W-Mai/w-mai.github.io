@@ -1,6 +1,6 @@
 import { type FC, useState, useEffect, useCallback, useRef } from 'react';
 import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
-import TagInput from '~/components/editor/thought/TagInput';
+import TagInput from '~/components/editor/shared/TagInput';
 import DateTimePicker from './DateTime';
 import CategoryPicker from './Category';
 import type { FrontmatterData } from '~/lib/editor/frontmatter';
@@ -504,11 +504,13 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
       {/* Tags — full width */}
       <div style={{ gridColumn: '1 / -1' }}>
         <label style={labelStyle}>Tags</label>
-        <TagInput
-          tags={local.tags}
-          allTags={allTags}
-          onChange={handleTagsChange}
-        />
+        <div style={{ display: 'flex', gap: T.spacingSm, alignItems: 'center' }}>
+          <TagInput
+            tags={local.tags}
+            allTags={allTags}
+            onChange={handleTagsChange}
+          />
+        </div>
       </div>
 
       {/* series — optional with clear button */}
