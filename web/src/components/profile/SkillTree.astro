@@ -85,7 +85,7 @@ for (const domain of skillTreeData.domains) {
   </h2>
 
   <!-- Domain filter -->
-  <div class="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4" role="tablist" aria-label="技能分类筛选">
+  <div class="skill-filter-row" role="tablist" aria-label="技能分类筛选">
     <button
       class="skill-filter-btn neu-inset neu-filter-btn"
       data-domain="all" role="tab" aria-selected="true"
@@ -99,7 +99,7 @@ for (const domain of skillTreeData.domains) {
   </div>
 
   <!-- Category filter -->
-  <div id="category-filter" class="flex flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4" role="tablist" aria-label="技能类别筛选">
+  <div id="category-filter" class="skill-filter-row" role="tablist" aria-label="技能类别筛选">
     <button class="category-filter-btn neu-inset neu-filter-btn"
       data-category="all" role="tab" aria-selected="true">📂 全部类别</button>
     {skillTreeData.categories.map(cat => {

@@ -72,8 +72,8 @@ const recentPosts = allPosts.slice(0, 4)
             </div>
 
             <!-- Stats + social -->
-            <div class="flex flex-row md:flex-col gap-3 md:gap-5 items-center justify-center flex-wrap">
-              <div class="neu-btn flex items-center gap-4 px-5 py-2 rounded-full">
+            <div class="profile-social-row">
+              <div class="neu-btn profile-stat-btn">
                 <div class="flex flex-col items-center leading-tight">
                   <span class="font-bold text-[var(--text-primary)]">{profile.followers}</span>
                   <span class="text-[0.6rem] text-[var(--text-secondary)]">followers</span>
@@ -84,7 +84,7 @@ const recentPosts = allPosts.slice(0, 4)
                   <span class="text-[0.6rem] text-[var(--text-secondary)]">following</span>
                 </div>
               </div>
-              <div class="neu-btn flex items-center gap-0.5 px-2 py-1 rounded-full">
+              <div class="neu-btn profile-social-icon">
                 {SOCIALS.map((social) => (
                   <a class="flex items-center justify-center size-8 rounded-full transition-colors hover:bg-[var(--hover-bg)]"
                      href={social.url} target="_blank" rel="noopener">
@@ -107,7 +107,7 @@ const recentPosts = allPosts.slice(0, 4)
     </div>
 
     <div class="scroll-hint hidden md:flex anim-fade" style="--delay:6">
-      <div class="scroll-hint-inner" onclick="var s=document.getElementById('home-snap');if(s){var h=s.querySelector('.hero-screen');s.scrollTop=h?h.offsetHeight:s.clientHeight;}">
+      <div class="scroll-hint-inner neu-card-hover" onclick="var s=document.getElementById('home-snap');if(s){var h=s.querySelector('.hero-screen');s.scrollTop=h?h.offsetHeight:s.clientHeight;}">
         <div class="scroll-hint-arrows">
           <span>↓</span>
           <span>↓</span>
@@ -393,12 +393,6 @@ const recentPosts = allPosts.slice(0, 4)
       -3px -3px 6px var(--neu-shadow-light);
     cursor: pointer;
     transition: box-shadow 200ms ease, transform 200ms ease;
-  }
-  .scroll-hint-inner:hover {
-    box-shadow:
-      5px 5px 10px var(--neu-shadow-dark),
-      -5px -5px 10px var(--neu-shadow-light);
-    transform: translateY(-2px);
   }
   .scroll-hint-label {
     font-size: 0.75rem;

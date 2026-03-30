@@ -280,7 +280,7 @@ const ShareCard: FC<ShareCardProps> = ({ ogUrl, pageUrl, title, avatarUrl }) => 
               {/* Preview */}
               <div className="p-4">
                 {generating ? (
-                  <div className="flex items-center justify-center py-8 sm:py-16 text-sm text-[var(--text-muted)]">
+                  <div className="share-placeholder">
                     生成中…
                   </div>
                 ) : previewUrl ? (
@@ -291,7 +291,7 @@ const ShareCard: FC<ShareCardProps> = ({ ogUrl, pageUrl, title, avatarUrl }) => 
                     style={{ boxShadow: 'inset 2px 2px 5px var(--neu-shadow-dark), inset -2px -2px 5px var(--neu-shadow-light)' }}
                   />
                 ) : (
-                  <div className="flex items-center justify-center py-8 sm:py-16 text-sm text-[var(--text-muted)]">
+                  <div className="share-placeholder">
                     生成失败
                   </div>
                 )}
