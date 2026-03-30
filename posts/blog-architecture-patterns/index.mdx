@@ -1,5 +1,5 @@
 ---
-title: '一个人的博客，怎么做到不烂'
+title: '架构优先于测试：一个博客的工程化实践'
 description: '从 design token、CDN 抽象、编辑器隔离到 CI 质量脚本，聊聊个人项目里那些「过度设计」背后的架构思考'
 pubDate: '2026-03-30T16:17+08:00'
 tags: ["architecture", "astro", "design-system", "ci"]
@@ -24,6 +24,8 @@ category: "代码"
 ::sticker[v2_cf77560f-c19f-41ae-84e9-9e580bf131dl.gif]::
 
 这篇文章聊聊我在做这个博客的过程中，踩了哪些坑，最后沉淀出了哪些架构模式。不是什么高深的东西，但确实让一个人维护的项目也能保持不烂。
+
+其实这些思路不是做博客时才想到的。之前做 [uinspy](https://github.com/W-Mai/uinspy)（一个 LVGL 运行时可视化工具）的时候，就已经在实践了——[从零造编译时 UI 框架](/blog/uinspy-compile-time-ui-framework)、[编译时 CSS 自动 Scope](/blog/css-auto-scope)、[模块化 Dashboard 重构](/blog/uinspy-modular-dashboard)，每一步都是在用架构手段消除问题，而不是靠测试兜底。博客只是把这套思路又验证了一遍。
 
 ### Design Token：让「用错颜色」变成不可能
 
@@ -300,6 +302,14 @@ import ClippingDemo from './ClippingDemo';
 - 插件化管线 → 不可能重复实现处理逻辑（而不是测试每个出口的输出一致性）
 
 测试当然还是要写的，但测试应该验证「架构约束是否成立」（比如「每个 token 在所有主题下都有定义」），而不是追着每个组件的具体实现写断言。
+
+这套思路在 uinspy 项目里也一样成立：
+
+- [Bun Plugin 编译时模板转换](/blog/bun-plugin-compile-time-template)：用编译器消除运行时模板解析，而不是测试模板渲染是否正确
+- [编译时 CSS 自动 Scope](/blog/css-auto-scope)：用 tag name 前缀在构建时隔离样式，而不是测试每个组件的 CSS 有没有泄漏
+- [从零造编译时 UI 框架](/blog/uinspy-compile-time-ui-framework)：用类型系统和编译时检查约束组件接口，而不是运行时断言
+- [模块化 Dashboard 重构](/blog/uinspy-modular-dashboard)：用 builder 模式和类型约束让错误组合不可能出现
+- [渲染器三次重写](/blog/uinspy-renderer-evolution)：每次重写都是在架构层面解决上一版的天花板，而不是在旧架构上打补丁
 
 好的架构让错误写法不可能出现，而不是出现后靠测试兜底。
 
