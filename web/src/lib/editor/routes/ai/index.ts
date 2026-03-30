@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { json, getAIConfig } from '../shared';
 
 export const prerender = false;
 
@@ -12,23 +13,6 @@ const AI_PROMPTS: Record<string, string> = {
   'suggest-asset-name': 'Given the original filename (which may contain non-English characters), suggest 3 meaningful English filenames. Rules: lowercase, use hyphens or underscores, keep the original file extension, concise but descriptive, max 60 chars. The names should convey the meaning of the original name in English. Return ONLY a JSON array of strings, e.g. ["hero-banner.png","main-cover.png","top-image.png"]. No explanation.',
   'suggest-commit-msg': 'You are a git commit message writer. Given a blog post title, the action (add/update/delete), and a git diff, generate a commit message following this exact format:\n\n😁(scope): description\n\nRules:\n- First line: emoji + (scope) + colon + space + short description in English\n- The emoji should be contextual (📝 for content, 🐛 for fix, ✨ for new feature, etc.)\n- scope is usually "post" for blog posts\n- description should be concise, lowercase start, no period\n- If the diff is substantial, add a blank line then 1-2 sentence body explaining what changed\n- Return ONLY the commit message, no quotes, no explanation.',
 };
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
-/** Read AI config from environment variables */
-function getAIConfig(): { baseUrl: string; apiKey: string; model: string } {
-  const baseUrl = import.meta.env.OPENAI_API_BASE || process.env.OPENAI_API_BASE;
-  const apiKey = import.meta.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-  const model = import.meta.env.OPENAI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
-  if (!baseUrl) throw new Error('OPENAI_API_BASE environment variable is not configured');
-  if (!apiKey) throw new Error('OPENAI_API_KEY environment variable is not configured');
-  return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model };
-}
 
 /** POST /api/editor/ai — AI proxy with SSE streaming */
 export const POST: APIRoute = async ({ request }) => {

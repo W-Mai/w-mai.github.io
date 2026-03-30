@@ -3,17 +3,11 @@ import { readFile, writeFile, unlink } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { yamlToThought, thoughtToYaml, validateThought } from '~/lib/thought';
 import { validateSlug } from '~/lib/editor/utils';
+import { json } from '../shared';
 
 export const prerender = false;
 
 const thoughtsDir = resolve(process.cwd(), '..', 'thoughts');
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** GET /api/editor/thoughts/[id] — read single thought */
 export const GET: APIRoute = async ({ params }) => {

@@ -4,17 +4,11 @@ import { resolve } from 'node:path';
 import { yamlToThought, thoughtToYaml, generateThoughtId, validateThought } from '~/lib/thought';
 import { parseSiteDate } from '~/lib/date-utils';
 import { SITE_TZ_OFFSET } from '~/consts';
+import { json } from '../shared';
 
 export const prerender = false;
 
 const thoughtsDir = resolve(process.cwd(), '..', 'thoughts');
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** GET /api/editor/thoughts — list all thoughts */
 export const GET: APIRoute = async () => {

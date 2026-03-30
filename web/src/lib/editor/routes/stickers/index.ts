@@ -2,17 +2,11 @@ import type { APIRoute } from 'astro';
 import { readdir, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { readMetaMap, type StickerMeta } from './meta';
+import { json } from '../shared';
 
 export const prerender = false;
 
 const stickersDir = resolve(process.cwd(), '..', 'assets', 'stickers');
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** GET /api/editor/stickers — list all stickers with meta */
 export const GET: APIRoute = async () => {

@@ -20,15 +20,9 @@ import rehypeKatexSvg from '~/lib/markdown/rehype-katex-svg';
 import rehypeMermaidSvg from '~/lib/markdown/rehype-mermaid-svg';
 import rehypePangu from '~/lib/markdown/rehype-pangu';
 import rehypeWechatTag from '~/lib/markdown/rehype-wechat-tag';
+import { json } from './shared';
 
 export const prerender = false;
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** Strip YAML frontmatter block delimited by --- */
 function stripFrontmatter(content: string): string {

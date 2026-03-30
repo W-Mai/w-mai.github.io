@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { json } from '../shared';
 
 export const prerender = false;
 
@@ -19,13 +20,6 @@ export interface StickerMeta {
 }
 
 export type StickerMetaMap = Record<string, StickerMeta>;
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** Read meta map from disk */
 export async function readMetaMap(): Promise<StickerMetaMap> {

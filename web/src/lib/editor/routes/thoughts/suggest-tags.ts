@@ -1,23 +1,7 @@
 import type { APIRoute } from 'astro';
+import { json, getAIConfig } from '../shared';
 
 export const prerender = false;
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
-
-/** Read AI config from environment variables */
-function getAIConfig() {
-  const baseUrl = import.meta.env.OPENAI_API_BASE || process.env.OPENAI_API_BASE;
-  const apiKey = import.meta.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-  const model = import.meta.env.OPENAI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
-  if (!baseUrl) throw new Error('OPENAI_API_BASE is not configured');
-  if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
-  return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model };
-}
 
 const SYSTEM_PROMPT = `You are a tag and mood suggestion assistant for a personal thought/microblog system.
 Given the thought content and a list of existing tags already used in the system, suggest 2-5 relevant tags AND one mood emoji.

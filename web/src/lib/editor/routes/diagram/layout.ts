@@ -1,17 +1,11 @@
 import type { APIRoute } from 'astro';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { json } from '../shared';
 
 export const prerender = false;
 
 const layoutPath = resolve(process.cwd(), 'src', 'data', 'diagram-layout.json');
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** GET /api/editor/diagram-layout — read saved group positions */
 export const GET: APIRoute = async () => {

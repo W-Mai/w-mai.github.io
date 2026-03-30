@@ -2,17 +2,11 @@ import type { APIRoute } from 'astro';
 import { access, rename } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { validatePostSlug } from '~/lib/editor/utils';
+import { json } from '~/lib/editor/routes/shared';
 
 export const prerender = false;
 
 const postsDir = resolve(process.cwd(), '..', 'posts');
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** POST /api/editor/posts/[slug]/rename — rename a post file */
 export const POST: APIRoute = async ({ params, request }) => {

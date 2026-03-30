@@ -3,19 +3,13 @@ import { writeFile, unlink, access, readdir } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { normalizeAssetName, deduplicateAssetName } from '~/lib/editor/utils';
+import { json } from '../shared';
 
 export const prerender = false;
 
 const assetsDir = resolve(process.cwd(), '..', 'assets', 'images');
 
 const ALLOWED_EXT = /\.(png|jpe?g|gif|svg|webp|avif|ico|pdf)$/i;
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** Validate asset filename: no path traversal, allowed extensions */
 function validateName(name: string): boolean {

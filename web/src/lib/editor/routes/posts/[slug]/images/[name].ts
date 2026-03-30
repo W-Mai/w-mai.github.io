@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { validateSlug } from '~/lib/editor/utils';
+import { json } from '~/lib/editor/routes/shared';
 
 export const prerender = false;
 
@@ -12,13 +13,6 @@ const MIME: Record<string, string> = {
   gif: 'image/gif', svg: 'image/svg+xml', webp: 'image/webp',
   avif: 'image/avif',
 };
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** GET /api/editor/posts/[slug]/images/[name] — serve co-located image */
 export const GET: APIRoute = async ({ params }) => {

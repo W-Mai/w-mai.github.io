@@ -2,18 +2,12 @@ import type { APIRoute } from 'astro';
 import { readdir, stat, writeFile, unlink, mkdir } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { validateSlug, normalizeAssetName, deduplicateAssetName } from '~/lib/editor/utils';
+import { json } from '~/lib/editor/routes/shared';
 
 export const prerender = false;
 
 const postsDir = resolve(process.cwd(), '..', 'posts');
 const ALLOWED_EXT = /\.(png|jpe?g|gif|svg|webp|avif)$/i;
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** GET /api/editor/posts/[slug]/images — list co-located images */
 export const GET: APIRoute = async ({ params }) => {

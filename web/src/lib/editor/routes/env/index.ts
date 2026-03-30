@@ -1,17 +1,11 @@
 import type { APIRoute } from 'astro';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { json } from '../shared';
 
 export const prerender = false;
 
 const envPath = resolve(process.cwd(), '..', '.env');
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 /** Parse .env content into key-value pairs */
 function parseEnv(content: string): Record<string, string> {

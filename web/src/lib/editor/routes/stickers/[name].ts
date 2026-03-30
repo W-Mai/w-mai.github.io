@@ -2,18 +2,12 @@ import type { APIRoute } from 'astro';
 import { writeFile, unlink } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { json } from '../shared';
 
 export const prerender = false;
 
 const stickersDir = resolve(process.cwd(), '..', 'assets', 'stickers');
 const ALLOWED_EXT = /\.(png|gif|apng|webp|jpe?g|svg)$/i;
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
 
 function validateName(name: string): boolean {
   if (!name || name.includes('/') || name.includes('\\') || name.startsWith('.')) return false;
