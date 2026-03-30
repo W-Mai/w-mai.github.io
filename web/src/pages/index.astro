@@ -107,7 +107,14 @@ const recentPosts = allPosts.slice(0, 4)
     </div>
 
     <div class="scroll-hint anim-fade" style="--delay:6">
-      <span>↓</span>
+      <div class="scroll-hint-inner" onclick="var s=document.getElementById('home-snap');var t=document.querySelector('.content-screen');if(s&&t)s.scrollTo({top:t.offsetTop,behavior:'smooth'});else t?.scrollIntoView({behavior:'smooth'})">
+        <div class="scroll-hint-arrows">
+          <span>↓</span>
+          <span>↓</span>
+          <span>↓</span>
+        </div>
+        <span class="scroll-hint-label">近期文章 & 项目</span>
+      </div>
     </div>
   </section>
 
@@ -371,11 +378,49 @@ const recentPosts = allPosts.slice(0, 4)
   /* Scroll hint */
   .scroll-hint {
     margin-top: 1rem;
-    color: var(--text-muted);
-    font-size: 1.5rem;
-    animation: bounce-hint 2s ease-in-out infinite;
-    opacity: 0.4;
+    display: flex;
+    justify-content: center;
   }
+  .scroll-hint-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.25rem 0.5rem 0.75rem;
+    border-radius: 9999px;
+    background: var(--neu-bg);
+    box-shadow:
+      3px 3px 6px var(--neu-shadow-dark),
+      -3px -3px 6px var(--neu-shadow-light);
+    cursor: pointer;
+    transition: box-shadow 200ms ease, transform 200ms ease;
+  }
+  .scroll-hint-inner:hover {
+    box-shadow:
+      5px 5px 10px var(--neu-shadow-dark),
+      -5px -5px 10px var(--neu-shadow-light);
+    transform: translateY(-2px);
+  }
+  .scroll-hint-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .scroll-hint-arrows {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+  }
+  .scroll-hint-arrows span {
+    display: block;
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1;
+    animation: bounce-hint 1.4s ease-in-out infinite;
+  }
+  .scroll-hint-arrows span:nth-child(1) { opacity: 0.2; animation-delay: 0s; }
+  .scroll-hint-arrows span:nth-child(2) { opacity: 0.5; animation-delay: 0.15s; }
+  .scroll-hint-arrows span:nth-child(3) { opacity: 1; animation-delay: 0.3s; }
   @media (min-width: 768px) {
     .scroll-hint {
       margin-top: 2rem;
@@ -383,6 +428,6 @@ const recentPosts = allPosts.slice(0, 4)
   }
   @keyframes bounce-hint {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(8px); }
+    50% { transform: translateY(3px); }
   }
 </style>
