@@ -1,7 +1,9 @@
 import type { APIRoute } from 'astro';
-import { json, getAIConfig } from '../shared';
+import { json } from '../shared';
+import { getChatConfig, completeJSON, extractJSON } from '~/lib/editor/ai-client';
 
 export const prerender = false;
+
 const SYSTEM_PROMPT = `You are a metadata assistant for a technical blog.
 Given the article content and existing tags, generate a title, description, tags, and category.
 
@@ -14,22 +16,13 @@ Rules:
 - Return ONLY valid JSON: {"title": "...", "description": "...", "tags": ["tag1", "tag2"], "category": "..."}
 - No explanation, no markdown, just the JSON object`;
 
-/** POST /api/editor/posts/suggest-meta — AI suggest title, description, tags */
+/** POST /api/editor/suggest-meta — AI suggest title, description, tags, category */
 export const POST: APIRoute = async ({ request }) => {
   let config;
-  try {
-    config = getAIConfig();
-  } catch (err: any) {
-    return json({ error: err.message }, 503);
-  }
+  try { config = getChatConfig(); } catch (err: any) { return json({ error: err.message }, 503); }
 
   let body: { content: string; existingTags?: string[]; existingCategories?: string[] };
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: 'Invalid JSON body' }, 400);
-  }
-
+  try { body = await request.json(); } catch { return json({ error: 'Invalid JSON body' }, 400); }
   if (!body.content?.trim()) return json({ error: 'Missing content' }, 400);
 
   const userMessage = `Existing tags in the blog:\n${
@@ -38,41 +31,12 @@ export const POST: APIRoute = async ({ request }) => {
     (body.existingCategories || []).join(', ') || '(none yet)'
   }\n\nArticle content (first 3000 chars):\n${body.content.slice(0, 3000)}`;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20000);
-
   try {
-    const res = await fetch(`${config.baseUrl}/v1/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userMessage },
-        ],
-        max_tokens: 256,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => 'Unknown error');
-      return json({ error: `AI API error: ${errText}` }, 502);
-    }
-
-    const result = await res.json();
-    const content = result.choices?.[0]?.message?.content || '';
-
-    const objMatch = content.match(/\{[\s\S]*\}/);
-    if (!objMatch) return json({ error: 'Failed to parse AI response', raw: content }, 502);
-
-    const parsed: { title?: string; description?: string; tags?: string[]; category?: string } = JSON.parse(objMatch[0]);
+    const content = await completeJSON(config, [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userMessage },
+    ], { maxTokens: 256, timeout: 20000 });
+    const parsed = extractJSON<{ title?: string; description?: string; tags?: string[]; category?: string }>(content);
     return json({
       title: parsed.title || '',
       description: parsed.description || '',
@@ -80,8 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
       category: parsed.category || '',
     });
   } catch (err: any) {
-    clearTimeout(timeout);
     if (err.name === 'AbortError') return json({ error: 'AI request timed out (20s)' }, 504);
-    return json({ error: `AI request failed: ${err.message}` }, 502);
+    return json({ error: err.message }, 502);
   }
 };
