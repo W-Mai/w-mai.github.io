@@ -50,7 +50,9 @@ function createWechatProcessor(slug: string) {
     .use(rehypeCodeHighlight)
     .use(rehypeKatex)
     .use(rehypeKatexSvg)
-    .use(rehypeMermaidSvg)
+    .use(rehypeMermaidSvg, {
+      mermaidOptions: { bg: '#ffffff', fg: '#1e293b', transparent: true },
+    })
     .use(rehypeBase64Embed, { slug })
     .use(rehypePangu)
     .use(rehypeWechatTag)
