@@ -182,12 +182,12 @@ const TagInput: FC<TagInputProps> = ({ tags, allTags, onChange }) => {
         onClick={() => { setOpen(true); inputRef.current?.focus(); }}
         style={{
           display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center',
-          padding: (isMobile || isMultiLine) ? '0.5rem 0.75rem' : '0.2rem 0.5rem',
+          padding: (isMobile || isMultiLine) ? '0.4rem 0.75rem' : '0.25rem 0.5rem',
           borderRadius: '1.5rem',
           background: T.colorBg,
           boxShadow: 'inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong)',
           cursor: 'text',
-          minHeight: '2.7rem',
+          minHeight: '2.2rem',
         }}
       >
         {tags.map(tag => {

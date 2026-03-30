@@ -17,7 +17,7 @@ import StickerPicker from '~/components/editor/shared/StickerPicker';
 import EnvConfigPanel from './panels/EnvConfig';
 import PostImageManager from './panels/ImageManager';
 import WechatExportModal from './panels/WechatExport';
-import { setFrontmatterSlug } from '~/lib/editor/frontmatter-ext';
+import { setFrontmatterSlug, setFrontmatterAllTags } from '~/lib/editor/frontmatter-ext';
 
 interface PostInfo {
   slug: string;
@@ -128,6 +128,10 @@ const LiveEditor: FC = () => {
       .then((res) => res.json())
       .then((posts: PostInfo[]) => {
         setState((s) => ({ ...s, posts }));
+        // Collect all unique tags for frontmatter tag picker
+        const tagSet = new Set<string>();
+        for (const p of posts) p.tags?.forEach(t => tagSet.add(t));
+        setFrontmatterAllTags([...tagSet].sort());
         if (savedSlug && posts.some((p) => p.slug === savedSlug)) {
           selectPost(savedSlug);
         }

@@ -40,6 +40,14 @@ function handleCategoriesChange(cats: string[]): void {
   }).catch(() => {});
 }
 
+// Mutable tag list — collected from all posts
+let activeTagList: string[] = [];
+
+/** Update the available tag list for frontmatter panel */
+export function setFrontmatterAllTags(tags: string[]): void {
+  activeTagList = tags;
+}
+
 /** Update the active slug for frontmatter panel image resolution */
 export function setFrontmatterSlug(slug: string | null): void {
   activeSlug = slug;
@@ -103,6 +111,7 @@ class FrontmatterWidget extends WidgetType {
         onChange: this.handleFieldChange,
         allCategories: [...activeCategoryList],
         onCategoriesChange: handleCategoriesChange,
+        allTags: [...activeTagList],
       }),
     );
   }

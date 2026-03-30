@@ -75,6 +75,10 @@ export default function editorDevIntegration(): AstroIntegration {
           entrypoint: './src/lib/editor/routes/ai/index.ts',
         });
         injectRoute({
+          pattern: '/api/editor/suggest-meta',
+          entrypoint: './src/lib/editor/routes/posts/suggest-meta.ts',
+        });
+        injectRoute({
           pattern: '/api/editor/posts/[slug]/rename',
           entrypoint: './src/lib/editor/routes/posts/[slug]/rename.ts',
         });

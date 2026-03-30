@@ -1,6 +1,6 @@
 import { type FC, useState, useEffect, useCallback, useRef } from 'react';
 import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
-import TagChipEditor from './TagChip';
+import TagInput from '~/components/editor/thought/TagInput';
 import DateTimePicker from './DateTime';
 import CategoryPicker from './Category';
 import type { FrontmatterData } from '~/lib/editor/frontmatter';
@@ -11,6 +11,7 @@ interface FrontmatterPanelProps {
   onChange: (field: keyof FrontmatterData, value: FrontmatterData[keyof FrontmatterData]) => void;
   allCategories?: string[];
   onCategoriesChange?: (categories: string[]) => void;
+  allTags?: string[];
 }
 
 /** Shared styles for field labels */
@@ -66,7 +67,7 @@ function resolveHeroImageUrl(heroImage: string, slug?: string): string {
   return `/api/editor/assets/${encodeURIComponent(name)}`;
 }
 
-const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, allCategories = [], onCategoriesChange }) => {
+const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, allCategories = [], onCategoriesChange, allTags = [] }) => {
   const [local, setLocal] = useState<FrontmatterData>(data);
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [pickerClosing, setPickerClosing] = useState(false);
@@ -128,23 +129,40 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
     [onChange],
   );
 
-  const handleTagAdd = useCallback(
-    (tag: string) => {
-      const next = [...local.tags, tag];
+  const handleTagsChange = useCallback(
+    (next: string[]) => {
       setLocal((prev) => ({ ...prev, tags: next }));
       onChange('tags', next);
     },
-    [local.tags, onChange],
+    [onChange],
   );
 
-  const handleTagRemove = useCallback(
-    (index: number) => {
-      const next = local.tags.filter((_, i) => i !== index);
-      setLocal((prev) => ({ ...prev, tags: next }));
-      onChange('tags', next);
-    },
-    [local.tags, onChange],
-  );
+  // AI suggest meta
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const handleAiSuggest = useCallback(async () => {
+    if (!slug) return;
+    setAiLoading(true);
+    setAiError('');
+    try {
+      const postRes = await fetch(`/api/editor/posts/${slug}`);
+      if (!postRes.ok) { setAiError('Failed to load post'); return; }
+      const content = await postRes.text();
+      const res = await fetch('/api/editor/suggest-meta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, existingTags: allTags, existingCategories: allCategories }),
+      });
+      if (!res.ok) { setAiError('AI request failed'); return; }
+      const meta: { title?: string; description?: string; tags?: string[]; category?: string; error?: string } = await res.json();
+      if (meta.error) { setAiError(meta.error); return; }
+      if (meta.title && !local.title) { handleChange('title', meta.title); setLocal(p => ({ ...p, title: meta.title! })); }
+      if (meta.description && !local.description) { handleChange('description', meta.description); setLocal(p => ({ ...p, description: meta.description! })); }
+      if (meta.tags?.length && local.tags.length === 0) { handleChange('tags', meta.tags); setLocal(p => ({ ...p, tags: meta.tags! })); }
+      if (meta.category && !local.category) { handleChange('category', meta.category); setLocal(p => ({ ...p, category: meta.category! })); }
+    } catch (e: any) { setAiError(e.message || 'Unknown error'); }
+    finally { setAiLoading(false); }
+  }, [slug, allTags, allCategories, local.title, local.description, local.tags, local.category, handleChange]);
 
   return (
     <div style={{
@@ -160,6 +178,33 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
       borderRadius: T.radiusLg,
       boxShadow: T.shadowRaised,
     }}>
+      {/* AI suggest button */}
+      <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          onClick={handleAiSuggest}
+          disabled={aiLoading || !slug}
+          style={{
+            padding: `${T.spacingXs} ${T.spacingMd}`,
+            background: T.colorBg,
+            border: `1px solid ${T.colorBorderLight}`,
+            borderRadius: T.radiusSm,
+            fontSize: T.fontSizeSm,
+            fontFamily: T.fontSans,
+            color: T.colorTextSecondary,
+            cursor: aiLoading ? 'wait' : 'pointer',
+            boxShadow: T.shadowBtn,
+            transition: `all ${T.transitionFast}`,
+          }}
+        >
+          {aiLoading ? '✨ Generating…' : '✨ AI Fill Empty Fields'}
+        </button>
+        {aiError && (
+          <span style={{ fontSize: T.fontSizeSm, color: T.colorError, marginLeft: T.spacingSm }}>
+            {aiError}
+          </span>
+        )}
+      </div>
+
       {/* Title — full width */}
       <div style={{ gridColumn: '1 / -1' }}>
         <label style={labelStyle}>Title</label>
@@ -459,10 +504,10 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
       {/* Tags — full width */}
       <div style={{ gridColumn: '1 / -1' }}>
         <label style={labelStyle}>Tags</label>
-        <TagChipEditor
+        <TagInput
           tags={local.tags}
-          onAdd={handleTagAdd}
-          onRemove={handleTagRemove}
+          allTags={allTags}
+          onChange={handleTagsChange}
         />
       </div>
 

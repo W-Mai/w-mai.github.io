@@ -91,6 +91,8 @@ const CategoryPicker: FC<CategoryPickerProps> = ({
     if (value === cat) onChange(undefined);
   };
 
+  const isNewCategory = !!(value && !categories.includes(value));
+
   return (
     <div style={{ position: 'relative' }} ref={containerRef}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -111,7 +113,10 @@ const CategoryPicker: FC<CategoryPickerProps> = ({
             ...inputBaseStyle,
             cursor: 'pointer',
             textAlign: 'left',
-            color: value ? T.colorText : T.colorTextMuted,
+            color: isNewCategory ? '#7c3aed' : value ? T.colorText : T.colorTextMuted,
+            background: isNewCategory ? 'linear-gradient(135deg, #a78bfa22, #818cf822)' : T.colorBg,
+            borderColor: isNewCategory ? '#a78bfa66' : T.colorBorderLight,
+            boxShadow: isNewCategory ? '0 0 0 1px #a78bfa44' : T.shadowInset,
           }}
         >
           {value || '— Select —'}
