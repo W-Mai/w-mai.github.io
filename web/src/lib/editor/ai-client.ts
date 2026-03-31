@@ -156,3 +156,55 @@ export async function completeStream(
     },
   });
 }
+
+/** Read image generation API config (Volcengine Seedream). */
+export function getImageGenConfig(): AIProviderConfig {
+  const apiKey = import.meta.env.ARK_API_KEY || process.env.ARK_API_KEY;
+  if (!apiKey) throw new Error('ARK_API_KEY is not configured');
+  return {
+    baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+    apiKey,
+    model: 'doubao-seedream-5-0-260128',
+  };
+}
+
+/** Generate an image from a text prompt. Returns the image URL. */
+export async function generateImage(
+  config: AIProviderConfig,
+  prompt: string,
+  opts: { size?: string; timeout?: number } = {},
+): Promise<string> {
+  const { size = '2K', timeout = 60000 } = opts;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(`${config.baseUrl}/images/generations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.model,
+        prompt,
+        size,
+        sequential_image_generation: 'disabled',
+        response_format: 'url',
+        stream: false,
+        watermark: false,
+      }),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => 'Unknown error');
+      throw new Error(`Image API error (${res.status}): ${errText}`);
+    }
+    const result = await res.json();
+    const url = result.data?.[0]?.url;
+    if (!url) throw new Error('No image URL in response');
+    return url;
+  } finally {
+    clearTimeout(timer);
+  }
+}

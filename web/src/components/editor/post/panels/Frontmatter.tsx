@@ -164,6 +164,38 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
     finally { setAiLoading(false); }
   }, [slug, allTags, allCategories, local.title, local.description, local.tags, local.category, handleChange]);
 
+  // AI hero image generation
+  const [heroGenLoading, setHeroGenLoading] = useState(false);
+  const [heroGenError, setHeroGenError] = useState('');
+  const handleGenerateHero = useCallback(async () => {
+    if (!slug || !local.title) return;
+    setHeroGenLoading(true);
+    setHeroGenError('');
+    try {
+      // Fetch article content for context
+      const postRes = await fetch(`/api/editor/posts/${slug}`);
+      const content = postRes.ok ? await postRes.text() : '';
+
+      const res = await fetch('/api/editor/ai/generate-hero', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slug,
+          title: local.title,
+          description: local.description,
+          category: local.category,
+          content,
+          size: '3360x1120',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { setHeroGenError(data.error || 'Generation failed'); return; }
+      handleChange('heroImage', data.path);
+      setLocal(p => ({ ...p, heroImage: data.path }));
+    } catch (e: any) { setHeroGenError(e.message || 'Unknown error'); }
+    finally { setHeroGenLoading(false); }
+  }, [slug, local.title, local.description, handleChange]);
+
   return (
     <div style={{
       padding: `${T.spacingLg} ${T.spacingLg} ${T.spacing3xl}`,
@@ -264,13 +296,35 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
       <div style={{ position: 'relative' }} ref={pickerRef}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>Hero Image</label>
-          {local.heroImage && (
+          <div style={{ display: 'flex', gap: T.spacingXs, alignItems: 'center' }}>
+            {heroGenError && (
+              <span style={{ fontSize: T.fontSizeXs, color: T.colorError }}>{heroGenError}</span>
+            )}
+            <button
+              onClick={handleGenerateHero}
+              disabled={heroGenLoading || !slug || !local.title}
+              style={{
+                padding: `1px ${T.spacingSm}`,
+                background: T.colorBg,
+                border: `1px solid ${T.colorBorderLight}`,
+                borderRadius: T.radiusSm,
+                fontSize: T.fontSizeXs,
+                fontFamily: T.fontSans,
+                color: T.colorTextSecondary,
+                cursor: heroGenLoading ? 'wait' : 'pointer',
+                boxShadow: T.shadowBtn,
+              }}
+            >
+              {heroGenLoading ? '🎨 Generating…' : '🎨 AI'}
+            </button>
+            {local.heroImage && (
             <button
               onClick={() => { handleChange('heroImage', undefined); closePicker(); }}
               aria-label="Clear hero image"
               style={clearBtnStyle}
             >×</button>
           )}
+          </div>
         </div>
         <div style={{ marginTop: T.spacingXs }}>
           <button
