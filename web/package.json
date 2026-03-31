@@ -39,6 +39,7 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.12",
+    "@vite-pwa/astro": "^1.2.0",
     "@xyflow/react": "^12.10.1",
     "astro": "^5.18.0",
     "astro-mermaid": "^1.0.4",

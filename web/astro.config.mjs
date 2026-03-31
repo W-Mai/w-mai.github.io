@@ -3,7 +3,9 @@
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import AstroPWA from '@vite-pwa/astro';
 import {defineConfig} from 'astro/config';
+import {SITE_TITLE, SITE_DESCRIPTION, AVATAR_URL} from './src/consts';
 import {astroExpressiveCode} from "@astrojs/starlight/expressive-code";
 import tailwindcss from '@tailwindcss/vite';
 import astroMermaid from 'astro-mermaid';
@@ -45,6 +47,40 @@ export default defineConfig({
     sitemap({
       filter: (page) => !page.includes('/chunks/'),
     }),
+    AstroPWA({
+      registerType: 'autoUpdate',
+      devOptions: { enabled: true },
+      manifest: {
+        name: SITE_TITLE,
+        short_name: SITE_TITLE,
+        description: SITE_DESCRIPTION,
+        theme_color: '#e0e5ec',
+        background_color: '#e0e5ec',
+        display: 'standalone',
+        icons: [
+          { src: '/pwa-icon.png', sizes: '512x512', type: 'image/png' },
+        ],
+      },
+      workbox: {
+        navigateFallback: undefined,
+        globPatterns: ['**/*.{html,css,js,png,jpg,svg,woff2}'],
+      },
+    }),
+    // Download avatar as PWA icon at build time
+    {
+      name: 'pwa-icon-fetch',
+      hooks: {
+        'astro:build:done': async ({ dir }) => {
+          const fs = await import('node:fs/promises');
+          const path = await import('node:path');
+          const dest = path.join(dir.pathname, 'pwa-icon.png');
+          try {
+            const res = await fetch(`${AVATAR_URL}?s=512`);
+            if (res.ok) await fs.writeFile(dest, Buffer.from(await res.arrayBuffer()));
+          } catch {}
+        },
+      },
+    },
   ],
 
   image: {
