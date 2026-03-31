@@ -8,77 +8,89 @@ export const prerender = false;
 
 const postsDir = resolve(process.cwd(), '..', 'posts');
 
-const PROMPT_SYSTEM = `You are an expert at writing Seedream text-to-image prompts for technical blog cover illustrations.
-Given a blog article's metadata and content, generate a vivid Chinese prompt for a wide banner image (3:1 ratio).
+const STYLE_DESCRIPTIONS: Record<string, string> = {
+  flat: '扁平插画风格，简洁几何形状，纯色块，无阴影，像 Notion/Linear 的现代设计',
+  isometric: '等距2.5D视角，45度俯视的立体小场景，像乐高积木搭建的微缩世界',
+  gradient: '大面积柔和渐变配合简单几何形状（圆、波浪线），像 Stripe/Vercel 的高级感设计',
+  line: '单色或双色线条勾勒，留白多，极简线条艺术风格',
+  soft3d: '柔和光影的3D物体，磨砂质感，像 Apple 官网产品图的柔和渲染风格',
+  pixel: '复古像素画风格，8-bit 色彩，像素化的场景和物体',
+  paper: '模拟剪纸/折纸的层叠效果，有纸张纹理和深度层次',
+  lowpoly: '低多边形风格，三角面片构成的场景，有棱角的几何美感',
+};
 
-CRITICAL: First understand the article's TECHNICAL DOMAIN from the content, not from surface-level keywords.
-- "近平面裁切" is about 3D rendering pipelines, NOT physical optics
-- "画家算法" is about depth sorting in computer graphics, NOT actual painting
-- "混合模式" is about pixel blending in image processing, NOT chemistry
-- "惯性动画" is about UI physics simulation, NOT mechanical engineering
-- Always read the code snippets and technical terms to determine the actual domain
+const PROMPT_SYSTEM = `You are an expert at writing Seedream text-to-image prompts for blog illustrations.
 
 Prompt writing rules (Seedream best practices):
 1. Use NATURAL LANGUAGE sentences in Chinese, NOT keyword lists
-2. Describe a CONCRETE SCENE that serves as a visual metaphor for the technical concept
-3. Structure: main subject → composition → color palette → lighting → material/texture → artistic style
-4. Add sensory details: "半透明的几何体在冷蓝色光线下投射出精确的阴影" beats "几何体，蓝光，阴影"
-5. Mention "技术博客封面横幅配图" to set context
-6. NO text, NO letters, NO UI, NO code, NO screenshots
-7. Under 150 characters
+2. Describe a CONCRETE SCENE with specific objects
+3. Structure: main subject → composition → color palette → lighting → material/texture → mood
+4. Add sensory details: "金属质感的齿轮在暖光下泛着铜色光泽" beats "齿轮，金属，暖光"
+5. NO text, NO letters, NO UI, NO code, NO screenshots in the image
+6. Under 150 characters
 
-Visual metaphor mapping by ACTUAL technical domain:
-- 3D graphics/rendering → translucent geometric solids, ray-traced light beams cutting through crystal prisms, wireframe meshes dissolving into shaded surfaces
-- Frontend/CSS/design system → layered colored glass panels, organized color swatches flowing like a river, modular tiles assembling into patterns
-- Compiler/build tools → raw ore being smelted into precision parts, caterpillar-to-butterfly metamorphosis, rough stone carved into polished gems
-- Architecture/patterns → interlocking clockwork gears, Russian nesting dolls, LEGO-like modular construction
-- DevOps/CI/automation → robotic assembly line inspecting products, conveyor belt with quality checkpoints
-- Animation/physics → frozen moment of a splash with visible motion trails, time-lapse of a pendulum swing
-- Embedded/hardware → microscopic PCB traces glowing with data flow, chip cross-section revealing layered circuits
+CRITICAL: Understand the TECHNICAL DOMAIN from code/context, not surface keywords.
+"近平面裁切" = 3D rendering, "画家算法" = depth sorting in CG, "混合模式" = pixel blending.
 
-Return ONLY valid JSON: {"prompt": "你的中文提示词"}`;
+Return ONLY valid JSON: {"prompt": "中文提示词", "filename": "suggested-name.png"}`;
 
-/** POST /api/editor/ai/generate-hero — Generate hero image for a post */
+/** POST /api/editor/ai/generate-hero — Two-step image generation */
 export const POST: APIRoute = async ({ request }) => {
-  let chatConfig, imageConfig;
-  try { chatConfig = getChatConfig(); } catch (err: any) { return json({ error: `Chat: ${err.message}` }, 503); }
-  try { imageConfig = getImageGenConfig(); } catch (err: any) { return json({ error: `Image: ${err.message}` }, 503); }
-
-  let body: { slug: string; title: string; description?: string; category?: string; content?: string; size?: string };
+  let body: Record<string, any>;
   try { body = await request.json(); } catch { return json({ error: 'Invalid JSON body' }, 400); }
-  if (!body.slug || !body.title) return json({ error: 'Missing slug or title' }, 400);
 
-  try {
-    // Step 1: LLM generates an optimized image prompt
+  const { action } = body;
+
+  // Step 1: Generate prompt
+  if (action === 'prompt') {
+    let config;
+    try { config = getChatConfig(); } catch (err: any) { return json({ error: err.message }, 503); }
+
+    const styleDesc = STYLE_DESCRIPTIONS[body.style] || STYLE_DESCRIPTIONS.gradient;
+    const contentText = body.content || body.selectedText || '';
+
     const userMessage = [
-      `Title: ${body.title}`,
+      body.title ? `Title: ${body.title}` : '',
       body.description ? `Description: ${body.description}` : '',
       body.category ? `Category: ${body.category}` : '',
-      body.content ? `Content excerpt:\n${body.content.slice(0, 3500)}` : '',
+      `Art style requirement: ${styleDesc}`,
+      contentText ? `Content:\n${contentText.slice(0, 3500)}` : '',
     ].filter(Boolean).join('\n');
 
-    const llmResponse = await completeJSON(chatConfig, [
-      { role: 'system', content: PROMPT_SYSTEM },
-      { role: 'user', content: userMessage },
-    ], { maxTokens: 300, timeout: 15000 });
-
-    const { prompt: imagePrompt } = extractJSON<{ prompt: string }>(llmResponse);
-
-    // Step 2: Generate image with the optimized prompt
-    const url = await generateImage(imageConfig, imagePrompt, {
-      size: body.size || '3360x1120',
-    });
-
-    // Step 3: Download and save to post directory
-    const imgRes = await fetch(url);
-    if (!imgRes.ok) throw new Error('Failed to download generated image');
-    const buffer = Buffer.from(await imgRes.arrayBuffer());
-    const filename = 'hero-ai.jpg';
-    await writeFile(resolve(postsDir, body.slug, filename), buffer);
-
-    return json({ success: true, filename, path: `./${filename}`, prompt: imagePrompt });
-  } catch (err: any) {
-    if (err.name === 'AbortError') return json({ error: 'Request timed out' }, 504);
-    return json({ error: err.message }, 502);
+    try {
+      const result = await completeJSON(config, [
+        { role: 'system', content: PROMPT_SYSTEM },
+        { role: 'user', content: userMessage },
+      ], { maxTokens: 300, timeout: 30000 });
+      const parsed = extractJSON<{ prompt: string; filename?: string }>(result);
+      return json({ prompt: parsed.prompt || '', filename: parsed.filename || '' });
+    } catch (err: any) {
+      return json({ error: err.message }, 502);
+    }
   }
+
+  // Step 2: Generate image
+  if (action === 'image') {
+    let config;
+    try { config = getImageGenConfig(); } catch (err: any) { return json({ error: err.message }, 503); }
+
+    const { slug, prompt, filename, size } = body;
+    if (!slug || !prompt) return json({ error: 'Missing slug or prompt' }, 400);
+
+    const finalFilename = (filename || 'generated.jpg').replace(/[^a-zA-Z0-9._-]/g, '-');
+
+    try {
+      const url = await generateImage(config, prompt, { size: size || '3360x1120' });
+      const imgRes = await fetch(url);
+      if (!imgRes.ok) throw new Error('Failed to download generated image');
+      const buffer = Buffer.from(await imgRes.arrayBuffer());
+      await writeFile(resolve(postsDir, slug, finalFilename), buffer);
+      return json({ success: true, filename: finalFilename, path: `./${finalFilename}` });
+    } catch (err: any) {
+      if (err.name === 'AbortError') return json({ error: 'Image generation timed out' }, 504);
+      return json({ error: err.message }, 502);
+    }
+  }
+
+  return json({ error: `Unknown action: ${action}` }, 400);
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import AssetPanel from './panels/Asset';
 import StickerPanel from '~/components/editor/shared/StickerPanel';
+import ImageGenPanel from './panels/ImageGen';
 import PostList from './PostList';
 import MdxEditor, { type MdxEditorHandle } from './Mdx';
 import PreviewPanel from './panels/Preview';
@@ -79,6 +80,7 @@ const LiveEditor: FC = () => {
   const [gitCommitting, setGitCommitting] = useState(false);
   const [showGitModal, setShowGitModal] = useState(false);
   const [showStickerPanel, setShowStickerPanel] = useState(false);
+  const [imageGenContext, setImageGenContext] = useState<{ text: string } | null>(null);
   const [showEnvConfig, setShowEnvConfig] = useState(false);
   const [showImageRail, setShowImageRail] = useState(false);
   const [showWechatExport, setShowWechatExport] = useState(false);
@@ -458,6 +460,13 @@ const LiveEditor: FC = () => {
   const handleContextAction = useCallback((action: string) => {
     const view = editorRef.current?.getView();
     if (!view) return;
+
+    if (action === 'ai-gen-image') {
+      const { from, to } = view.state.selection.main;
+      const text = view.state.sliceDoc(from, to);
+      setImageGenContext({ text });
+      return;
+    }
 
     if (action.startsWith('ai-')) {
       handleAIAction(action);
@@ -964,6 +973,33 @@ const LiveEditor: FC = () => {
         onInsertInline={(syntax) => editorRef.current?.insertText(syntax)}
         onInsertBlock={(syntax) => editorRef.current?.insertText(syntax)}
       />
+
+      {/* AI Image Generation Panel (from context menu) */}
+      {imageGenContext && state.selectedSlug && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: 'var(--editor-overlay-bg, rgba(0,0,0,0.3))',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }} onClick={(e) => { if (e.target === e.currentTarget) setImageGenContext(null); }}>
+          <div style={{
+            background: T.colorBg, borderRadius: '2rem',
+            boxShadow: T.shadowRaised,
+            width: '480px', maxWidth: '95vw', maxHeight: '90vh',
+            overflowY: 'auto',
+          }}>
+            <ImageGenPanel
+              mode="inline"
+              slug={state.selectedSlug}
+              content={imageGenContext.text}
+              onDone={(result) => {
+                editorRef.current?.insertText(`\n![${result.filename}](./${result.filename})\n`);
+                setImageGenContext(null);
+              }}
+              onClose={() => setImageGenContext(null)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Inline sticker grid picker (from autocomplete) */}
       {stickerPicker && (

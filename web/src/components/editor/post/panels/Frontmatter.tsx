@@ -1,5 +1,7 @@
 import { type FC, useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { EDITOR_TOKENS as T } from '~/components/editor/shared/editor-tokens';
+import ImageGenPanel from './ImageGen';
 import TagInput from '~/components/editor/shared/TagInput';
 import DateTimePicker from './DateTime';
 import CategoryPicker from './Category';
@@ -164,39 +166,21 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
     finally { setAiLoading(false); }
   }, [slug, allTags, allCategories, local.title, local.description, local.tags, local.category, handleChange]);
 
-  // AI hero image generation
-  const [heroGenLoading, setHeroGenLoading] = useState(false);
-  const [heroGenError, setHeroGenError] = useState('');
-  const handleGenerateHero = useCallback(async () => {
-    if (!slug || !local.title) return;
-    setHeroGenLoading(true);
-    setHeroGenError('');
-    try {
-      // Fetch article content for context
-      const postRes = await fetch(`/api/editor/posts/${slug}`);
-      const content = postRes.ok ? await postRes.text() : '';
-
-      const res = await fetch('/api/editor/ai/generate-hero', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slug,
-          title: local.title,
-          description: local.description,
-          category: local.category,
-          content,
-          size: '3360x1120',
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok || data.error) { setHeroGenError(data.error || 'Generation failed'); return; }
-      handleChange('heroImage', data.path);
-      setLocal(p => ({ ...p, heroImage: data.path }));
-    } catch (e: any) { setHeroGenError(e.message || 'Unknown error'); }
-    finally { setHeroGenLoading(false); }
-  }, [slug, local.title, local.description, handleChange]);
+  // AI hero image — open ImageGenPanel
+  const [showImageGen, setShowImageGen] = useState(false);
+  const [imageGenClosing, setImageGenClosing] = useState(false);
+  const closeImageGen = useCallback(() => {
+    setImageGenClosing(true);
+    setTimeout(() => { setShowImageGen(false); setImageGenClosing(false); }, 200);
+  }, []);
+  const handleImageGenDone = useCallback((result: { path: string; filename: string }) => {
+    handleChange('heroImage', result.path);
+    setLocal(p => ({ ...p, heroImage: result.path }));
+    closeImageGen();
+  }, [handleChange, closeImageGen]);
 
   return (
+    <>
     <div style={{
       padding: `${T.spacingLg} ${T.spacingLg} ${T.spacing3xl}`,
       fontFamily: T.fontSans,
@@ -297,12 +281,9 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <label style={{ ...labelStyle, marginBottom: 0 }}>Hero Image</label>
           <div style={{ display: 'flex', gap: T.spacingXs, alignItems: 'center' }}>
-            {heroGenError && (
-              <span style={{ fontSize: T.fontSizeXs, color: T.colorError }}>{heroGenError}</span>
-            )}
             <button
-              onClick={handleGenerateHero}
-              disabled={heroGenLoading || !slug || !local.title}
+              onClick={() => setShowImageGen(true)}
+              disabled={!slug || !local.title}
               style={{
                 padding: `1px ${T.spacingSm}`,
                 background: T.colorBg,
@@ -311,11 +292,11 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
                 fontSize: T.fontSizeXs,
                 fontFamily: T.fontSans,
                 color: T.colorTextSecondary,
-                cursor: heroGenLoading ? 'wait' : 'pointer',
+                cursor: 'pointer',
                 boxShadow: T.shadowBtn,
               }}
             >
-              {heroGenLoading ? '🎨 Generating…' : '🎨 AI'}
+              🎨 AI
             </button>
             {local.heroImage && (
             <button
@@ -638,6 +619,41 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
       </div>
     </div>
     </div>
+
+    {/* ImageGen Panel — portal to body */}
+    {(showImageGen || imageGenClosing) && slug && createPortal(
+      <div
+        className={`editor-overlay${imageGenClosing ? ' closing' : ''}`}
+        onClick={(e) => { if (e.target === e.currentTarget) closeImageGen(); }}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 2000,
+          background: 'var(--editor-overlay-bg, rgba(0,0,0,0.3))',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        <div
+          className={`editor-panel${imageGenClosing ? ' closing' : ''}`}
+          style={{
+            background: T.colorBg, borderRadius: T.radiusXl,
+            boxShadow: T.shadowRaised,
+            width: '480px', maxWidth: '95vw', maxHeight: '90vh',
+            overflowY: 'auto',
+          }}
+        >
+          <ImageGenPanel
+            mode="hero"
+            slug={slug}
+            content=""
+            title={local.title}
+            description={local.description}
+            category={local.category}
+            onDone={handleImageGenDone}
+            onClose={closeImageGen}
+          />
+        </div>
+      </div>
+    , document.body)}
+    </>
   );
 };
 

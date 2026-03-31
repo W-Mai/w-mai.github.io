@@ -30,6 +30,8 @@ function getMenuItems(hasSelection: boolean, aiEnabled: boolean): (MenuItem | ty
       { label: 'AI Simplify', action: 'ai-simplify', disabled: !aiEnabled, disabledTip: 'AI not configured' },
       { label: 'AI Expand', action: 'ai-expand', disabled: !aiEnabled, disabledTip: 'AI not configured' },
       { label: 'AI Translate', action: 'ai-translate', disabled: !aiEnabled, disabledTip: 'AI not configured' },
+      DIVIDER,
+      { label: '🎨 AI Generate Image', action: 'ai-gen-image', disabled: !aiEnabled, disabledTip: 'AI not configured' },
     ];
   }
   return [
