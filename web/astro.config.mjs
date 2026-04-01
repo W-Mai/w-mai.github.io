@@ -66,10 +66,21 @@ export default defineConfig({
         globPatterns: ['**/*.{html,css,js,png,jpg,svg,woff2}'],
       },
     }),
-    // Download avatar as PWA icon at build time
+    // Download avatar as PWA icon at build/dev time
     {
       name: 'pwa-icon-fetch',
       hooks: {
+        'astro:server:setup': async () => {
+          const fs = await import('node:fs/promises');
+          const path = await import('node:path');
+          const dest = path.resolve('public', 'pwa-icon.png');
+          try { await fs.access(dest); } catch {
+            try {
+              const res = await fetch(`${AVATAR_URL}?s=512`);
+              if (res.ok) await fs.writeFile(dest, Buffer.from(await res.arrayBuffer()));
+            } catch {}
+          }
+        },
         'astro:build:done': async ({ dir }) => {
           const fs = await import('node:fs/promises');
           const path = await import('node:path');
