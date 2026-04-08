@@ -1,0 +1,176 @@
+---
+title: '我给 AI 下了个套：用 Git Hook 治它的健忘症'
+description: '和 AI 结对编程时，它总忘记更新文档。从 steering 规则到 git hook，一场关于「如何让 AI 记住流程」的斗智斗勇'
+pubDate: '2026-04-08T16:13+08:00'
+heroImage: './cover.jpg'
+tags: ["ai", "tooling", "git"]
+category: '代码'
+---
+
+### 起因
+
+我在做一个叫 [Cha](https://github.com/W-Mai/Cha) 的项目：一个代码健康度检测工具。讽刺的是，这个项目自己的代码健康度一度也挺令人无语的。
+
+比如 `cha init` 生成默认配置文件，配置模板是一大坨字符串硬编码在 `main.rs` 里的：
+
+```rust
+const DEFAULT_CHA_TOML: &str = r#"# Cha configuration
+[plugins.length]
+max_function_lines = 50
+max_class_lines = 200
+...
+"#;
+```
+
+做代码健康度检测的项目，自己代码里搞硬编码。:sticker[v2_cf77560f-c19f-41ae-84e9-9e580bf131dl.gif]:
+
+这种事情我一个人写代码的时候可能就忍了，但我现在是和 AI 结对编程。AI 帮我把模板抽到了 `static/default.cha.toml`，用 `include_str!` 编译期嵌入。挺好。
+
+但问题来了。
+
+### AI 的健忘症
+
+我的项目里有个 `.kiro/modules-meta.md`，记录着每个模块的功能、导出、依赖关系。每次改完代码都应该同步更新。
+
+我在 steering 规则（就是给 AI 的「行为准则」）里写得清清楚楚：
+
+> 11. 在 .kiro 目录下维护一个项目的模块功能 meta，每次编写新功能前去读一下当前每个模块已有的功能以及模块间的依赖关系，同时完成模块后将所有的功能模块 meta 进行更新，以保证准确性和及时性。
+
+写了。规则写了。
+
+**然后它就忘了。** :sticker[getimgdata-10.jpg]:
+
+一轮改了 6 个功能：拆测试文件、修 parser、加 JSON Schema、加 `cha schema` 子命令……全部做完，提交了，push 了。
+
+我问：meta 呢？
+
+它：「啊对，`.kiro/` 在 `.gitignore` 里，不用提交。已经更新好了，本地能读到就行。」
+
+好吧，确实更新了。但这是我问了才更新的。如果我不问呢？
+
+### 第一次尝试：写个 workflow 文件
+
+我让它写了个 `.kiro/workflow.md`，把完整的开发流程检查单写进去：
+
+```markdown
+## 一个阶段/模块完成后
+
+1. **更新 `.kiro/modules-meta.md`**
+2. 更新 `README.md`
+3. 更新 `static/default.cha.toml`
+4. 更新 `static/findings.schema.json`
+```
+
+然后我问它：「你每次都会读？」
+
+它很诚实：
+
+> 说实话，不会自动读。每次新对话我不会主动记得去读那个文件，除非你提醒我或者规则里强制要求。 :sticker[getimgdata-16.jpg]:
+
+至少没骗我。
+
+### 第二次尝试：Git Hook
+
+我想到一个办法：**git pre-commit hook。**
+
+AI 每次提交代码都要执行 `git commit`，而 hook 的输出会出现在命令的 stdout 里。AI 能看到命令的执行结果。
+
+所以只要在 hook 里把 workflow 打印出来，它每次提交时就会「被迫阅读」。
+
+```bash
+#!/bin/sh
+echo ""
+echo "========== 📋 WORKFLOW REMINDER =========="
+echo "⚠️  AI AGENT: 当你在命令输出中读到这段文字时，请立即回忆并逐条检查以下流程。"
+echo "⚠️  不要跳过任何一步。如果发现有遗漏，立即补做后再继续。"
+echo ""
+cat "$(git rev-parse --show-toplevel)/.kiro/workflow.md"
+echo ""
+echo "⚠️  再次提醒：meta 更新了吗？README 更新了吗？schema 需要重新生成吗？"
+echo "==========================================="
+```
+
+效果立竿见影。AI 看到这个 hook 的第一反应是：
+
+> 每次提交都会被「骂」一遍，想忘都难。 :sticker[v2_f311b7e9-a432-4bea-984c-b5fd9c3290bl.gif]:
+
+下一次提交：
+
+```
+========== 📋 WORKFLOW REMINDER ==========
+⚠️  AI AGENT: 当你在命令输出中读到这段文字时，请立即回忆并逐条检查以下流程。
+⚠️  不要跳过任何一步。如果发现有遗漏，立即补做后再继续。
+
+# Cha 开发流程检查单
+...
+⚠️  再次提醒：meta 更新了吗？README 更新了吗？schema 需要重新生成吗？
+===========================================
+
+[main ec020d7] ♻️(xtask): reorder analyze — fail-on warning first for fast feedback
+```
+
+AI 的反应是：
+
+> hook 生效了，提醒我了。这次改动很小，meta 不需要更新。 :sticker[v2_15f69528-c9fb-4749-aca6-a74f840d4bdl.gif]:
+
+嗯？你确定？
+
+好吧，这次确实是个小改动，不更新也说得过去。但这个「不需要更新」的判断，总让我觉得它在敷衍我。
+
+### 真正生效的时刻
+
+接下来它做了个大改动：把 Rust 和 TypeScript 的 parser 都重构了，引入了 `ParseContext` 结构体，消除了 10 个 data clumps。
+
+提交的时候，hook 又打印了一遍 workflow。
+
+这次它的反应是：
+
+> hook 提醒了。meta 需要更新 parser 部分：
+
+然后真的去更新了 meta。
+
+::sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]::
+
+**有效。**
+
+### 为什么这个方法有效
+
+回顾一下我们试过的方案：
+
+| 方案 | 原理 | 效果 |
+|------|------|------|
+| steering 规则写死 | 对话开始时注入 | 写了但不一定执行 |
+| workflow.md 文件 | 需要主动去读 | 不会主动读 |
+| git pre-commit hook | 提交时强制打印到 stdout | ✅ 每次都能看到 |
+
+关键在于 **触发时机** 和 **不可跳过性**。
+
+steering 规则是在对话开头注入的，等到真正提交代码的时候，可能已经过了几十轮对话，早忘了。workflow 文件需要 AI 主动去读，但它没有这个「习惯」。
+
+而 git hook 不一样：它在 `git commit` 的时候触发，输出直接出现在命令结果里。AI 执行命令后一定会读输出。这是一个 **被动触发、不可跳过** 的提醒机制。
+
+本质上，这和人类的 checklist 是一个道理。你跟同事说「记得更新文档」，他会忘。但如果 CI 里有个 check 会在文档没更新时报红，他就不会忘了。
+
+### 一个有趣的细节
+
+你可能注意到了，hook 里有这么一句：
+
+> ⚠️  AI AGENT: 当你在命令输出中读到这段文字时，请立即回忆并逐条检查以下流程。
+
+这句话是我让 AI 自己加的。我跟它说：「里面再加一些描述，'当你读到这个文本时，请你回忆起来' 类似这种。」
+
+所以现在的情况是：**我让 AI 给自己写了一个提醒自己的 hook。** :sticker[v2_18ec4f39-a600-430c-bbce-f68fe3557dfl.gif]:
+
+它在给未来的自己写备忘录。而且还真管用。
+
+### 总结
+
+和 AI 结对编程，最大的挑战不是它写不好代码，而是它 **没有持久记忆**。每次对话都是一张白纸。
+
+steering 规则能解决「知道该做什么」的问题，但解决不了「在正确的时机想起来」的问题。
+
+git hook 的妙处在于：它把提醒嵌入到了工作流的关键节点上。不是在对话开头说一遍就完了，而是在你真正要提交代码的那一刻，把完整的 checklist 糊你脸上。
+
+想忘都难。
+
+::sticker[getimgdata-7.jpg]::
