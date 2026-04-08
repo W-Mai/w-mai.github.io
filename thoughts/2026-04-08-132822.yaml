@@ -1,0 +1,13 @@
+content: >-
+  最近在设计一个新的库，通过传统的算法解析 AST
+  来分析项目的健康度：代码复杂度、分支嵌套、链式调用、代码行数等等多维度来度量一个仓库的代码指标，并给出修改建议，来指导 code
+  agent，防止长时间的发散修改下的代码膨胀。:sticker[getimgdata-8.jpg]:
+
+
+  https://github.com/w-mai/cha
+createdAt: 2026-04-08T13:28:22+08:00
+tags:
+  - AI
+  - 设计
+  - 开发
+mood: 💡
