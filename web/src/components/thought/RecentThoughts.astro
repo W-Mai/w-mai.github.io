@@ -32,8 +32,9 @@ const items = await Promise.all(
     <ul class="neu-recent-thought-list flex flex-col gap-0.5 sm:gap-2 m-0 p-0">
       {items.map((item) => (
         <li class="list-none">
-          <a href={`/thoughts/${item.id}/`}
-             class="neu-recent-thought block rounded-md sm:rounded-xl p-1.5 sm:p-2.5 no-underline transition-all duration-200">
+          <div class="neu-recent-thought block rounded-md sm:rounded-xl p-1.5 sm:p-2.5 no-underline transition-all duration-200 cursor-pointer"
+               onclick={`window.location.href='/thoughts/${item.id}/'`}
+               role="link" tabindex="0">
             <div class="flex items-center gap-1 mb-0.5 sm:mb-1">
               {item.mood && <span class="text-[0.6rem] sm:text-xs">{item.mood}</span>}
               <time class="text-[0.55rem] sm:text-[0.65rem] text-[var(--text-muted)]"
@@ -43,7 +44,7 @@ const items = await Promise.all(
             </div>
             <div class="neu-recent-thought-text text-[0.65rem] sm:text-xs text-[var(--text-secondary)] leading-tight sm:leading-relaxed"
                  set:html={item.html} />
-          </a>
+          </div>
         </li>
       ))}
     </ul>

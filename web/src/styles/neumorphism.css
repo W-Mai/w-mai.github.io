@@ -936,6 +936,19 @@ button.neu-tag-chip.active {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  text-align: left;
+}
+
+/* Force inline display for markdown block elements inside truncated text */
+.neu-recent-thought-text p,
+.neu-recent-thought-text br {
+  display: inline;
+}
+.neu-recent-thought-text p::after {
+  content: ' ';
+}
+.neu-recent-thought-text img {
+  display: none;
 }
 
 /* Comment inline button — inside card bottom-right */
