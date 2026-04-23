@@ -8,6 +8,7 @@ export const CATEGORIES = [
   '硬件',
   '生活',
   'CTF',
+  '音乐',
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
