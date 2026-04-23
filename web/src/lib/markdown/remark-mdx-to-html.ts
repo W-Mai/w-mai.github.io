@@ -59,11 +59,16 @@ function serializeNode(node: MdxJsxNode): string {
 export default function remarkMdxToHtml() {
   return (tree: Root) => {
     visit(tree, (node: any, index, parent) => {
-      if (
-        index == null ||
-        !parent ||
-        (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement')
-      ) {
+      if (index == null || !parent) return;
+
+      // Drop `import` / `export` statements: they're build-time directives,
+      // not content, and must not leak into WeChat HTML output.
+      if (node.type === 'mdxjsEsm') {
+        (parent.children as any[])[index] = { type: 'html', value: '' };
+        return;
+      }
+
+      if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') {
         return;
       }
 

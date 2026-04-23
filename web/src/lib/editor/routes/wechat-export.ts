@@ -3,6 +3,7 @@
 // Pipeline: remarkSticker + remarkMath → rehypeKatex + rehypeBase64Embed + rehypeWechatTag
 
 import type { APIRoute } from 'astro';
+import path from 'node:path';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkMdx from 'remark-mdx';
@@ -14,12 +15,14 @@ import rehypeKatex from 'rehype-katex';
 import rehypeStringify from 'rehype-stringify';
 import remarkSticker from '~/lib/markdown/remark-sticker';
 import remarkMdxToHtml from '~/lib/markdown/remark-mdx-to-html';
+import remarkJsxSsr from '~/lib/markdown/remark-jsx-ssr';
 import rehypeBase64Embed from '~/lib/markdown/rehype-base64-embed';
 import rehypeCodeHighlight from '~/lib/markdown/rehype-code-highlight';
 import rehypeKatexSvg from '~/lib/markdown/rehype-katex-svg';
 import rehypeMermaidSvg from '~/lib/markdown/rehype-mermaid-svg';
 import rehypePangu from '~/lib/markdown/rehype-pangu';
 import rehypeWechatTag from '~/lib/markdown/rehype-wechat-tag';
+import { getRepoRoot } from '~/lib/editor/git';
 import { json } from './shared';
 
 export const prerender = false;
@@ -30,14 +33,19 @@ function stripFrontmatter(content: string): string {
   return match ? content.slice(match[0].length) : content;
 }
 
-/** Build the remark/rehype processor for a given post slug */
-function createWechatProcessor(slug: string) {
+/**
+ * Build the remark/rehype processor for a given post slug.
+ * `postDir` (absolute path to `posts/<slug>/`) is required so the JSX-SSR
+ * plugin can resolve React component files referenced by `import` in MDX.
+ */
+function createWechatProcessor(slug: string, postDir: string) {
   return unified()
     .use(remarkParse)
     .use(remarkMdx)
     .use(remarkGfm)
     .use(remarkSticker)
     .use(remarkMath)
+    .use(remarkJsxSsr, { postDir })
     .use(remarkMdxToHtml)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
@@ -62,7 +70,8 @@ export const POST: APIRoute = async ({ request }) => {
     if (!slug) return json({ error: 'Slug is required' }, 400);
 
     const stripped = stripFrontmatter(content);
-    const processor = createWechatProcessor(slug);
+    const postDir = path.join(getRepoRoot(), 'posts', slug);
+    const processor = createWechatProcessor(slug, postDir);
     const result = await processor.process(stripped);
 
     return json({ html: String(result) });
