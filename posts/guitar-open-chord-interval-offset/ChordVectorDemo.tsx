@@ -82,6 +82,18 @@ export default function ChordVectorDemo({ title, notes, steps, caption }: Props)
           </marker>
         </defs>
 
+        {/* Open-string column background — tints the whole 0-fret column so it
+            reads as a distinct region from the fretted positions. Drawn under
+            everything else (before strings/inlays/notes). */}
+        <rect
+          x={LEFT_GUTTER}
+          y={TOP_GUTTER}
+          width={CELL_W}
+          height={CELL_H * 6}
+          fill="var(--text-muted, #94a3b8)"
+          opacity={0.12}
+        />
+
         {/* Fret numbers */}
         {Array.from({ length: FRETS + 1 }, (_, f) => (
           <text
@@ -91,26 +103,32 @@ export default function ChordVectorDemo({ title, notes, steps, caption }: Props)
             textAnchor="middle"
             fontSize="10"
             fontFamily="monospace"
-            fill={INLAY_FRETS.has(f) ? 'var(--text-primary, #333)' : 'var(--text-muted, #888)'}
-            fontWeight={INLAY_FRETS.has(f) ? 600 : 400}
+            fill={f === 0 || INLAY_FRETS.has(f) ? 'var(--text-primary, #333)' : 'var(--text-muted, #888)'}
+            fontWeight={f === 0 || INLAY_FRETS.has(f) ? 600 : 400}
           >
             {f === 0 ? '空' : f}
           </text>
         ))}
 
-        {/* Fret divider lines (lighter on non-inlay frets) */}
-        {Array.from({ length: FRETS + 2 }, (_, f) => (
-          <line
-            key={`fl-${f}`}
-            x1={LEFT_GUTTER + f * CELL_W}
-            y1={TOP_GUTTER}
-            x2={LEFT_GUTTER + f * CELL_W}
-            y2={TOP_GUTTER + CELL_H * 6}
-            stroke="var(--neu-shadow-dark, #a8b0bb)"
-            strokeWidth={f === 0 ? 3 : 1}
-            opacity={f === 0 ? 0.8 : 0.3}
-          />
-        ))}
+        {/* Fret divider lines (lighter on non-inlay frets).
+            f=0 is the nut edge; f=1 is the nut itself — drawn thicker/darker so
+            the open-string column is visibly fenced off from fret 1+. */}
+        {Array.from({ length: FRETS + 2 }, (_, f) => {
+          const isNut = f === 1;
+          const isLeftEdge = f === 0;
+          return (
+            <line
+              key={`fl-${f}`}
+              x1={LEFT_GUTTER + f * CELL_W}
+              y1={TOP_GUTTER}
+              x2={LEFT_GUTTER + f * CELL_W}
+              y2={TOP_GUTTER + CELL_H * 6}
+              stroke="var(--neu-shadow-dark, #a8b0bb)"
+              strokeWidth={isNut ? 3.5 : isLeftEdge ? 3 : 1}
+              opacity={isNut ? 0.9 : isLeftEdge ? 0.8 : 0.3}
+            />
+          );
+        })}
 
         {/* Inlay dots (single on 3/5/7/9, double on 12) */}
         {Array.from(INLAY_FRETS).map((f) => {
