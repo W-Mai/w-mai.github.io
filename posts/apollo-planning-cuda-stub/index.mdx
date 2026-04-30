@@ -1,0 +1,303 @@
+---
+title: '在 Apple Silicon 上让 Apollo planning 跑起来的一个 hack'
+description: 'Mac mini + OrbStack 上装百度 Apollo 11.0 后 planning 启动失败。从 dlopen 失败排查到三个空 .so 绕过 Jetson 专有库依赖的全过程'
+pubDate: '2026-04-30T23:47+08:00'
+heroImage: './cover.jpeg'
+tags: ["apollo", "dlopen", "linker", "troubleshooting", "macos"]
+category: 'DevOps'
+---
+
+### 起因
+
+Mac mini 上用 OrbStack 跑一个 ARM64 的 Ubuntu，里面装了百度 Apollo 11.0 的自动驾驶套件，Caddy 反代出去远程访问 Dreamview+。装完跑起来，大部分模块都正常，一点 **Planning** 模块开关：
+
+> Planning 启动失败
+
+点一下就弹一下，日志里什么都没给。
+
+::sticker[v2_1e30d0ea-0645-401a-a20a-c1777a7221dl.gif]::
+
+### 先看日志
+
+Dreamview+ 自己不打印具体错误，但它是通过 cyber_launch 起 mainboard 进程来加载 DAG 的，mainboard 有自己的日志在 `/apollo_workspace/data/log/`。grep 一下最近的 dreamview_plus.log：
+
+```
+shared library failed: /opt/apollo/neo/lib/modules/planning/planning_component/libplanning_component.so
+Invalid class name: PlanningComponent
+Failed to load module: /apollo/modules/planning/planning_component/dag/planning.dag
+```
+
+哦豁。:sticker[getimgdata-5.jpg]:
+
+`class_loader` 加载 `libplanning_component.so` 失败，所以后面 `PlanningComponent` 这个类根本没注册进来，自然也就拉不起 DAG。
+
+### 顺着 ldd 往下挖
+
+既然 so 加载失败，第一反应是看它的动态依赖：
+
+```bash
+ldd /opt/apollo/neo/lib/modules/planning/planning_component/libplanning_component.so | grep 'not found'
+```
+
+```
+libnvdla_compiler.so => not found
+libnvdla_runtime.so => not found
+libcuda.so.1 => not found
+```
+
+三个 not found。
+
+`libcuda.so.1` 是 NVIDIA 用户态驱动。`libnvdla_compiler.so` 和 `libnvdla_runtime.so` 这俩我得查一下——查完愣住了：**NVDLA（NVIDIA Deep Learning Accelerator）**，**Jetson Orin 专有的硬件 DLA 加速器运行时**。
+
+::sticker[getimgdata-15.jpg]::
+
+这就很离谱了。我的硬件栈是：
+
+```
+Apple Silicon Mac mini
+  └─ OrbStack 的 ARM64 Linux VM
+      └─ Docker
+          └─ registry.baidubce.com/apollo/apollo-env-arm:11.0
+```
+
+Apple Silicon 上面既没有 NVIDIA GPU，也没有 Jetson 的 NVDLA 芯片。百度的 `apollo-env-arm` 这个镜像，**本质上是给 Jetson Orin 开发板打的**——它假设宿主机有 NVIDIA 驱动、`nvidia-container-runtime` 会把 `libcuda.so.1`、`libnvdla_*.so` 透传进容器。
+
+我这里透传？透个锤子，Mac 根本没有这些东西。
+
+### 这不是 CPU 模式能解决的吗
+
+我的第一反应是：Dreamview+ 里不是有个 Mode Settings 可以选 PnC mode 吗？选个纯 CPU 的 mode 不就行了？
+
+但那个「mode」是**功能模式**（要启哪些模块），不是**硬件后端**。和 planning 是不是用 GPU 跑推理，没关系。
+
+那是不是 planning 算法本身就非得用 GPU？也不是。Apollo 的 planning 核心是 PublicRoadPlanner，用的是 EM/Lattice/DP+QP 那套搜索 + 优化算法，纯 CPU 计算。只有 learning-based planner 那条支路才需要 LibTorch 推理。
+
+**问题在链接层，不在算法层。**
+
+用 `readelf` 看一眼 `libapollo_planning_planning_base.so` 的 `DT_NEEDED`：
+
+```
+libcudart.so.11.0
+libtorch.so
+libtorch_cpu.so
+libc10_cuda.so
+libtorch_cuda.so
+libnvonnxparser.so.8
+```
+
+看见了吧。百度在编译 planning 的时候图省事，**把 libtorch_cuda / libcudart / libnvonnxparser / libnpp 这些直接写进了 DT_NEEDED**——不是 dlopen 运行时按需加载，是硬链接。
+
+一句话总结这个状态：
+
+> 算法不用 GPU，但动态链接器硬要 GPU 的库文件存在。
+
+哪怕我根本不会跑 learning planner，ld.so 在 dlopen 的那一刻就会去解析所有 `DT_NEEDED`，找不到就整个加载失败。`class_loader` 拿到 `nullptr`，`PlanningComponent` 类永远注册不上。
+
+### 想走正路的话
+
+最干净的路子当然是：用 Apollo 官方的 buildtool 重新编译 planning，让它链 `libtorch_cpu` 不链 `libtorch_cuda`。我试了一下：
+
+```bash
+buildtool config get
+```
+
+输出里带了一行非常有意思的日志：
+
+> Gpu is not available, using cpu instead
+
+buildtool 自己都识别出来当前环境没 GPU 了——说明**百度是有 CPU 编译通路的**，`buildtool info` 也有 `--cpu/--gpu` 参数。
+
+但再往下挖，发现两个暴击：
+
+1. Apollo 11.0 的 deb 分发里，**`apollo-neo-planning` 只发了一个版本**，就是 GPU 编译的那版（`readelf` 下载下来验证过，`DT_NEEDED` 里带 `libtorch_cuda`）。没有独立的 `apollo-neo-planning-cpu` 包。
+2. CPU 版必须**自己从源码 buildtool build 一遍**。`buildtool install -m planning` 是会把源码拷到 workspace 里，但拷过来的只有主模块 `planning_component` 的 9 个 `.cc`，子模块（scenarios、tasks、traffic_rules、planners、planning_base 等 70 多个包）的源码并没有进来——它们仍然以预编译 GPU 版 deb 的形式存在。
+3. 这些子包仍然链着 `libcudart` / `libtorch_cuda` / `libnppc.so.11` / `libnvonnxparser.so.8`。就算我能把 `libplanning_component.so` 编成 CPU 版（其实它本身都不直接依赖 CUDA），**上游这串 so 只要有一个没换，dlopen 还是挂**。
+
+要走正路，等价于从 github clone 完整的 Apollo 源码，把 70+ 个子包全编一遍，CPU 配置下的 bazel build——预估几个小时、几十个 G 的 bazel cache。
+
+就为了在 Mac 上点个 Planning 开关。:sticker[getimgdata-10.jpg]:
+
+### 等等，缺的库只有三个
+
+上面 ldd 的结果我再看一遍，总共只有三个 `not found`：
+
+```
+libnvdla_compiler.so => not found
+libnvdla_runtime.so => not found
+libcuda.so.1 => not found
+```
+
+**没有** `libcudart.so.11.0 not found`，**没有** `libnppc.so.11 not found`，**没有** `libnvonnxparser.so.8 not found`。
+
+为啥？我 find 了一圈：
+
+```
+/usr/local/cuda-11.4/targets/aarch64-linux/lib/libnppc.so.11
+/usr/lib/aarch64-linux-gnu/libnvonnxparser.so.8
+/opt/apollo/neo/packages/3rd-libtorch-gpu/9.0.0-alpha3-r1/lib/libtorch_cuda.so
+/opt/apollo/neo/packages/3rd-libtorch-gpu/9.0.0-alpha3-r1/lib/libc10_cuda.so
+```
+
+全都在。
+
+原来百度的 ARM 镜像基底里是带了完整 CUDA 11.4 aarch64 库的（因为标准 Jetson 环境就长这样）。这些库能不能在 Mac 上**运行**是另一回事，但作为**静态链接解析**，ld.so 看到的是「文件存在、SONAME 对得上」，就够了。
+
+真正缺的只有那 3 个驱动级 / 硬件级 stub 库。
+
+### 关键洞察：RTLD_LAZY 的边界
+
+我翻了一下 cyber 的 class_loader 源码：
+
+```cpp
+int real_flag = RTLD_LAZY;
+if (...) real_flag |= RTLD_LOCAL;
+else     real_flag |= RTLD_GLOBAL;
+handle_ = dlopen(path.c_str(), real_flag);
+```
+
+`RTLD_LAZY`——意思是**函数符号在第一次被调用时才解析**，不是 dlopen 时立即解析。
+
+但大哥，`RTLD_LAZY` 的延迟**只对函数符号生效**，对库的 `DT_NEEDED` 不生效。ld.so 在加载一个 so 的时候，必须把它声明的所有 `DT_NEEDED` 库都先加载起来，然后才能算完成。
+
+换句话说：
+
+- **文件必须存在，不然 dlopen 立刻失败**
+- **但文件里的函数可以一个都不实现，只要没人调用，就不会崩**
+
+这俩加起来，意味着一个非常离谱但合法的操作：**造几个空的 .so 出来，把 SONAME 对好，但里面一个符号都不实现。**
+
+只要 PublicRoadPlanner 的代码路径不去调 `cuMemAlloc` 或者 `nvdlaCompilerCreate` 这种 CUDA/NVDLA 符号（它本来也不会调，那些是 learning planner 的事），运行期就不会 segfault。
+
+### 三个空 so
+
+上菜：
+
+```bash
+# empty.c 内容就一个注释
+cat > /opt/apollo-stubs/empty.c <<'EOF'
+/* intentionally empty */
+EOF
+
+# 每个 stub 用对应的 SONAME 编译
+for lib in libcuda.so.1 libnvdla_compiler.so libnvdla_runtime.so; do
+  gcc -shared -fPIC -nostdlib -Wl,-soname,"$lib" -o "/opt/apollo-stubs/$lib" /opt/apollo-stubs/empty.c
+done
+
+# 注册到 ld.so
+echo /opt/apollo-stubs > /etc/ld.so.conf.d/apollo-stubs.conf
+ldconfig
+```
+
+几个关键点：
+
+- `-nostdlib`：不链 libc。反正里面一个函数都没有，不需要 runtime
+- `-Wl,-soname,libcuda.so.1`：把 SONAME 显式设成目标名字。ld.so 是按 SONAME 匹配 `DT_NEEDED` 的，文件名只是辅助
+- `/etc/ld.so.conf.d/apollo-stubs.conf` + `ldconfig`：让 `/opt/apollo-stubs/` 进 ld.so 的搜索路径
+
+编完看一眼：
+
+```bash
+$ ldconfig -p | grep -E 'libcuda\.so\.1|libnvdla_'
+libnvdla_runtime.so (libc6,AArch64) => /opt/apollo-stubs/libnvdla_runtime.so
+libnvdla_compiler.so (libc6,AArch64) => /opt/apollo-stubs/libnvdla_compiler.so
+libcuda.so.1 (libc6,AArch64) => /opt/apollo-stubs/libcuda.so.1
+```
+
+再 ldd 一次：
+
+```bash
+$ ldd /opt/apollo/neo/lib/modules/planning/planning_component/libplanning_component.so | grep 'not found'
+(空)
+```
+
+所有 not found 都消失了。:sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]:
+
+### 验证
+
+先不碰 Dreamview+，直接命令行起 mainboard 看看：
+
+```bash
+mainboard -d /apollo/modules/planning/planning_component/dag/planning.dag
+```
+
+```
+I0430 04:41:24.608073 module_argument.cc:113 command: mainboard -d ...
+I0430 04:41:24.608616 global_data.cc:198     host ip: 192.168.139.233
+I0430 04:41:24.609695 module_argument.cc:82  binary_name_ is mainboard, process_group_ is mainboard_default, has 1 dag conf
+I0430 04:41:24.609701 module_argument.cc:85  dag_conf: /apollo/modules/planning/planning_component/dag/planning.dag
+I0430 04:41:24.611227 bvar/variable.cpp:792  Write all bvar to /apollo_workspace/dumps/planning.dag every 10 seconds.
+```
+
+之前那个 `shared library failed` / `Invalid class name: PlanningComponent` / `Failed to load module` 三连——**全没了**。进程正常进入组件初始化流程，bvar 开始周期性写统计。
+
+让它跑 25 秒看看：进程没有崩。扔到后台，ps 看 CPU 99% 在跑着，日志干干净净，`dumps/planning.dag` 的 bvar 文件还在定期更新。
+
+::sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]::
+
+### 为什么它能跑起来
+
+把刚才的几个小点拼在一起：
+
+| 事实 | 含义 |
+|------|------|
+| `libplanning_component.so` 的 `DT_NEEDED` 里有 `libcuda.so.1` | dlopen 时 ld.so 必须找到一个叫这名字的文件 |
+| cyber 用的是 `dlopen(RTLD_LAZY)` | 库里的函数符号，没人调用就不解析 |
+| PublicRoadPlanner 是纯 CPU 算法 | 运行期不会调 CUDA/NVDLA 的任何函数 |
+
+三个条件叠起来，**只要文件存在、SONAME 对上，内容是不是真的 CUDA 驱动、里面有没有符号，ld.so 根本不 care**。
+
+这不是什么新的技巧——Linux 系统里有一类叫 **ELF stub library** 的东西，比如 `/usr/lib/x86_64-linux-gnu/libcuda.so`（不带版本号那个）就经常是 NVIDIA 分发的 stub，里面只有符号声明没有实现，用来给编译期做静态链接，运行时再由 `libcuda.so.1`（真实驱动）顶上。
+
+我这边的 hack 只是把「stub 里有空声明」推到了极限：**连声明都没有**，因为没人会调它。:sticker[v2_18ec4f39-a600-430c-bbce-f68fe3557dfl.gif]:
+
+### 持久化
+
+`/opt/apollo-stubs/` 这个路径在容器的 `/opt` 下，而 Apollo 容器的 `/opt` 是挂在 Docker named volume `apollo_neo_dev_11.0.0_pkg_opt` 上的——容器重启之后这些文件是不会丢失的。
+
+但 `/etc/ld.so.conf.d/apollo-stubs.conf` 在容器根文件系统 overlay 层，容器如果被 `docker rm` 重建就会丢。所以我把重建流程落成一个 `install.sh` 放在 `/opt/apollo-stubs/install.sh`：
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+STUB_DIR=/opt/apollo-stubs
+LIBS=(libcuda.so.1 libnvdla_compiler.so libnvdla_runtime.so)
+
+mkdir -p "$STUB_DIR"
+cat > "$STUB_DIR/empty.c" <<'EOF'
+/* empty stub for missing NVIDIA runtime libs on non-NVIDIA arm64 hosts */
+EOF
+
+for lib in "${LIBS[@]}"; do
+  [ -f "$STUB_DIR/$lib" ] || \
+    gcc -shared -fPIC -nostdlib -Wl,-soname,"$lib" -o "$STUB_DIR/$lib" "$STUB_DIR/empty.c"
+done
+
+echo "$STUB_DIR" > /etc/ld.so.conf.d/apollo-stubs.conf
+ldconfig
+```
+
+重建容器之后进去 `sudo /opt/apollo-stubs/install.sh` 一键恢复。
+
+### 边界
+
+这个方案能跑，但有边界：
+
+- **仅适用于不会调 CUDA/NVDLA 符号的模块/代码路径**：如果我手欠在 Dreamview+ 里切到 learning-based planner，或者跑一个 learning perception，运行时会立刻 segfault——那些路径真的会调 `cuInit`
+- **只让 dlopen 过关，不代表模块功能 100% 对齐**：有些 task 里可能有 `#ifdef` 或者运行时 feature 开关，在 GPU 编译下走一条路径，CPU 环境下走另一条；stub 方案没改编译产物，走的还是 GPU 分支的判断逻辑
+- **不是给生产用的**：这是让我在 ARM Mac 上把 Apollo 玩起来做 Demo 的 hack，不是给真车用的
+
+最干净的办法就是 CPU 重编。但是熬夜到凌晨五点…… 构建三个 5KB 的空 so 可能是 ROI 最高的选择……
+
+### 总结
+
+这次排查的几个转折点：
+
+- **日志最深的一层**：Dreamview+ 报「启动失败」没细节 → 去 mainboard 日志翻 → `shared library failed` + `Invalid class name`
+- **ldd 给了直接证据**：`not found` 的是 Jetson 专有库，说明这个 arm 镜像压根儿就不是通用的，更别提 Apple Silicon……
+- **readelf 拆穿工程问题**：百度在 so 的 `DT_NEEDED` 里硬链接了 CUDA 族，哪怕算法本身不需要 GPU
+- **RTLD_LAZY 的边界是 hack 的入口**：ld.so 验证「文件存在」，但不验证「函数真的实现」
+
+很多年之后如果我还在玩 Apollo，大概率我也早就装上真正的 Jetson 或者 x86+NVIDIA 了。但这次顺手把 ld.so 的 `DT_NEEDED` / `RTLD_LAZY` / SONAME 这几个概念串起来了一次，值。
+
+::sticker[getimgdata-7.jpg]::
