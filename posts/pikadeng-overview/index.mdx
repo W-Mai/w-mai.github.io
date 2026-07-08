@@ -1,0 +1,86 @@
+---
+title: '给皮卡丘装个蓝牙：一个周末项目的切片'
+description: 'ESP32-S3 + WS2812 + NimBLE + iOS Swift + App Intents，对 Siri 说「皮卡灯用水枪」，灯变蓝。一个周末的项目，一串躲不开的坑'
+pubDate: '2026-05-02T04:12+08:00'
+heroImage: './img_v3_0213d_a2a80805-b191-49e9-b142-101429a2153g.jpg'
+tags: ["esp32", "ble", "ios", "siri", "pokemon"]
+category: '代码'
+series: 'pikadeng'
+seriesOrder: 0
+seriesTitle: '给皮卡丘装个蓝牙：一个周末项目的切片'
+---
+
+### 起因
+
+周末想搞点好玩的。手头上有一块 ESP32 模组、一块弹簧芯片夹式的烧录板、一颗 WS2812B 灯珠、一部 iPhone。
+
+目标也简单：**对 Siri 说一句话，桌上那颗 WS2812 立刻变色**。顺便把 Siri 话术换成宝可梦招式。
+
+- 「皮卡灯用放电」 → 灯变放电黄
+- 「皮卡灯用水枪」 → 灯变水波蓝
+- 「皮卡灯用火花」 → 灯变火焰红
+- 「皮卡灯用藤鞭」 → 灯变草叶绿
+- 「皮卡灯用精神强念」 → 灯变神秘紫
+
+::sticker[getimgdata-7.gif]::
+
+动手前我觉得这个需求「应该不复杂」。固件侧写 BLE + WS2812，iOS 侧写 BLE 客户端 + 给 Siri 配几个动作。看起来是两个小项目合体。
+
+而真的干起来之后，真正的蛋疼才开始。
+
+### 技术栈
+
+- **MCU**：ESP32-S3（8MB flash、2MB 内置 PSRAM）
+- **固件**：PlatformIO + Arduino framework + NimBLE-Arduino + FastLED
+- **上位机**：Python + bleak（macOS 上调通协议）
+- **iOS app**：Swift + SwiftUI + CoreBluetooth + App Intents
+- **触发**：Siri 短语 / 快捷指令 / app 内 UI
+
+### GATT 协议
+
+1 个 service，4 个 characteristic：
+
+| UUID 尾号 | 含义 | 数据格式 |
+|---|---|---|
+| `...def1` | LED 开关 | 1 byte(0/1) |
+| `...def2` | RGB 颜色 | 3 bytes([R, G, B]) |
+| `...def3` | 亮度 | 1 byte(0-255) |
+| `...def4` | 动画模式 | 1 byte（0 恒亮 / 1 呼吸 / 2 闪烁 / 3 彩虹流水） |
+
+每个 characteristic 都支持 read / write / notify。写入颜色会顺带打开 LED。notify 让 iOS 端能实时收到状态变化，多个入口（app、Siri、Python 脚本）互相能看到对方的操作。
+
+### 坑s
+
+**[板子丝印骗了我：ESP32-S3 的 IO15 其实是 IO47](/blog/esp32-s3-silkscreen-lies/)**
+
+拿到的那块烧录板丝印上标的「IO15」，实际连到芯片的是 IO47。从开始怀疑代码、到用 esptool 发现根本不是普通 ESP32 而是 S3、再到用万用表 + 三版自检固件逐个点名，才把真实 pin map 搞出来。
+
+**[苹果的快捷指令能操作蓝牙吗：一场调研与清醒](/blog/ios-shortcuts-ble-reality/)**
+
+最开始不想写 iOS app，想用 Shortcuts 直接搞定。调研了快捷指令自带的蓝牙动作 + 所有第三方 BLE app 的 URL Scheme + Pythonista / a-Shell / Web Bluetooth / Bluefy，条条路撞墙。最后认了：**要做到无感自动化，只能写原生 Swift app**。
+
+**[让 Siri 说完一句话灯就亮：App Intents + CoreBluetooth 后台保活](/blog/ios-app-intents-ble-background/)**
+
+写原生 app 之后发现真正的挑战不是 BLE 本身，而是**让 Siri 在 app 没打开时也能触发**。CBCentralManager 的 State Preservation & Restoration、peripheral UUID 缓存、断线自动重连的三级快速通道。
+
+**[「打开小灯泡」被 HomeKit 先拦截了：Siri 的意图路由](/blog/siri-intent-routing-homekit-conflict/)**
+
+改完代码之后真去 Siri 喊「打开小灯泡」，Siri 干脆利落地打开了我家客厅的灯。Siri 的意图路由里，HomeKit 优先级高于第三方 App Intents。最后把 app 改名叫「皮卡灯」，动作词全换成宝可梦招式，才躲开家居关键词的拦截。
+
+### 意外的收获
+
+一开始这个项目只是为了玩，结果写完之后发现几个副产品值得提一下：
+
+**自检固件模板**：以后拿到任何新的裸模组 + 烧录板，我都可以用那个「逐个点名」的固件快速验证真实 pin map，不依赖丝印和设计文档
+
+**Python bleak 的 GATT 协议调试工具**：`gatt_ctl.py` 这个脚本支持 scan / on / off / toggle / blink / watch（订阅 notify） / repl，以后做任何 BLE 项目都能直接拿来测
+
+**可复用的 CoreBluetooth + async/await 封装**：那一坨 `CheckedContinuation` 的桥接代码，换个 service UUID 就能接到下一个 BLE 硬件上
+
+### 最后的样子
+
+对 Siri 说「皮卡灯用水枪」，iPhone 静静地处理了 500ms，桌上 ESP32 接的 WS2812 切到眼是水波蓝。app 的界面用户根本没看到，整个过程就像家里多了一台懂宝可梦招式的智能灯。
+
+虽然实际上它就是一颗 WS2812。
+
+::sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]::
