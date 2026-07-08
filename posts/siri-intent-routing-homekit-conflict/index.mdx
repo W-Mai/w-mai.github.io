@@ -1,0 +1,164 @@
+---
+title: '「打开小灯泡」被 HomeKit 先拦截了：Siri 的意图路由'
+description: '给自己的 BLE 小灯写了 App Intents 给 Siri 用，喊一声「打开小灯泡」，Siri 干脆利落地开了我家客厅的灯'
+pubDate: '2026-05-02T02:07+08:00'
+tags: ["ios", "siri", "app-intents", "homekit"]
+category: "代码"
+series: 'pikadeng'
+seriesOrder: 3
+seriesTitle: '「打开小灯泡」被 HomeKit 先拦截了：Siri 的意图路由'
+---
+
+### 一声「打开小灯泡」翻车了
+
+我给自己的 ESP32 蓝牙小灯写了个 iOS app，叫「小灯泡」。里面加了 App Intents，配了 Siri 触发短语「打开小灯泡」。想象中的画面是：掏出手机对 Siri 说一句话，ESP32 上接的 WS2812 立刻亮起来。
+
+实测：Siri 干脆利落地打开了……我家客厅的灯¿
+
+::sticker[getimgdata-13.jpg]::
+
+？ESP32 呢？
+
+### Siri 的意图路由优先级
+
+稍微翻一下 App Intents 和 SiriKit 的文档就明白了：Siri 在解析一句话的时候不是平等对待所有 app 的 intent 的，它有个明显的优先级。
+
+顺序大致是：
+
+1. **HomeKit 意图**（最高）：任何跟家居控制沾边的话，「打开 X」、「关闭 Y」、「把灯调到 Z」，第一反应都是丢给 HomeKit
+2. **系统内建意图**：闹钟、定时器、音乐、地图导航
+3. **第三方 App 的 App Intents**（最低）
+
+而「打开 X 灯」这种句式，**简直就是 HomeKit 的标准输入语法**。我家里恰好有几个接入 HomeKit 的灯具，Siri 压根儿不会去看「是不是有个第三方 app 也处理这句话」，直接就路由到 HomeKit 把灯开了。
+
+::sticker[getimgdata-14.jpg]::
+
+### 另一个硬性限制
+
+这里还有第二个坑：**App Intents 的 Siri 短语要求每一条里都必须包含 app 的名字**。
+
+代码长这样：
+
+```swift
+AppShortcut(
+    intent: TurnLEDOnIntent(),
+    phrases: [
+        "打开\(.applicationName)",
+        "\(.applicationName) 开灯",
+        // ...
+    ],
+    shortTitle: "打开小灯泡",
+    systemImageName: "lightbulb.fill"
+)
+```
+
+`\(.applicationName)` 是个占位符，系统在运行时会把它替换成这个 app 的 `CFBundleDisplayName`。我的 app 叫「小灯泡」，展开后触发短语永远包含「小灯泡」三个字。
+
+问题是：**「小灯泡」在 Siri 的耳朵里就是「灯」**。只要句子里出现「灯」这种家居关键词，它就继续优先走 HomeKit。哪怕我把 app 名改成「我的 BLE 小灯泡」，也还是逃不掉。
+
+于是这件事就变成：
+
+- Siri 短语必须带 app 名
+- app 名里不能出现「灯」这种 HomeKit 关键词
+- 动作词里也不能出现「打开」「关闭」这种 HomeKit 优先消化的动词
+
+等于是两条约束在一起，要求我**换一套不在 HomeKit 词典里的语料**。
+
+### 换个身份，换套话术
+
+既然要换 app 名，那就干脆选一个 HomeKit 里基本不会出现的词。最终选了「皮卡灯」。理由：
+
+- 「皮卡丘」在 Siri 的意图库里没有任何家居配件会跟它撞名
+- 「皮卡灯」这个造词足够独特，识别率高
+- 顺便可以把动作词全部换成宝可梦招式，跳脱出家居语境
+
+App 名改完，触发短语也一起换了。开/关/颜色这套全部映射成招式：
+
+```swift
+AppShortcut(
+    intent: TurnLEDOnIntent(),
+    phrases: [
+        "\(.applicationName) 用放电",
+        "\(.applicationName) 出战",
+        "召唤 \(.applicationName)",
+    ],
+    shortTitle: "皮卡灯放电",
+    systemImageName: "bolt.fill"
+)
+
+AppShortcut(
+    intent: TurnLEDOffIntent(),
+    phrases: [
+        "\(.applicationName) 回来",
+        "\(.applicationName) 休息",
+        "收回 \(.applicationName)",
+    ],
+    shortTitle: "皮卡灯休息",
+    systemImageName: "zzz"
+)
+```
+
+再上五种颜色预设，每种对应一个宝可梦招式：
+
+| 招式 | 颜色 | Siri 短语 |
+|---|---|---|
+| 电光冲击 | 放电黄 | 「皮卡灯用电光冲击」 |
+| 水枪 | 水波蓝 | 「皮卡灯用水枪」 |
+| 火花 | 火焰红 | 「皮卡灯用火花」 |
+| 藤鞭 | 草叶绿 | 「皮卡灯用藤鞭」 |
+| 精神强念 | 神秘紫 | 「皮卡灯用精神强念」 |
+
+这些词 HomeKit 里是压根儿不可能有的，不用担心撞了。
+
+::sticker[getimgdata-8.jpg]::
+
+### 还有一个小坑：Siri 短语总数上限
+
+写完 4 个 Intent、11 个 AppShortcut 往 Xcode 一塞，编译过不了：
+
+```
+error: Found 12 App Shortcuts, but each app may have at most 10
+```
+
+每个 app 最多只能暴露 **10 条 AppShortcut**。我一开始多了「查询状态」和「恒亮模式」两条，得砍一对。
+
+砍的原则是：**高频 + 用 Siri 比点屏幕方便的**优先留，其他的放到 Shortcuts app 里手动组装。查询状态用户更可能是打开 app 看一眼，不是问 Siri；「恒亮模式」作为默认态，用户想切的时候直接在 app 里一点就行，没必要语音触发。
+
+### 验证
+
+所有改完之后，把 app 装到手机上，再来一次：
+
+> 「皮卡灯用电光冲击。」
+
+Siri 愣了半秒，然后：
+
+```
+⚡️ 皮卡——丘!
+```
+
+灯变成了放电黄。:sticker[v2_833ed88f-8315-4a5d-aced-dd9512438acl.gif]:
+
+再喊：
+
+> 「皮卡灯用水枪。」
+
+灯切到水波蓝。再来「用火花」→ 火焰红。「回来吧」→ 灯熄灭。全程没有一句话被 HomeKit 抢走。
+
+### 几点经验
+
+- **给 app 起名时避开家居关键词**:「灯」、「开关」、「插座」、「温度」这些都是 HomeKit 的高权重词，避开了 Siri 才会考虑把句子交给你
+- **多准备同义短语**:一个 Intent 挂 2~3 条短语，命中率高不少。「回来」、「休息」、「收回」三种说法映射到同一个关灯 Intent，用户随便选哪个都生效
+- **Siri 短语有 10 条上限**:多出来的 Intent 放进 Shortcuts app 让用户自己组装
+- **风格一致很重要**:既然走宝可梦路线，就把所有话术都换掉，读者看到「皮卡灯用精神强念」能一眼连到前面的「电光冲击」、「水枪」，整体的梗才立得住
+
+### 彩蛋：App 名改了之后的系统延迟
+
+改完 app 名重装之后，有个尴尬的现象：我立刻对 Siri 喊「皮卡灯用放电」，它回我「找不到命令」。
+
+Siri 的短语索引不是装完 app 之后立即生效的。iOS 会在后台做一次重建，大约 1~3 分钟之后 Siri 才认得新短语。可以去「设置 → 皮卡灯 → 快捷指令」里点一下，手动触发一次刷新。
+
+第一次遇到的时候还真以为是我代码写错了……
+
+这种事情，你找谁说理去啊。
+
+::sticker[getimgdata-5.jpg]::
