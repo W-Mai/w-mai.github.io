@@ -9,6 +9,7 @@ export interface AIProviderConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  chatPath: string;
 }
 
 /** Chat message format */
@@ -29,7 +30,7 @@ export function getChatConfig(): AIProviderConfig {
   const model = import.meta.env.OPENAI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
   if (!baseUrl) throw new Error('OPENAI_API_BASE is not configured');
   if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
-  return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model };
+  return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model, chatPath: '/v1/chat/completions' };
 }
 
 /** Read vision API config (Volcengine / doubao). */
@@ -40,6 +41,7 @@ export function getVisionConfig(): AIProviderConfig {
     baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
     apiKey,
     model: 'doubao-seed-2-0-lite-260215',
+    chatPath: '/chat/completions',
   };
 }
 
@@ -54,7 +56,7 @@ export async function completeJSON(
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const res = await fetch(`${config.baseUrl}/v1/chat/completions`, {
+    const res = await fetch(`${config.baseUrl}${config.chatPath}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -91,7 +93,7 @@ export async function completeStream(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
-  const res = await fetch(`${config.baseUrl}/v1/chat/completions`, {
+  const res = await fetch(`${config.baseUrl}${config.chatPath}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -165,6 +167,7 @@ export function getImageGenConfig(): AIProviderConfig {
     baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
     apiKey,
     model: 'doubao-seedream-5-0-260128',
+    chatPath: '/chat/completions',
   };
 }
 
