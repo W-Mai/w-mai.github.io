@@ -1,0 +1,158 @@
+---
+title: 'ESP32-S3 上一个 BLE 应用的资源账本：NimBLE 和 Bluedroid 对照'
+description: '分析「皮卡灯」固件编译产物里 Flash 和 RAM 的占用分布，业务代码、BLE 协议栈、libc、FreeRTOS 各占多少。再用 Bluedroid 重编一次同等功能的版本，跳表对比'
+pubDate: '2026-05-06T23:41+08:00'
+tags: ["esp32", "esp32-s3", "ble", "nimble", "bluedroid", "size"]
+category: "硬件"
+series: 'pikadeng'
+seriesOrder: 5
+seriesTitle: 'ESP32-S3 上一个 BLE 应用的资源账本'
+---
+
+### 项目和编译输出
+
+这是「皮卡灯」项目的固件，功能很朴素：
+
+- ESP32-S3，8 MB Flash
+- BLE GATT server，1 个 service + 4 个 characteristic（开关、RGB 颜色、亮度、动画模式）
+- 通过 IO47 驱动一颗 WS2812B 灯珠，4 种渲染模式（恒亮、呼吸、闪烁、彩虹）
+- 协议栈用 NimBLE-Arduino，LED 驱动用 FastLED
+
+PlatformIO 给出的总体尺寸：
+
+```
+RAM:   [=         ]   9.2% (used 29,984 bytes from 327,680 bytes)
+Flash: [==        ]  16.6% (used 553,893 bytes from 3,342,336 bytes)
+```
+
+注意 Flash 占比的分母是 3.19 MB，这是分区表里 app 分区的大小，不是芯片总 Flash。8 MB 里剩下的 ~4.7 MB 留给了 OTA 副本、SPIFFS、NVS 等。
+
+业务功能这么简单，固件就吃掉了 540 KB Flash。这些字节都进了哪里？
+
+### 按来源拆解
+
+把 linker map 里的输入 section 按来源库聚合，得到如下分布。flash 列等于 `.flash.text + .flash.rodata + .dram0.data + .iram0.text`，这是真正烧进 Flash 的字节；ram 列等于 `.dram0.data + .dram0.bss + .iram0.bss + .iram0.text`，是上电运行后 RAM 里的常驻占用。
+
+| 来源 | Flash | RAM(data+bss) |
+|---|---:|---:|
+| libc | 87.6 KB | < 1 KB |
+| **NimBLE-Arduino**(BLE host stack) | 78.9 KB | 3.9 KB |
+| **BLE controller**(btdm app) | 54.8 KB | 0.8 KB |
+| ESP-IDF: phy | 27.4 KB | 0.7 KB |
+| FreeRTOS | 22.0 KB | 5.2 KB |
+| ESP-IDF: driver | 21.8 KB | 0.3 KB |
+| ESP-IDF: nvs_flash | 12.4 KB | 0.0 KB |
+| Arduino-core | 11.9 KB | 0.4 KB |
+| ESP-IDF: spi_flash | 11.3 KB | 0.6 KB |
+| ESP-IDF: hal | 9.9 KB | 0.0 KB |
+| ESP-IDF: esp_hw_support | 9.9 KB | 0.1 KB |
+| ESP-IDF: heap | 9.1 KB | 0.0 KB |
+| ESP-IDF: esp_system | 8.9 KB | 0.3 KB |
+| ESP-IDF: esp_common | 7.3 KB | 0.0 KB |
+| ESP-IDF: vfs | 7.0 KB | 0.4 KB |
+| ESP-IDF: espcoredump | 7.0 KB | 2.2 KB |
+| ESP-IDF: esp_ringbuf | 5.5 KB | 0.0 KB |
+| libgcc | 5.4 KB | 0.0 KB |
+| libstdc++ | 5.2 KB | 0.1 KB |
+| **app(main.cpp)** | **5.2 KB** | **0.1 KB** |
+| FastLED | 4.7 KB | 0.6 KB |
+| ESP-IDF: coexist | 3.9 KB | 1.1 KB |
+| 其他 ESP-IDF 子模块 | ~22 KB | ~0.5 KB |
+| **合计** | **~446 KB** | **~19 KB** |
+
+合计跟 PlatformIO 报的 540 KB / 29 KB 还差一截。差额来自 IRAM 段、partition table、bootloader、对齐 padding 这些 map 里不容易归到具体库的部分。
+
+
+- **app 业务代码 5.2 KB**，占 Flash 总量约 1%
+- **BLE 协议栈相关合计 ~170 KB**（NimBLE host + controller + phy + coexist），约占 Flash 三分之一
+- **libc 87.6 KB**，比 BLE host stack 还大。Arduino 默认带了一整个标准 C 库
+- **FastLED 4.7 KB**，WS2812 的 RMT 驱动比想象中小
+
+### NimBLE vs Bluedroid
+
+ESP-IDF 提供两套 BLE 协议栈：
+
+- **NimBLE**：Apache mynewt 项目移植过来的栈，代码紧凑，API 干净。`h2zero/NimBLE-Arduino` 是它的 Arduino 包装
+- **Bluedroid**：从 Android 移植过来的，功能全面，默认带在 Arduino-ESP32 里
+
+为了量化两者的体积差，我把同样的固件代码用 Bluedroid 的 API 重写了一遍（同样 4 char、同样 WS2812 渲染逻辑），只编不烧。结果：
+
+```
+Bluedroid 版:
+RAM:   [=         ]  13.7% (used 44,844 bytes from 327,680 bytes)
+Flash: [===       ]  28.2% (used 941,045 bytes from 3,342,336 bytes)
+```
+
+并排放一下两个版本的 BLE 协议栈相关库占用：
+
+| 层 | NimBLE Flash | Bluedroid Flash | NimBLE RAM | Bluedroid RAM |
+|---|---:|---:|---:|---:|
+| BLE host stack | 78.9 KB | **409.3 KB** | 3.9 KB | 8.3 KB |
+| BLE controller (btdm + btbb) | 57.9 KB | 57.9 KB | 0.8 KB | 0.8 KB |
+| ESP-IDF: ble（框架抽象层） | 0 | 33.3 KB | 0 | 0.1 KB |
+| PHY | 29.6 KB | 29.8 KB | 0.7 KB | 0.7 KB |
+| coexist | 3.9 KB | 3.9 KB | 1.1 KB | 1.1 KB |
+| **BLE 全栈合计** | **170.3 KB** | **534.2 KB** | **6.5 KB** | **11.0 KB** |
+
+整体 firmware 大小：
+
+| 维度 | NimBLE | Bluedroid | 差值 |
+|---|---:|---:|---:|
+| Flash | 541 KB | 919 KB | **+378 KB(+70%)** |
+| RAM | 29 KB | 44 KB | **+15 KB(+52%)** |
+
+**Bluedroid 的 host stack 单层就比 NimBLE 全栈大 2 倍多**(409 KB vs 78.9 KB)。这是 Bluedroid 自带了一坨 Classic Bluetooth 通用代码，跟 BLE 一起编进来，即使你只用 BLE 也带着走。NimBLE 是 BLE-only 的设计，没这个负担。
+
+### 业务代码细节
+
+只看 `main.cpp` 的话，5.2 KB Flash 大致这么分：
+
+- 4 个 BLECharacteristicCallbacks 子类（LedCharCB、ColorCharCB、BrightCharCB、ModeCharCB）：每个 onWrite 加一些状态更新和 Serial.printf
+- `renderLeds()` 函数，switch 4 个模式（恒亮 / 呼吸 / 闪烁 / 彩虹）调 FastLED API
+- `setup()` 里的 BLE service / characteristic 注册
+- 4 个 notify 辅助函数
+
+这些函数的纯指令量加起来不到 5 KB 是合理的，因为大多数操作（setValue、notify、FastLED.show）都是调到库里。说白了我们的代码就是一坨胶水。
+
+### 几个可以从这个数据里看出的判断
+
+**Arduino 框架对小项目不算重**。Arduino-core 加上 libc/libgcc/libstdc++ 总共 198 KB，但这里头大部分是 ESP-IDF 共享的运行时，不是 Arduino 单独的成本。
+
+**真要省 Flash，先看 Bluedroid 能不能换 NimBLE**。70% 的 Flash 节省、52% 的 RAM 节省，代价就是换个库 + 改 API。对于做 BLE-only 设备的人，这个 ROI 比省自己的代码大得多。
+
+**libc 87 KB 是个不容忽视的项**。如果项目卡在 Flash 边界上，值得看看 newlib 的精简版本（newlib-nano）能不能裁掉一些。这块在 ESP-IDF 里需要改 menuconfig，Arduino 默认配置里关不掉。
+
+**业务代码占比这么小，意味着固件优化的重点不在「我写得精不精」**。哪怕把 main.cpp 砍一半到 2.5 KB，在 540 KB 总盘子里也就 0.5%。要省真得动协议栈和运行时。
+
+### 复现
+
+如果你想在自己的项目上跑一遍这种分析，需要的工具都在 PlatformIO 自带的 toolchain 里。基本流程：
+
+```bash
+# 编译
+pio run
+
+# 拿到 size 概览
+pio run --target size
+
+# 详细 section 分析
+~/.platformio/packages/toolchain-xtensa-esp32s3/bin/xtensa-esp32s3-elf-size \
+  -A -d .pio/build/<env>/firmware.elf
+
+# 按符号看哪些函数最大
+~/.platformio/packages/toolchain-xtensa-esp32s3/bin/xtensa-esp32s3-elf-nm \
+  --size-sort --print-size --reverse-sort .pio/build/<env>/firmware.elf | head -50
+```
+
+要按库归类的话，直接读 `firmware.map`。GCC 的 map 文件格式没那么严格，但每个 input section 都会带源 `.a` 文件路径，正则匹配 `/lib<name>.a` 就能拿到归属。
+
+### 数据汇总
+
+最后把核心结论列一下：
+
+- 整个固件 Flash 541 KB,RAM 29 KB
+- 业务代码 5 KB，占 1%
+- BLE 协议栈相关 170 KB，占 31%
+- libc + 编译器运行时 100 KB，占 18%
+- FreeRTOS + ESP-IDF 各模块 130 KB，占 24%
+- 换 Bluedroid 同等功能，Flash 涨到 919 KB，涨 70%
