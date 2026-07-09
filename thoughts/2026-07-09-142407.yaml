@@ -1,0 +1,12 @@
+content: |-
+  几个月 Code Agent 使用下来，感觉长上下文这件事性价比很低啊，哪怕有缓存兜底，也扛不住 O(n^2) 的爆炸的费用开销啊。
+
+  反而是用高阶模型设计 spec、tests 当架构师；\
+  低阶模型做执行器，当实习生 :sticker[webwxgetmsgimg.jpg]:
+
+  更具有性价比…… 执行完一个 spec 就压缩一次上下文，不越过那道费用鸿沟 :sticker[webwxgetmsgimg-3.gif]:
+
+  好吧其实还是没钱，有花不完的钱不用长上下文是傻子 
+
+  ::sticker[webwxgetmsgimg-6.jpg]::
+createdAt: 2026-07-09T14:24:07+08:00
