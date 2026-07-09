@@ -1,0 +1,11 @@
+content: >-
+  说起来，为了对抗大模型遗忘规则，偷懒…… 结合 opencode + ohmyopenagent + 我的 recall-workflow skill
+  还真的把 code agent 给驯服的不错了。
+
+
+  主要思路就是把 ai 的各种规则，通过 sh 脚本提取处理，一股脑灌到上下文里去，然后强迫 ai 把注意力集中到这些规则和红线上去 ，您还真别说，还真管用
+  :sticker[zhiyin.gif]:
+
+
+  https://github.com/W-Mai/xskills
+createdAt: 2026-07-09T14:30:06+08:00
