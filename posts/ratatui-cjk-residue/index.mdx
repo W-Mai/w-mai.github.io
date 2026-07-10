@@ -1,0 +1,160 @@
+---
+title: 'TUI 里打个中文，边框就花了：三回合和一次顿悟'
+description: '在 atman 的 TUI 里被中文字符残影虐了三次，最后一招 hack 得连自己都想给自己鼓掌'
+pubDate: '2026-07-10T17:47+08:00'
+heroImage: './cover.jpg'
+tags: ["ratatui", "Rust"]
+category: '代码'
+---
+
+### 事情的起因
+
+我在写自己的 code agent `atman`，底下 TUI 用了 ratatui。跑起来体感一切正常，直到我发消息里带了中文。
+
+切一下 session，原来那个 session 里画过「你好世界」的位置，上面新画的 sidebar 边框、圆角矩形、input 边框，全部**花掉一列**。像是被谁咬了一口。
+
+::sticker[getimgdata-15.jpg]::
+
+你能想象吗，一个圆角矩形的边框，`╭` 后面本来该是 `─`，现在给你留了半个中文的墓碑。而且这事儿只在 **中文/emoji/全角** 出现过的位置发生。ASCII 场景一切正常。
+
+我知道这类事情在 ratatui 社区里挂着好几个 issue，`#1745`、`#2526`、`#2585`、`#2587` 一水儿的 open，连官方都承认「it's a big bucket of edge cases」。所以指望上游修？算了吧，我自己想办法糊。
+
+于是就有了下面这三回合。
+
+### 第一回合：每帧 `terminal.clear()`
+
+直觉最粗暴的方案：既然 ratatui 的 buffer diff 在宽字符上留脏，那我**跳过 diff**。每帧调 `terminal.clear()`，发一个 `ESC[2J` 全屏清屏，再让 ratatui 从头画一遍。
+
+```rust
+loop {
+    terminal.clear()?;
+    terminal.draw(|f| render_frame(f, &mut app, &editor))?;
+    // ... event loop
+}
+```
+
+跑起来。哦，残影没了。
+
+但我看着这个 60 fps 每秒全屏喷 escape 序列的写法，心里发慌。**平均每一次呼吸都在重画整块屏幕**，压根儿不管有没有内容变化。空转的时候（用户不在敲键盘，agent 也没在流式输出）也是这样。
+
+::sticker[v2_1e30d0ea-0645-401a-a20a-c1777a7221dl.gif]::
+
+而且更蛋疼的：偶尔会闪一下。全屏 clear + 下一帧 draw 之间那几毫秒，屏幕是空的，kitty 处理不够原子就会闪一下。session 切换动画的 300 ms 里连着 clear 18 次，那个抖劲儿肉眼可见。
+
+治好了 bug，治病过程比 bug 本身更让人难崩 :sticker[webwxgetmsgimg-5.jpg]:
+
+### 第二回合：FrameSignature dirty flag
+
+想想为什么不满意：**每帧都 clear 是一刀切**。真正需要 clear 的是「内容刚缩短/移动」这一瞬间，因为宽字符 continuation cell 在那一刻会暴露。streaming append？新字符往后铺，自然覆盖旧字符，不需要 clear。空转？更不需要。
+
+那就搞个「签名」，每帧算一遍关键状态，跟上一帧对比，变了才 clear：
+
+```rust
+struct FrameSignature {
+    area: Option<Size>,
+    items_len: usize,
+    scroll_offset: u16,
+    pending_approvals: usize,
+    sidebar_mode: SidebarMode,
+    modals: u16,  // bitfield of all modal open states
+    yank_mode: bool,
+    intro_active: bool,
+}
+
+impl FrameSignature {
+    fn needs_clear_vs(&self, next: &FrameSignature) -> bool {
+        self.area != next.area
+            || self.scroll_offset != next.scroll_offset
+            || next.items_len < self.items_len  // 只在缩短时，不是 !=
+            || self.pending_approvals != next.pending_approvals
+            || self.sidebar_mode != next.sidebar_mode
+            || self.modals != next.modals
+            || self.yank_mode != next.yank_mode
+            || self.intro_active != next.intro_active
+    }
+}
+```
+
+跑起来体感好了很多：
+
+- streaming 时零 clear cost，走原生 diff
+- scroll / 开合 modal / session 切换那几帧才 clear 一次
+- 空转帧无脑走 diff
+
+按每天几百次操作估算，`ESC[2J` 从 60 fps 全屏喷降到几百次一天。**能省 95% 以上**。
+
+但。
+
+我还是觉得别扭。**每次触发 clear 就是「整个屏幕擦一遍」**，残影是**边缘**问题，我这一擦却把整个 transcript 也顺便重画了。属于炸鱼：一片鱼汤里死一条中毒的鱼，我把整个鱼塘的水都换了。
+
+::sticker[getimgdata-16.jpg]::
+
+治得住，但你就是能闻出那股「解得不干净」的味儿。
+
+### 顿悟
+
+某个瞬间，你知道那种感觉，盯着屏幕上残影出现的地方发呆，我忽然发现：
+
+**残影从来没在正文里出现过**。全都是在**浮层的边缘**。sidebar 的 border 上、Ctrl+P palette 弹出的圆角矩形上、input 框的下边框上。
+
+正文本身没事，因为正文里的中文会被后续的中文/ASCII 顺着覆盖掉，ratatui 的 diff 在**同区域内**是能正常工作的。
+
+出事的场景是：**下层画过中文，上层浮层刚好压过来，浮层只占一列宽，而下层那个中文占两列**。浮层的 border 只画了一格，另一格没人管，下层中文的 continuation cell 就穿出来了。
+
+那我为什么不**只在浮层边缘那一圈**做手术？浮层每次 render 都会先 `render_widget(Clear, area)`，那我在 Clear 之前，先把 `area` 的**上下左右各一列**扫一遍，任何跨界的宽字符替换成空格，顺便把外围一格标 dirty 让 diff 重画。
+
+```rust
+pub fn sanitize_widget_edges(f: &mut Frame, area: Rect) {
+    use ratatui::buffer::CellDiffOption;
+    use unicode_width::UnicodeWidthStr;
+    if area.width == 0 || area.height == 0 { return; }
+    let buf = f.buffer_mut();
+    let clear_wide = |cell: &mut Cell| {
+        cell.set_symbol(" ");
+        cell.set_diff_option(CellDiffOption::None);
+    };
+    // 扫四条边界：外围左邻列 / 内部最左列 / 内部最右列 / 外围右邻列
+    for y in area.y..area.y + area.height {
+        // ... 对每一列执行 clear_wide 如果 width > 1 或 symbol.is_empty()
+    }
+}
+```
+
+然后每个 modal / 浮层的 render 里，在 `Clear` 之前调一下：
+
+```rust
+crate::sanitize_widget_edges(f, rect);
+f.render_widget(Clear, rect);
+```
+
+sidebar、palette、session switcher、compact review、history search、workflow viewer、form modal、completion popup、cheatsheet、approvals bar、input rect，挨个上。
+
+跑起来。**流畅得我自己想给自己鼓掌**。60 fps 空转零开销，浮层 render 时每帧多扫一圈边界 cell（大约 `2×(width+height)` 个格子），比全屏 clear 便宜两个数量级。
+
+::sticker[getimgdata-7.jpg]::
+
+### 三回合放一起看
+
+|  | 方案 | 触发时机 | 单次代价 |
+|---|---|---|---|
+| 一 | 全屏 `terminal.clear()` | 每帧 | 全屏 escape，闪 |
+| 二 | 状态签名 dirty flag → 全屏 clear | 关键状态变化那一帧 | 全屏 escape |
+| 三 | 浮层边缘 sanitize | 每个浮层每帧 render | 一圈 cell 手术 |
+
+第一回合的错误：**不问位置，不问时机**。
+第二回合的错误：**问了时机，但没问位置**。
+第三回合：**位置和时机都盯住，直接把手术做在患处**。
+
+### 那我一开始为什么想不到？
+
+因为我一直卡在 ratatui 的机制层，满脑子 buffer diff、previous_buffer、cell skip flag、CellDiffOption，想的是「怎么在渲染管线里通用地解决全角字符 bug」。
+
+但 bug 不需要在**渲染管线**里通用地解决。bug 只在**浮层边缘**出现，那就在**那个位置**定点。
+
+问「怎么通用地治好这个病」的成本很高，问「这个病只在这几个位置发作，那我就伏击那几个位置」的成本可以低到离谱。
+
+这事儿其实跟 debug 网络先 tcpdump 抓包、调性能先 flamegraph 找热点、改前端先 devtools 看命中的 selector，**是同一件事**：**别先扑上去修，先看谁在犯病**。
+
+我用了三个回合才想明白这么简单的事儿。
+
+::sticker[getimgdata-5.jpg]::
