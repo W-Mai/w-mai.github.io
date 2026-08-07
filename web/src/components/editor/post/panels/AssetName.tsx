@@ -70,7 +70,10 @@ const AssetNameDialog: FC<AssetNameDialogProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'suggest-asset-name', content: file.name }),
       });
-      if (!res.ok) throw new Error('AI request failed');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'AI request failed');
+      }
       const reader = res.body?.getReader();
       if (!reader) throw new Error('No response body');
       const decoder = new TextDecoder();

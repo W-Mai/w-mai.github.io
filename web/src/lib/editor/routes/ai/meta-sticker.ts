@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
           { type: 'text', text: '请识别这个表情包/贴纸，给出命名和描述。' },
         ],
       },
-    ], { maxTokens: 256, timeout: 30000 });
+    ], { maxTokens: 512, timeout: 30000 });
 
     const parsed = extractJSON<{ aiName: string; description: string; tags: string[] }>(content);
 

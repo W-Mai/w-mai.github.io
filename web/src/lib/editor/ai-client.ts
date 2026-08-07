@@ -4,6 +4,9 @@
  * All AI route handlers should use this client instead of calling APIs directly.
  */
 
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 /** AI provider configuration */
 export interface AIProviderConfig {
   baseUrl: string;
@@ -23,11 +26,51 @@ export type ChatContentPart =
   | { type: 'text'; text: string }
   | { type: 'image_url'; image_url: { url: string } };
 
-/** Read OpenAI-compatible API config from environment variables. */
+/** Parse .env file content into key-value pairs. */
+function parseEnvContent(content: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    let value = trimmed.slice(eqIdx + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
+/** Read .env file from project root (same location as astro.config envDir). */
+function readEnvFile(): Record<string, string> {
+  try {
+    const envPath = resolve(process.cwd(), '..', '.env');
+    return parseEnvContent(readFileSync(envPath, 'utf-8'));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Get env var with .env file taking priority over process.env.
+ * Vite's env loading does NOT override existing shell env vars, so we read
+ * the .env file directly to ensure the user's configured values win.
+ */
+function getEnvVar(key: string): string | undefined {
+  const fileEnv = readEnvFile();
+  if (key in fileEnv) return fileEnv[key];
+  return process.env[key];
+}
+
+/** Read OpenAI-compatible API config from .env file (priority) or env vars. */
 export function getChatConfig(): AIProviderConfig {
-  const baseUrl = import.meta.env.OPENAI_API_BASE || process.env.OPENAI_API_BASE;
-  const apiKey = import.meta.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-  const model = import.meta.env.OPENAI_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini';
+  const baseUrl = getEnvVar('OPENAI_API_BASE');
+  const apiKey = getEnvVar('OPENAI_API_KEY');
+  const model = getEnvVar('OPENAI_MODEL') || 'gpt-4o-mini';
   if (!baseUrl) throw new Error('OPENAI_API_BASE is not configured');
   if (!apiKey) throw new Error('OPENAI_API_KEY is not configured');
   return { baseUrl: baseUrl.replace(/\/+$/, ''), apiKey, model, chatPath: '/v1/chat/completions' };
@@ -35,7 +78,7 @@ export function getChatConfig(): AIProviderConfig {
 
 /** Read vision API config (Volcengine / doubao). */
 export function getVisionConfig(): AIProviderConfig {
-  const apiKey = import.meta.env.ARK_API_KEY || process.env.ARK_API_KEY;
+  const apiKey = getEnvVar('ARK_API_KEY');
   if (!apiKey) throw new Error('ARK_API_KEY is not configured');
   return {
     baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
@@ -49,20 +92,22 @@ export function getVisionConfig(): AIProviderConfig {
 export async function completeJSON(
   config: AIProviderConfig,
   messages: ChatMessage[],
-  opts: { maxTokens?: number; timeout?: number } = {},
+  opts: { maxTokens?: number; timeout?: number; thinking?: boolean } = {},
 ): Promise<string> {
-  const { maxTokens = 256, timeout = 20000 } = opts;
+  const { maxTokens = 256, timeout = 20000, thinking = false } = opts;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
+    const body: Record<string, unknown> = { model: config.model, messages, max_tokens: maxTokens };
+    if (!thinking) body.thinking = { type: 'disabled' };
     const res = await fetch(`${config.baseUrl}${config.chatPath}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${config.apiKey}`,
       },
-      body: JSON.stringify({ model: config.model, messages, max_tokens: maxTokens }),
+      body: JSON.stringify(body),
       signal: controller.signal,
     });
     if (!res.ok) {
@@ -161,7 +206,7 @@ export async function completeStream(
 
 /** Read image generation API config (Volcengine Seedream). */
 export function getImageGenConfig(): AIProviderConfig {
-  const apiKey = import.meta.env.ARK_API_KEY || process.env.ARK_API_KEY;
+  const apiKey = getEnvVar('ARK_API_KEY');
   if (!apiKey) throw new Error('ARK_API_KEY is not configured');
   return {
     baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',

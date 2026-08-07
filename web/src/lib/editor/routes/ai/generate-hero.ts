@@ -81,7 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
       const result = await completeJSON(config, [
         { role: 'system', content: PROMPT_SYSTEM },
         { role: 'user', content: userMessage },
-      ], { maxTokens: 500, timeout: 60000 });
+      ], { maxTokens: 1024, timeout: 60000 });
       const parsed = extractJSON<{ prompt: string; filename?: string }>(result);
       return json({ prompt: parsed.prompt || '', filename: parsed.filename || '' });
     } catch (err: any) {

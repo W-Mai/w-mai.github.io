@@ -35,7 +35,7 @@ export const POST: APIRoute = async ({ request }) => {
     const content = await completeJSON(config, [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userMessage },
-    ], { maxTokens: 256, timeout: 20000 });
+    ], { maxTokens: 1024, timeout: 20000 });
     const parsed = extractJSON<{ title?: string; description?: string; tags?: string[]; category?: string }>(content);
     return json({
       title: parsed.title || '',

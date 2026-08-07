@@ -35,7 +35,7 @@ export const POST: APIRoute = async ({ request }) => {
     const content = await completeJSON(config, [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userMessage },
-    ], { maxTokens: 128, timeout: 15000 });
+    ], { maxTokens: 512, timeout: 15000 });
     const parsed = extractJSON<{ tags: string[]; mood?: string }>(content);
     return json({ tags: parsed.tags || [], mood: parsed.mood || '' });
   } catch (err: any) {

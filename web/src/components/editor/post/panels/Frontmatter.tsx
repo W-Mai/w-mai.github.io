@@ -155,7 +155,11 @@ const FrontmatterPanel: FC<FrontmatterPanelProps> = ({ slug, data, onChange, all
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, existingTags: allTags, existingCategories: allCategories }),
       });
-      if (!res.ok) { setAiError('AI request failed'); return; }
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        setAiError(errBody?.error || `AI request failed (${res.status})`);
+        return;
+      }
       const meta: { title?: string; description?: string; tags?: string[]; category?: string; error?: string } = await res.json();
       if (meta.error) { setAiError(meta.error); return; }
       if (meta.title && !local.title) { handleChange('title', meta.title); setLocal(p => ({ ...p, title: meta.title! })); }
