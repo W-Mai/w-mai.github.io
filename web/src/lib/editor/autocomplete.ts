@@ -6,8 +6,10 @@ import {
 } from '@codemirror/autocomplete';
 import type { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import { ensureSyntaxTree, syntaxTree } from '@codemirror/language';
 import { loadEditorAttachments, invalidateAttachmentCache } from './attachments';
 import { formatAttachmentSize } from '~/lib/attachments/paths';
+import { attachmentInlineSyntax, attachmentBlockSyntax } from '~/lib/attachments/syntax';
 
 interface AssetInfo { name: string; size: number; ext: string; }
 interface StickerInfo { name: string; size: number; meta?: { aiName?: string; description?: string; tags?: string[] } }
@@ -134,16 +136,64 @@ export async function assetCompletion(ctx: CompletionContext): Promise<Completio
   return options.length > 0 ? { from: matchedFrom, options, filter: true } : null;
 }
 
-/** Complete attachment destinations, including Markdown reference definitions. */
+/** Exclude code and surrounding links, allowing the DSL bracket to resemble a reference link. */
+function isLiteralContext(ctx: CompletionContext, attachmentBracketFrom = -1): boolean {
+  const tree = ensureSyntaxTree(ctx.state, ctx.pos, 50);
+  if (!tree) return true;
+  let node = tree.resolveInner(ctx.pos, -1);
+  while (node) {
+    if (/^(?:CodeBlock|FencedCode|InlineCode|CodeText)$/.test(node.name)) return true;
+    if (/^(?:Link|Image|Autolink)$/.test(node.name)
+      && !(node.name === 'Link' && node.from === attachmentBracketFrom)) return true;
+    if (!node.parent) break;
+    node = node.parent;
+  }
+  return false;
+}
+
+/** Separate a new opener from the closing colons of an adjacent attachment. */
+function attachmentPrefix(before: string): { typed: string; colons: string; typedId: string; preceding: string } | null {
+  const match = before.match(/(:+)attachment\[([^\[\]\r\n]*)$/);
+  if (!match) return null;
+  let [, colons, typedId] = match;
+  let preceding = before.slice(0, before.length - match[0].length);
+  const previous = preceding.match(/(?:^|[^:\\])(:{1,2})attachment\[[^\[\]\r\n]*\]$/);
+  if (previous && colons.length > previous[1].length) {
+    preceding += colons.slice(0, previous[1].length);
+    colons = colons.slice(previous[1].length);
+  }
+  if (colons.length > 2) return null;
+  const escapes = preceding.match(/\\+$/)?.[0].length ?? 0;
+  if (escapes % 2 !== 0 || /::?(?:sticker|attachment)\[[^\]\r\n]*$/.test(preceding)) return null;
+  return { typed: colons + 'attachment[' + typedId, colons, typedId, preceding };
+}
+
+/** Complete the entire attachment DSL, consuming an existing closing bracket. */
 export async function attachmentCompletion(ctx: CompletionContext): Promise<CompletionResult | null> {
   const line = ctx.state.doc.lineAt(ctx.pos);
   const before = line.text.slice(0, ctx.pos - line.from);
-  const match = before.match(/(?:\]\(<?|^\s{0,3}\[[^\]]+\]:\s*<?)(attachment:[^\s)>]*)$/);
-  if (!match || /!\[[^\]]*\]\([^)]*$/.test(before)) return null;
-  const typed = match[1];
-  let prefix = typed.slice('attachment:'.length);
-  try { prefix = decodeURIComponent(prefix); } catch { /* Keep incomplete percent escapes while typing. */ }
-  const query = prefix.toLocaleLowerCase();
+  const prefix = attachmentPrefix(before);
+  if (!prefix) return null;
+  const { typed, colons, typedId, preceding } = prefix;
+  if (isLiteralContext(ctx, ctx.pos - typedId.length - 1)) return null;
+  const isBlock = colons.length === 2;
+  if (isBlock) {
+    if (!/^ {0,3}$/.test(preceding)) return null;
+    let node = syntaxTree(ctx.state).resolveInner(ctx.pos, -1);
+    while (node) {
+      if (/^(?:ListItem|Blockquote)$/.test(node.name)) return null;
+      if (node.name === 'Paragraph' && (node.from !== ctx.pos - typed.length || node.to > line.to)) return null;
+      if (!node.parent) break;
+      node = node.parent;
+    }
+  }
+
+  const after = line.text.slice(ctx.pos - line.from);
+  const suffix = after.match(new RegExp('^[^\\[\\]\\r\\n]*\\]:{0,' + colons.length + '}'))?.[0] ?? '';
+  if (isBlock && after.slice(suffix.length).trim()) return null;
+  let query = typedId;
+  try { query = decodeURIComponent(query); } catch { /* Keep incomplete percent escapes while typing. */ }
+  query = query.toLocaleLowerCase();
   try {
     const attachments = await loadEditorAttachments();
     const options = attachments
@@ -151,11 +201,13 @@ export async function attachmentCompletion(ctx: CompletionContext): Promise<Comp
         || attachment.reference.slice('attachment:'.length).toLocaleLowerCase().includes(query))
       .map((attachment) => ({
         label: attachment.id,
-        apply: attachment.reference,
+        apply: isBlock ? attachmentBlockSyntax(attachment.reference) : attachmentInlineSyntax(attachment.reference),
         type: 'text',
         detail: attachment.mediaType + ' · ' + formatAttachmentSize(attachment.size),
       }));
-    return options.length ? { from: ctx.pos - typed.length, options, filter: false } : null;
+    return options.length ? {
+      from: ctx.pos - typed.length, to: ctx.pos + suffix.length, options, filter: false,
+    } : null;
   } catch {
     return null;
   }
@@ -166,18 +218,19 @@ export async function attachmentCompletion(ctx: CompletionContext): Promise<Comp
  * offers `:sticker[` and `::sticker[` commands. Selecting one inserts the
  * syntax and places cursor inside `[` ready for stage 2 name completion.
  */
-function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | null {
+export function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | null {
   const line = ctx.state.doc.lineAt(ctx.pos);
   const textBefore = line.text.slice(0, ctx.pos - line.from);
 
-  if (/attachment:[^\s)>]*$/.test(textBefore)) return null;
+  if (/attachment:[^\s)>]*$/.test(textBefore) || /::?attachment\[[^\]\r\n]*$/.test(textBefore)) return null;
 
   // Already inside sticker bracket — let stage 2 handle it
   if (/::?sticker\[/.test(textBefore)) return null;
 
   // Match `:` or `::` followed by partial text (at least 1 char after colon)
   const m = textBefore.match(/(:{1,2})(\w*)$/);
-  if (!m || m[2].length === 0) return null;
+  if (!m || m[2].length === 0 || !'sticker'.startsWith(m[2])) return null;
+  if (isLiteralContext(ctx)) return null;
 
   const colons = m[1];
   const typed = m[2];
@@ -221,7 +274,7 @@ function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | nul
   return options.length > 0 ? { from, options, filter: false } : null;
 }
 
-/** CodeMirror extension: asset + sticker autocomplete with preview tooltips */
+/** CodeMirror extension: attachment, asset, and sticker completion. */
 export function editorAutocomplete(): Extension {
   return autocompletion({
     override: [attachmentCompletion, stickerSyntaxCompletion, assetCompletion],

@@ -90,9 +90,3 @@ export async function deleteEditorAttachment(id: string, scope: AttachmentScope 
   await readResponse<{ success: true }>(await fetch(`${API_URL}?${query}`, { method: 'DELETE' }));
   invalidateAttachmentCache();
 }
-
-/** Escape Markdown/MDX punctuation while preserving the author's link label. */
-export function attachmentMarkdownLink(attachment: AttachmentInfo, label = attachment.name): string {
-  const text = label.replace(/[\r\n]+/g, ' ').replace(/[\\[\]\x60*_{}<>!$&]/g, '\\$&');
-  return '[' + text + '](' + attachment.reference + ')';
-}

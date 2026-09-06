@@ -57,13 +57,16 @@ describe('scope-aware attachment API', () => {
     expect(await readFile(join(options.directory, 'beta/data.txt'), 'utf8')).toBe('unchanged');
   });
 
-  it('returns reference conflicts while allowing replacement to preserve the public identity', async () => {
+  it.each([':attachment[alpha/data.txt]:', '::attachment[alpha/data.txt]::'])(
+    'protects references and allows replacement with the same identity: %s', async (syntax) => {
     await put('alpha/data.txt', 'old');
-    await writeFile(join(root, 'posts', 'alpha', 'index.md'), '[source](attachment:alpha/data.txt)\n');
+    await writeFile(join(root, 'posts', 'alpha', 'index.md'), '# Source\n\n' + syntax + '\n');
     const scope = { scope: 'post', slug: 'alpha' };
     const conflict = await invoke('DELETE', { ...scope, id: 'alpha/data.txt' });
     expect(conflict.status).toBe(409);
-    expect((await conflict.json()).error).toContain('替换');
+    const conflictMessage = (await conflict.json()).error;
+    expect(conflictMessage).toContain('替换');
+    expect(conflictMessage).toContain('posts/alpha/index.md:3:1');
     expect((await invoke('PATCH', scope, JSON.stringify({ id: 'alpha/data.txt', name: 'changed.txt' }))).status).toBe(409);
     const replaced = await invoke('PUT', { ...scope, id: 'alpha/data.txt' }, 'complete new bytes');
     expect(replaced.status).toBe(200);

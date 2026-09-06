@@ -178,4 +178,48 @@ describe('attachment reference protection', () => {
     await source('posts/post.md', '[file](attachment:group/missing.csv)');
     expect(await findAttachmentReferences('group/missing.csv', options, directories)).toHaveLength(1);
   });
+  it('uses the same DSL grammar for posts, thoughts and attachment README sources', async () => {
+    await source('posts/dsl.mdx', [
+      '---', 'title: fixture', '---', '',
+      '# **:attachment[group/数据 1.csv]:**', '',
+      '::attachment[group/%E6%95%B0%E6%8D%AE%201.csv]::', '',
+      '[group/数据 1.csv]: https://example.test/unrelated',
+    ].join('\n'));
+    await source('thoughts/note.yaml', 'content: |\n  :attachment[group/数据 1.csv]:\n');
+    await source('attachments/group/README.md', ':attachment[group/数据 1.csv]:\n\n[data](数据%201.csv)');
+    const references = await findAttachmentReferences('group/数据 1.csv', options, directories);
+    expect(references).toMatchObject([
+      { path: 'posts/dsl.mdx', line: 5, column: 5 },
+      { path: 'posts/dsl.mdx', line: 7, column: 1 },
+      { path: 'thoughts/note.yaml', line: 2, column: 3, contentLine: 1 },
+      { path: 'attachments/group/README.md', line: 1, column: 1 },
+      { path: 'attachments/group/README.md', line: 3, column: 1 },
+    ]);
+    expect(references.slice(0, 4).every(({ reference }) =>
+      reference === 'attachment:group/%E6%95%B0%E6%8D%AE%201.csv',
+    )).toBe(true);
+  });
+
+  it('excludes escaped, linked, raw HTML and embedded block DSL examples', async () => {
+    await source('posts/examples.md', [
+      '\\:attachment[group/a.csv]:',
+      '`:attachment[group/a.csv]:`',
+      '[example :attachment[group/a.csv]:](https://example.test)',
+      '<span>:attachment[group/a.csv]:</span>',
+      '**::attachment[group/a.csv]::**',
+      'text ::attachment[group/a.csv]::',
+      '',
+      '```md', ':attachment[group/a.csv]:', '```',
+    ].join('\n'));
+    expect(await findAttachmentReferences('group/a.csv', options, directories)).toEqual([]);
+  });
+
+  it('fails closed on invalid active DSL at the marker location', async () => {
+    await source('posts/unsafe.md', 'intro\n\n**:attachment[group%2Fprivate]:**');
+    await expect(findAttachmentReferences('other.csv', options, directories)).rejects.toMatchObject({
+      status: 409,
+      message: expect.stringContaining('posts/unsafe.md:3:3: Invalid attachment syntax'),
+    });
+  });
+
 });

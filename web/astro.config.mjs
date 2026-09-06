@@ -11,6 +11,7 @@ import tailwindcss from '@tailwindcss/vite';
 import astroMermaid from 'astro-mermaid';
 import editorDev from './src/lib/editor/dev-plugin';
 import attachmentsIntegration from './src/lib/attachments/integration';
+import pdfJsAssetsIntegration from './src/lib/pdf/integration';
 import remarkSticker from './src/lib/markdown/remark-sticker';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -45,6 +46,7 @@ export default defineConfig({
       },
     }),
     attachmentsIntegration(),
+    pdfJsAssetsIntegration(),
     mdx(),
     sitemap({
       filter: (page) => !page.includes('/chunks/'),

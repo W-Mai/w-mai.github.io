@@ -253,9 +253,24 @@ Rune 的类型和函数注册机制能够支持较直接的 Rust 集成，源码
 
 ### 数据、算法与源码依据
 
-随文附件提供正式 [216 条性能样本](attachment:rune-runtime-evaluation/algorithm-samples.csv)、此前的 [216 条完整采样](attachment:rune-runtime-evaluation/preliminary-samples.csv)、[统计汇总](attachment:rune-runtime-evaluation/algorithm-summary.csv)、[实验配置](attachment:rune-runtime-evaluation/experiment-config.json)、[分配计数](attachment:rune-runtime-evaluation/allocation-phases.json)和[目标平台结果](attachment:rune-runtime-evaluation/targets.json)。附件仅保留与实验有关的字段；算法统计未删除或修改测量值。
+随文附件包含完整数据与实验配置：
 
-批次输入生成、校验规则与六份算法源文件列于[附件说明](attachment:rune-runtime-evaluation/README.md)。这些材料用于检查本文数值和算法定义，不是一份包含全部工具链、兼容补丁和运行环境的一键复现包。
+- 正式采样：:attachment[rune-runtime-evaluation/algorithm-samples.csv]:
+- 初步采样：:attachment[rune-runtime-evaluation/preliminary-samples.csv]:
+- 统计汇总：:attachment[rune-runtime-evaluation/algorithm-summary.csv]:
+- 实验配置：:attachment[rune-runtime-evaluation/experiment-config.json]:
+- 分配计数：:attachment[rune-runtime-evaluation/allocation-phases.json]:
+- 目标平台结果：:attachment[rune-runtime-evaluation/targets.json]:
+
+附件仅保留与实验有关的字段；算法统计未删除或修改测量值。批次输入生成、校验规则与六份算法源文件列于附件说明：:attachment[rune-runtime-evaluation/README.md]:。这些材料用于检查本文数值和算法定义，不是一份包含全部工具链、兼容补丁和运行环境的一键复现包。
+
+下方可直接检查统计汇总、目标平台结果和 Rune 算法源文件；面板中的下载入口提供完整原文件。
+
+::attachment[rune-runtime-evaluation/algorithm-summary.csv]::
+
+::attachment[rune-runtime-evaluation/targets.json]::
+
+::attachment[rune-runtime-evaluation/algorithms/bench.rn]::
 
 源码依据固定在 Rune 0.14.2，链接说明实现与接口，本文性能和内存数字来自本次实验：
 

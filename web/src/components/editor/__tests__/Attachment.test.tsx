@@ -59,7 +59,7 @@ describe('attachment panel scopes', () => {
     expect(loadEditorAttachments).toHaveBeenCalledWith(true, globalScope);
     expect((screen.getByLabelText('上传目录（可选）') as HTMLInputElement).value).toBe('');
     expect((screen.getByRole('button', { name: '上传附件' }) as HTMLButtonElement).disabled).toBe(false);
-    for (const button of screen.getAllByRole('button', { name: '插入链接' })) {
+    for (const button of screen.getAllByRole('button', { name: /^插入(行内|预览)$/ })) {
       expect((button as HTMLButtonElement).disabled).toBe(true);
     }
     const file = new File(['root'], '根目录.txt');
@@ -117,18 +117,29 @@ describe('attachment panel scopes', () => {
 });
 
 describe('attachment panel actions', () => {
-  it('inserts a Markdown link, copies the logical reference, and retains the download target', async () => {
+  it('inserts both DSL forms, copies inline syntax, and retains the download target', async () => {
     const copy = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', { clipboard: { writeText: copy } });
     const view = panel(postScope);
     await screen.findByRole('heading', { name: '数据.csv' });
-    fireEvent.click(row().getByRole('button', { name: '插入链接' }));
-    expect(view.onInsert).toHaveBeenCalledWith('[数据.csv](attachment:article/data.csv)');
+    fireEvent.click(row().getByRole('button', { name: '插入行内' }));
+    expect(view.onInsert).toHaveBeenNthCalledWith(1, ':attachment[article/data.csv]:');
+    fireEvent.click(row().getByRole('button', { name: '插入预览' }));
+    expect(view.onInsert).toHaveBeenNthCalledWith(2, '\n\n::attachment[article/data.csv]::\n\n');
     fireEvent.click(row().getByRole('button', { name: '复制引用' }));
-    await waitFor(() => expect(copy).toHaveBeenCalledWith(data.reference));
+    await waitFor(() => expect(copy).toHaveBeenCalledWith(':attachment[article/data.csv]:'));
     const download = row().getByRole('link', { name: '下载' });
     expect(download.getAttribute('href')).toBe(data.url);
     expect(download.getAttribute('download')).toBe(data.name);
+  });
+
+  it('exposes the same pasteable inline syntax when clipboard access fails', async () => {
+    vi.stubGlobal('navigator', { clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } });
+    panel(postScope);
+    await screen.findByRole('heading', { name: '数据.csv' });
+    fireEvent.click(row().getByRole('button', { name: '复制引用' }));
+    await screen.findByRole('alert');
+    expect(row().getByText(':attachment[article/data.csv]:').tagName).toBe('CODE');
   });
 
   it('renames inline, allows cancellation, and sends the current scope on save', async () => {

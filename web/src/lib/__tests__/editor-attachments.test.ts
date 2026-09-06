@@ -1,10 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkMdx from 'remark-mdx';
 import type { AttachmentInfo } from '~/types/editor-api';
 import {
-  attachmentMarkdownLink, invalidateAttachmentCache, loadEditorAttachments, uploadEditorAttachment,
+  invalidateAttachmentCache, loadEditorAttachments, uploadEditorAttachment,
 } from '../editor/attachments';
 
 const attachment: AttachmentInfo = {
@@ -70,26 +67,4 @@ describe('attachment editor cache', () => {
     expect(await loadEditorAttachments()).toEqual([attachment, renamed]);
     expect(fetcher).toHaveBeenCalledTimes(3);
   });
-});
-
-describe('attachment author link', () => {
-  it.each(['样本.csv', '数据[原始]{版本}.csv', 'a*b_$x&copy;<file>!.txt', 'x\\y.csv'])(
-    'preserves a literal filename as one Markdown and MDX link: %s',
-    (name) => {
-      const source = attachmentMarkdownLink({ ...attachment, name });
-      for (const processor of [unified().use(remarkParse), unified().use(remarkParse).use(remarkMdx)]) {
-        const tree = processor.parse(source);
-        const paragraph = tree.children[0];
-        expect(paragraph.type).toBe('paragraph');
-        if (paragraph.type !== 'paragraph') throw new Error('Expected paragraph');
-        expect(paragraph.children).toHaveLength(1);
-        const link = paragraph.children[0];
-        expect(link.type).toBe('link');
-        if (link.type !== 'link') throw new Error('Expected link');
-        expect(link.url).toBe(attachment.reference);
-        expect(link.children).toHaveLength(1);
-        expect(link.children[0]).toMatchObject({ type: 'text', value: name });
-      }
-    },
-  );
 });

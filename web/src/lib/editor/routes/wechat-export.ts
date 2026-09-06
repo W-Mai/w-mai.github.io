@@ -46,7 +46,7 @@ function createWechatProcessor(slug: string, postDir: string) {
     .use(remarkMdx)
     .use(remarkGfm)
     .use(remarkSticker)
-    .use(remarkAttachments, { ...attachmentOptions, absoluteUrls: true })
+    .use(remarkAttachments, { ...attachmentOptions, absoluteUrls: true, output: 'portable' })
     .use(remarkMath)
     .use(remarkJsxSsr, { postDir })
     .use(remarkMdxToHtml)

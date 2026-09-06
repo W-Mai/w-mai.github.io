@@ -11,6 +11,7 @@ import * as runtime from 'react/jsx-runtime';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { attachmentReference } from '~/lib/attachments/paths';
+import { attachmentBlockSyntax, attachmentInlineSyntax } from '~/lib/attachments/syntax';
 import { validateAttachmentContentFiles, validateAttachmentMarkdown } from '~/lib/attachments/validate';
 import remarkAttachments from '../remark-attachments';
 
@@ -40,10 +41,10 @@ afterEach(async () => {
   await rm(directory, { recursive: true, force: true });
 });
 
-describe('attachment references across renderers', () => {
-  it('keeps labels and metadata consistent across Markdown and MDX', async () => {
+describe('attachment DSL across renderers', () => {
+  it('keeps inline metadata consistent across Markdown and MDX', async () => {
     const reference = attachmentReference(id);
-    const source = `[原始数据](${reference})\n\n[重复引用][data]\n\n[data]: ${reference}`;
+    const source = `原始数据 ${attachmentInlineSyntax(reference)}\n\n**重复引用 ${attachmentInlineSyntax(reference)}**`;
     const html = await renderMarkdown(source);
     const mdx = await evaluate(source, {
       ...runtime,
@@ -54,11 +55,36 @@ describe('attachment references across renderers', () => {
       expect(rendered.match(/href="/g)).toHaveLength(2);
       expect(rendered).toContain(`href="${path}"`);
       expect(rendered).toContain('download="结果 (100%).csv"');
-      expect(rendered).toContain('原始数据</a>');
-      expect(rendered).toContain('重复引用</a>');
+      expect(rendered).toContain('结果 (100%).csv · text/csv · 9 B</a>');
       expect(rendered).toContain('text/csv');
       expect(rendered).not.toContain('href="attachment:');
+      expect(rendered).not.toContain(':attachment[');
     }
+  });
+
+  it('renders a bounded block card with table content and static actions', async () => {
+    const source = attachmentBlockSyntax(attachmentReference(id));
+    const result = await unified().use(remarkParse)
+      .use(remarkAttachments, options).use(remarkRehype).use(rehypeStringify).process(source);
+    const html = String(result);
+    expect(html).toContain('<figure class="attachment-card not-prose"');
+    expect(html).toContain('data-attachment-card');
+    expect(html).toContain('<table class="attachment-card__table"');
+    expect(html).toContain('<th scope="col">value</th>');
+    expect(html).toContain('<td>42</td>');
+    expect(html).toContain('data-attachment-fullscreen');
+    expect(html).toContain(`href="${path}"`);
+    expect(html).not.toContain(':attachment[');
+  });
+
+  it('escapes active text attachments instead of executing their source', async () => {
+    const activeId = '数据/page.html';
+    await writeFile(join(options.directory, activeId), '<script>alert("x")</script>');
+    const html = await renderMarkdown(attachmentBlockSyntax(attachmentReference(activeId)));
+    expect(html).toContain('astro-code');
+    expect(html).toContain('alert');
+    expect(html).toContain('&#x3C;');
+    expect(html).not.toContain('<script>alert');
   });
 
   it('exports the current unsaved Markdown with an absolute public URL', async () => {
@@ -66,17 +92,20 @@ describe('attachment references across renderers', () => {
       request: new Request('http://localhost/api/editor/wechat-export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: `[下载](${attachmentReference(id)})`, slug: 'unsaved-fixture' }),
+        body: JSON.stringify({ content: attachmentBlockSyntax(attachmentReference(id)), slug: 'unsaved-fixture' }),
       }),
     } as Parameters<typeof exportWechat>[0]);
     const body = await response.json();
     expect(response.status, JSON.stringify(body)).toBe(200);
     expect(body.html).toContain(`href="https://example.test${path}"`);
-    expect(body.html).toContain('下载</a>');
+    expect(body.html).toContain('结果 (100%).csv');
+    expect(body.html).toContain('text / csv');
+    expect(body.html).toContain('9 B</a>');
+    expect(body.html).not.toContain('attachment-card');
   });
 
   it('leaves ordinary URLs and fenced examples alone', async () => {
-    const source = '[文档](https://example.test/docs)\n\n`[示例](attachment:missing.csv)`\n\n```md\n[示例](attachment:missing.csv)\n```';
+    const source = '[文档](https://example.test/docs)\n\n`:attachment[missing.csv]:`\n\n```md\n::attachment[missing.csv]::\n```';
     const result = await unified().use(remarkParse)
       .use(remarkAttachments, options).use(remarkRehype).use(rehypeStringify).process(source);
     expect(String(result)).toContain('href="https://example.test/docs"');
@@ -85,15 +114,25 @@ describe('attachment references across renderers', () => {
   });
 
   it('reports the source location for missing or unsafe references', async () => {
-    for (const reference of ['attachment:missing.csv', 'attachment:../private.csv', 'attachment&#58;missing.csv', 'attachment\\:missing.csv']) {
-      await expect(validateAttachmentMarkdown(`---\ntitle: test\n---\n\n[下载](${reference})`, options, {
+    for (const source of [':attachment[missing.csv]:', ':attachment[../private.csv]:', ':attachment[%2Fetc]:']) {
+      await expect(validateAttachmentMarkdown(`---\ntitle: test\n---\n\n${source}`, options, {
         file: '/posts/example/index.mdx', mdx: true,
       })).rejects.toMatchObject({ line: 5, fatal: true });
     }
   });
 
-  it('rejects image syntax instead of leaving an unresolved custom protocol', async () => {
-    await expect(renderMarkdown(`![文件](${attachmentReference(id)})`)).rejects.toThrow('Markdown link');
+  it('rejects the legacy custom-scheme link with a migration diagnostic', async () => {
+    const reference = attachmentReference(id);
+    for (const source of [
+      `[文件](${reference})`,
+      `![文件](${reference})`,
+      `[文件][data]\n\n[data]: ${reference}`,
+      `![文件][data]\n\n[data]: ${reference}`,
+      `<${reference}>`,
+      `[文件](attachment&#58;${reference.slice('attachment:'.length)})`,
+    ]) {
+      await expect(renderMarkdown(source)).rejects.toThrow('Legacy attachment links');
+    }
   });
 });
 
@@ -103,7 +142,7 @@ describe('source validation independent of the render cache', () => {
     const thoughtsDirectory = join(directory, 'thoughts');
     await mkdir(join(postsDirectory, 'nested', 'article'), { recursive: true });
     await mkdir(thoughtsDirectory);
-    const source = `[数据](${attachmentReference(id)})`;
+    const source = attachmentInlineSyntax(attachmentReference(id));
     await writeFile(join(postsDirectory, 'plain.md'), source);
     await writeFile(join(postsDirectory, 'nested', 'article', 'index.mdx'), source);
     await writeFile(join(thoughtsDirectory, 'example.yaml'), `content: '${source}'\ncreatedAt: '2026-09-06'\n`);

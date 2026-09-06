@@ -159,6 +159,9 @@ const ogImageUrl = isBlogPost
 
 <script>
 import '~/components/shared/nav-loading';
+import { installAttachmentPreviews } from '~/components/shared/attachment-viewer';
+const disposeAttachmentPreviews = installAttachmentPreviews();
+if (import.meta.hot) import.meta.hot.dispose(disposeAttachmentPreviews);
 </script>
 
 <!-- Canonical URL -->

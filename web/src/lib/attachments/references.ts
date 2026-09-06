@@ -12,6 +12,7 @@ import { VFile } from 'vfile';
 import { isScalar, LineCounter, parseDocument } from 'yaml';
 import { attachmentUrl, parseAttachmentReference, validateAttachmentId } from './paths';
 import type { AttachmentOptions } from './paths';
+import { normalizeAttachmentSyntax, remarkAttachmentSyntax } from './syntax';
 
 export interface AttachmentReferenceDirectories {
   postsDirectory: string;
@@ -117,11 +118,13 @@ function markdownReferences(
   settings: { mdx?: boolean; attachmentId?: string; locate?: Locate } = {},
 ): AttachmentReference[] {
   const locate: Locate = settings.locate ?? ((point) => ({ line: point.line, column: point.column }));
-  const processor = unified().use(remarkParse).use(remarkGfm).use(remarkMath);
+  const processor = unified().use(remarkParse).use(remarkGfm).use(remarkMath).use(remarkAttachmentSyntax);
   if (settings.mdx) processor.use(remarkMdx);
   let tree: Root;
   try {
-    tree = processor.parse(new VFile({ path: source.path, value: content })) as Root;
+    const file = new VFile({ path: source.path, value: content });
+    tree = processor.parse(file) as Root;
+    normalizeAttachmentSyntax(tree, file);
   } catch (error) {
     const detail = error as { reason?: string; line?: number; column?: number };
     const location = locate({ line: detail.line ?? 1, column: detail.column ?? 1 });

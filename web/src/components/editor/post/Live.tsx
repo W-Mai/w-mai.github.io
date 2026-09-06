@@ -127,7 +127,7 @@ const LiveEditor: FC = () => {
 
   const handleInsertAttachment = useCallback((markdown: string) => {
     if (!state.selectedSlug || !editorRef.current) {
-      setState((current) => ({ ...current, error: '请先选择文章再插入附件链接' }));
+      setState((current) => ({ ...current, error: '请先选择文章再插入附件' }));
       return;
     }
     editorRef.current.insertText(markdown);

@@ -92,7 +92,12 @@ const MdxEditor = forwardRef<MdxEditorHandle, MdxEditorProps>(
         const view = viewRef.current;
         if (!view) return;
         const pos = view.state.selection.main.head;
-        view.dispatch({ changes: { from: pos, insert: text } });
+        view.dispatch({
+          changes: { from: pos, insert: text },
+          selection: { anchor: pos + text.length },
+          scrollIntoView: true,
+          userEvent: 'input',
+        });
       },
     }));
 

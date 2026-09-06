@@ -4,6 +4,8 @@
  * and blog statistics aggregation.
  */
 
+import { prepareAttachmentText } from '~/lib/attachments/text';
+
 // CJK Unified Ideographs range
 const CJK_REGEX = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g;
 
@@ -19,6 +21,9 @@ export function stripMarkdown(content: string): string {
 
 	// Remove import statements
 	text = text.replace(/^import\s+.*$/gm, '');
+
+	const attachments = prepareAttachmentText(text, { mdx: 'auto' });
+	text = attachments.source;
 
 	// Remove fenced code blocks (``` ... ``` or ~~~ ... ~~~)
 	text = text.replace(/(`{3,}|~{3,})[\s\S]*?\1/g, '');
@@ -54,7 +59,7 @@ export function stripMarkdown(content: string): string {
 	text = text.replace(/^[\s]*[-*+]\s+/gm, '');
 	text = text.replace(/^[\s]*\d+\.\s+/gm, '');
 
-	return text.trim();
+	return attachments.restore(text).trim();
 }
 
 /**

@@ -10,6 +10,7 @@ import type { Connect } from 'vite';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import attachmentsIntegration from './integration';
 import type { AttachmentOptions } from './paths';
+import { attachmentInlineSyntax } from './syntax';
 
 type InstalledConfig = {
   markdown: { remarkPlugins: [[unknown, AttachmentOptions & { attachmentRevision: string }]] };
@@ -204,7 +205,7 @@ describe('attachment publishing contract', () => {
     const path = await attachment('group/data.csv', 'a,b');
     const posts = join(repository, 'posts');
     await mkdir(posts);
-    await writeFile(join(posts, 'entry.mdx'), '[data](attachment:group/data.csv)');
+    await writeFile(join(posts, 'entry.mdx'), attachmentInlineSyntax('attachment:group/data.csv'));
     await configure();
     await expect(hook('astro:build:start')).resolves.toBeUndefined();
     await rm(path);

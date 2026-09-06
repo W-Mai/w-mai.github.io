@@ -1,0 +1,383 @@
+/* Public attachment capsules, preview cards and viewport viewer. */
+.attachment-card,
+.attachment-dialog {
+  box-sizing: border-box;
+  color: var(--text-primary);
+  background: var(--neu-bg);
+  border: none;
+  border-radius: var(--attachment-radius);
+  box-shadow: 7px 7px 14px var(--neu-shadow-dark), -7px -7px 14px var(--neu-shadow-light);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--leading-normal);
+  text-align: start;
+}
+
+.attachment-card[data-attachment-card] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: var(--attachment-card-height);
+  margin: var(--space-xl) 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+:is(.attachment-card[data-attachment-card], .attachment-dialog) *,
+:is(.attachment-card[data-attachment-card], .attachment-dialog) *::before,
+:is(.attachment-card[data-attachment-card], .attachment-dialog) *::after { box-sizing: border-box; }
+
+:is(.attachment-card[data-attachment-card], .attachment-dialog) :is(p, figure, pre, table) { margin: 0; }
+:is(.attachment-card[data-attachment-card], .attachment-dialog) :is(img, video) {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: 100%;
+  max-block-size: 100%;
+  object-fit: contain;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.attachment-card__header {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  min-inline-size: 0;
+  padding: 0.75rem 5.25rem 0.75rem 0.875rem;
+}
+.attachment-card__identity { flex: 1; min-inline-size: 0; }
+.attachment-card__name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-heading);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+.attachment-card__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+.attachment-card__actions {
+  position: absolute;
+  inset-block-start: 0.625rem;
+  inset-inline-end: 0.625rem;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  inline-size: 2rem;
+  block-size: 2rem;
+  min-inline-size: 2rem;
+  min-block-size: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--neu-bg);
+  color: var(--text-secondary);
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
+  font: inherit;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 150ms ease, color 150ms ease, transform 150ms ease;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__button:hover {
+  color: var(--text-link);
+  box-shadow: 1px 1px 2px var(--neu-shadow-dark), -1px -1px 2px var(--neu-shadow-light);
+  transform: translateY(-1px);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__button:is(:active, :focus-visible) {
+  outline: none;
+  color: var(--text-heading);
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong);
+  transform: translateY(0);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__icon {
+  display: block;
+  inline-size: 1rem;
+  block-size: 1rem;
+  flex: none;
+  pointer-events: none;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) [hidden] { display: none; }
+
+.attachment-card__preview {
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--bg-code);
+  box-shadow: inset 2px 2px 5px var(--neu-shadow-dark), inset -2px -2px 5px var(--neu-shadow-light);
+  scrollbar-width: thin;
+}
+.attachment-card__preview:focus-visible {
+  outline: none;
+  box-shadow: inset 3px 3px 7px var(--neu-shadow-dark-strong), inset -3px -3px 7px var(--neu-shadow-light-strong);
+}
+.attachment-card__preview:has(> :is(img, video, audio)) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.attachment-card__preview audio { display: block; inline-size: min(100%, 36rem); margin: var(--space-md); }
+.attachment-card__preview--pdf { overflow: hidden; }
+.attachment-card__preview--table {
+  padding: 0 var(--space-md) var(--space-md);
+  background: var(--neu-bg);
+  box-shadow: none;
+  -webkit-overflow-scrolling: touch;
+}
+.attachment-card__pdf {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  inline-size: 100%;
+  block-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+.attachment-pdf__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--neu-bg);
+  border-block-end: 1px solid var(--border-divider);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-pdf__button {
+  min-inline-size: auto;
+  min-block-size: 2rem;
+  padding: var(--space-xs) var(--space-sm);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-pdf__button:disabled {
+  color: var(--text-muted);
+  box-shadow: inset 1px 1px 3px var(--neu-shadow-dark), inset -1px -1px 3px var(--neu-shadow-light);
+  cursor: default;
+}
+.attachment-pdf__page {
+  min-inline-size: 4.5rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.attachment-pdf__viewport {
+  display: grid;
+  place-items: start center;
+  min-inline-size: 0;
+  min-block-size: 0;
+  padding: var(--space-md);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.attachment-pdf__viewport:focus-visible {
+  outline: none;
+  box-shadow: inset 3px 3px 7px var(--neu-shadow-dark-strong), inset -3px -3px 7px var(--neu-shadow-light-strong);
+}
+.attachment-pdf__canvas {
+  display: block;
+  flex: none;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  background: #fff;
+  border: 0;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 18%);
+}
+.attachment-pdf__status {
+  padding: var(--space-xs) var(--space-md);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: var(--leading-normal);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) pre {
+  inline-size: max-content;
+  min-inline-size: 100%;
+  max-inline-size: none;
+  padding: var(--space-md);
+  background: transparent;
+  color: var(--text-primary);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  white-space: pre;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) code {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) code::before,
+:is(.attachment-card[data-attachment-card], .attachment-dialog) code::after { content: none; }
+:is(.attachment-card[data-attachment-card], .attachment-dialog) table {
+  display: table;
+  inline-size: max-content;
+  min-inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: visible;
+  font-size: 0.8125rem;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) :is(table, thead, tbody, tr, th, td) {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--text-primary);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) :is(th, td) {
+  min-inline-size: 5rem;
+  max-inline-size: 20rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  text-align: start;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  background: var(--neu-bg);
+  color: var(--text-heading);
+  font-weight: 700;
+  text-align: center;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody {
+  background: var(--neu-bg);
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 4px 4px 8px var(--neu-shadow-dark-strong),
+    inset -4px -4px 8px var(--neu-shadow-light-strong);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody td {
+  color: var(--text-primary);
+  background: transparent;
+  vertical-align: middle;
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody td:not(:last-child) {
+  box-shadow:
+    inset -2px 0 2px -1px var(--neu-shadow-dark),
+    1px 0 1px 0 var(--neu-shadow-light);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody tr + tr td {
+  box-shadow:
+    inset 0 2px 2px -1px var(--neu-shadow-dark),
+    0 -1px 1px 0 var(--neu-shadow-light);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody tr + tr td:not(:last-child) {
+  box-shadow:
+    inset 0 2px 2px -1px var(--neu-shadow-dark),
+    0 -1px 1px 0 var(--neu-shadow-light),
+    inset -2px 0 2px -1px var(--neu-shadow-dark),
+    1px 0 1px 0 var(--neu-shadow-light);
+}
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody tr:first-child td:first-child { border-start-start-radius: 0.75rem; }
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody tr:first-child td:last-child { border-start-end-radius: 0.75rem; }
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody tr:last-child td:first-child { border-end-start-radius: 0.75rem; }
+:is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table tbody tr:last-child td:last-child { border-end-end-radius: 0.75rem; }
+.attachment-card__status {
+  flex: none;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: var(--leading-normal);
+}
+.attachment-card__placeholder {
+  display: grid;
+  place-content: center;
+  gap: var(--space-sm);
+  block-size: 100%;
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.attachment-dialog {
+  inline-size: calc(100vw - 2 * var(--space-md));
+  block-size: calc(100dvh - 2 * var(--space-md));
+  max-inline-size: calc(100vw - 2 * var(--space-md));
+  max-block-size: calc(100dvh - 2 * var(--space-md));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+}
+.attachment-dialog[open] { display: flex; flex-direction: column; }
+.attachment-dialog::backdrop { background: var(--overlay-bg); backdrop-filter: blur(4px); }
+.attachment-dialog__body { display: flex; flex: 1; min-inline-size: 0; min-block-size: 0; }
+.attachment-dialog__body > .attachment-card__preview { flex: 1; }
+
+.attachment-inline {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  max-inline-size: 100%;
+  padding: 0.15rem var(--space-sm);
+  border-radius: 0.45rem;
+  background: var(--neu-bg);
+  color: var(--text-link);
+  box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
+  font-size: 0.9em;
+  line-height: var(--leading-normal);
+  overflow-wrap: anywhere;
+  text-decoration: none !important;
+  vertical-align: baseline;
+}
+.attachment-inline:focus-visible {
+  outline: none;
+  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark-strong), inset -2px -2px 4px var(--neu-shadow-light-strong);
+}
+
+@media (max-width: 640px) {
+  :root { --attachment-card-height: clamp(17rem, 42vw, 18rem); }
+  .attachment-card__header { padding: 0.625rem 4.875rem 0.625rem 0.75rem; }
+  .attachment-card__actions { inset-block-start: 0.5rem; inset-inline-end: 0.5rem; gap: var(--space-xs); }
+  :is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table :is(th, td) { padding: var(--space-sm); }
+  .attachment-dialog {
+    inline-size: 100vw;
+    block-size: 100dvh;
+    max-inline-size: 100vw;
+    max-block-size: 100dvh;
+    border-radius: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__button { transition: none; }
+}
+@media (forced-colors: active) {
+  .attachment-card, .attachment-dialog, .attachment-inline { border: 1px solid CanvasText; }
+  :is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__button:focus-visible,
+  .attachment-inline:focus-visible,
+  .attachment-card__preview:focus-visible,
+  .attachment-pdf__viewport:focus-visible { outline: 2px solid Highlight; outline-offset: -2px; }
+  :is(.attachment-card[data-attachment-card], .attachment-dialog) .attachment-card__table :is(th, td) {
+    border: 1px solid CanvasText;
+  }
+}

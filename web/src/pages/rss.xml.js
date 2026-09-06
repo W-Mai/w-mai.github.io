@@ -4,13 +4,15 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '~/consts';
 import { loadThoughts } from '~/data/thoughts';
 import { INLINE_STICKER_RE, BLOCK_STICKER_RE } from '~/lib/sticker';
 import { parseSiteDate } from '~/lib/date-utils';
+import { prepareAttachmentText } from '~/lib/attachments/text';
 
-/** Strip sticker syntax from text for RSS output */
+/** Use filenames for attachments and strip sticker syntax for RSS output. */
 function stripStickers(text) {
-	return text
+	const attachments = prepareAttachmentText(text);
+	return attachments.restore(attachments.source
 		.replace(new RegExp(BLOCK_STICKER_RE.source, 'gm'), '')
 		.replace(new RegExp(INLINE_STICKER_RE.source, 'g'), '')
-		.trim();
+		.trim());
 }
 
 export async function GET(context) {

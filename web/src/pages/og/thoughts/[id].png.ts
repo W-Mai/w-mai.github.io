@@ -1,4 +1,5 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
+import { prepareAttachmentText } from '~/lib/attachments/text';
 import { NICK_NAME } from '~/consts';
 import { loadThoughts } from '~/data/thoughts';
 import {
@@ -211,8 +212,19 @@ export const GET: APIRoute = async ({ props }) => {
 
   const moodEmoji = mood ?? '💭';
   const accentHue = moodHue(moodEmoji);
-  const fontSize = content.length > 120 ? 28 : content.length > 60 ? 34 : 42;
-  const contentChildren = parseContentToChildren(content, fontSize, accentHue);
+  const attachments = prepareAttachmentText(content, { format: (name) => `📄 ${name}` });
+  const visibleLength = attachments.restore(attachments.source).length;
+  const fontSize = visibleLength > 120 ? 28 : visibleLength > 60 ? 34 : 42;
+  // Restore only after parsing so a filename cannot become a sticker, link or emphasis.
+  function restoreLabels(node: any): any {
+    if (typeof node === 'string') return attachments.restore(node);
+    if (Array.isArray(node)) return node.map(restoreLabels);
+    if (node?.props?.children !== undefined) {
+      return { ...node, props: { ...node.props, children: restoreLabels(node.props.children) } };
+    }
+    return node;
+  }
+  const contentChildren = restoreLabels(parseContentToChildren(attachments.source, fontSize, accentHue));
   const date = parseSiteDate(createdAt);
   const dateStr = siteLocaleDateString(date, 'zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = siteTimeString(date);

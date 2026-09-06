@@ -43,6 +43,7 @@ fn sort(n, seed) {
     }
     checksum
 }
+
 pub fn batch(which, n, seed, reps) {
     let checksum = 0;
     let rep = 0;
@@ -58,3 +59,4 @@ pub fn batch(which, n, seed, reps) {
     }
     checksum
 }
+

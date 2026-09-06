@@ -1,6 +1,6 @@
 /**
  * Search engine module for blog full-text search.
- * Provides index types, MDX stripping, and MiniSearch integration.
+ * Provides index types and MiniSearch integration for the browser.
  */
 
 import MiniSearch from 'minisearch';
@@ -17,64 +17,6 @@ export interface SearchIndexEntry {
   body: string;
   slug: string;
   type: SearchEntryType;
-}
-
-/**
- * Strip MDX/HTML markup from raw content, returning plain text.
- *
- * Steps:
- * 1. Remove frontmatter (---...---)
- * 2. Remove import/export statements
- * 3. Remove JSX/HTML tags
- * 4. Remove Markdown syntax markers (#, *, `, []() etc.)
- * 5. Collapse whitespace
- */
-export function stripMdx(raw: string): string {
-  let text = raw;
-
-  // 1. Remove frontmatter blocks (--- ... ---)
-  text = text.replace(/^---[\s\S]*?---/gm, '');
-
-  // 2. Remove import/export statements (single and multi-line)
-  text = text.replace(/^(?:import|export)\s+.*$/gm, '');
-
-  // 3. Remove JSX/HTML tags (self-closing and paired)
-  text = text.replace(/<[^>]+>/g, '');
-
-  // 4. Remove Markdown syntax markers
-  // Headings: ## heading
-  text = text.replace(/^#{1,6}\s+/gm, '');
-  // Images: ![alt](url)
-  text = text.replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1');
-  // Links: [text](url)
-  text = text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
-  // Fenced code blocks (``` ... ```)
-  text = text.replace(/```[\s\S]*?```/g, '');
-  // Inline code: `code`
-  text = text.replace(/`([^`]*)`/g, '$1');
-  // Bold: **text** or __text__
-  text = text.replace(/\*\*([^*]*)\*\*/g, '$1');
-  text = text.replace(/__([^_]*)__/g, '$1');
-  // Italic: *text* or _text_
-  text = text.replace(/\*([^*]*)\*/g, '$1');
-  text = text.replace(/_([^_]*)_/g, '$1');
-  // Strikethrough: ~~text~~
-  text = text.replace(/~~([^~]*)~~/g, '$1');
-  // Horizontal rules: ---, ***, ___
-  text = text.replace(/^[-*_]{3,}\s*$/gm, '');
-  // Blockquotes: > text
-  text = text.replace(/^>\s?/gm, '');
-  // Unordered list markers: - item, * item, + item
-  text = text.replace(/^[\s]*[-*+]\s+/gm, '');
-  // Ordered list markers: 1. item
-  text = text.replace(/^[\s]*\d+\.\s+/gm, '');
-  // Custom sticker syntax: ::sticker[...]:: and :sticker[...]:
-  text = text.replace(/::?sticker\[[^\]]*\]::?/g, '');
-
-  // 5. Collapse whitespace
-  text = text.replace(/\n{2,}/g, '\n').replace(/[ \t]+/g, ' ').trim();
-
-  return text;
 }
 
 /** Shape of each search result returned to the UI */

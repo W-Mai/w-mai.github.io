@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { AttachmentInfo, AttachmentScope } from '~/types/editor-api';
 import { formatAttachmentSize } from '~/lib/attachments/paths';
+import { attachmentInlineSyntax, attachmentBlockSyntax } from '~/lib/attachments/syntax';
 import {
-  attachmentMarkdownLink, deleteEditorAttachment, loadEditorAttachments,
+  deleteEditorAttachment, loadEditorAttachments,
   renameEditorAttachment, replaceEditorAttachment, uploadEditorAttachment,
 } from '~/lib/editor/attachments';
 import EditorSelect from '~/components/editor/shared/Select';
@@ -255,7 +256,7 @@ export default function AttachmentPanel({
 
   const copyReference = async (attachment: AttachmentInfo) => {
     try {
-      await navigator.clipboard.writeText(attachment.reference);
+      await navigator.clipboard.writeText(attachmentInlineSyntax(attachment.reference));
       setCopyFallback(null);
       setError(null);
       setNotice('已复制引用：' + attachment.name);
@@ -354,7 +355,7 @@ export default function AttachmentPanel({
           </div>
         </div>
       </div>
-      {!canInsert && <p className="attachment-help">选择文章后可插入链接。</p>}
+      {!canInsert && <p className="attachment-help">选择文章后可插入附件。</p>}
       {error && !showInlineError && <p role="alert" className="attachment-error">{error.message}</p>}
       <p role="status" aria-live="polite" className="attachment-status">
         {busy || (loading ? '正在读取附件…' : notice || '共 ' + visible.length + ' 个附件')}
@@ -387,8 +388,13 @@ export default function AttachmentPanel({
                   <button
                     type="button" className="neu-editor-btn attachment-button attachment-primary"
                     disabled={!canInsert || buttonsDisabled} title={canInsert ? '插入到文章光标位置' : '请先选择文章'}
-                    onClick={() => onInsert(attachmentMarkdownLink(attachment))}
-                  >插入链接</button>
+                    onClick={() => onInsert(attachmentInlineSyntax(attachment.reference))}
+                  >插入行内</button>
+                  <button
+                    type="button" className="neu-editor-btn attachment-button"
+                    disabled={!canInsert || buttonsDisabled} title={canInsert ? '插入独立的附件预览' : '请先选择文章'}
+                    onClick={() => onInsert('\n\n' + attachmentBlockSyntax(attachment.reference) + '\n\n')}
+                  >插入预览</button>
                   <button type="button" className="neu-editor-btn attachment-button" disabled={buttonsDisabled}
                     onClick={() => void copyReference(attachment)}>复制引用</button>
                   <a className="neu-editor-btn attachment-button" href={attachment.url} download={attachment.name}
@@ -423,7 +429,7 @@ export default function AttachmentPanel({
                   >删除</button>
                 </div>
                 {copyFallback === attachment.id && <code className="attachment-reference" tabIndex={0}>
-                  {attachment.reference}
+                  {attachmentInlineSyntax(attachment.reference)}
                 </code>}
                 {editing?.kind === 'rename' && <form
                   className="attachment-inline" aria-label={'重命名 ' + attachment.name}
