@@ -1,0 +1,86 @@
+{
+  "started_at": "2026-09-05T08:26:14.803757+00:00",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "machine": "arm64",
+  "hardware": {
+    "cpu": "Apple M1 Pro",
+    "logical_cpus": 10,
+    "physical_memory_bytes": 34359738368,
+    "source": "sysctl machdep.cpu.brand_string hw.logicalcpu hw.memsize, checked before run"
+  },
+  "rune": {
+    "version": "0.14.2",
+    "storage": "ArrayUnit",
+    "default_features": false,
+    "features": [
+      "std",
+      "emit"
+    ],
+    "opt_level": 3
+  },
+  "engines": [
+    "c",
+    "cpp",
+    "rust",
+    "lua",
+    "luajit",
+    "node",
+    "bun",
+    "rune"
+  ],
+  "samples": 9,
+  "warmup_batches": 5,
+  "shuffle_seed": 20260905,
+  "workloads": [
+    [
+      "mix",
+      10000,
+      17531,
+      128
+    ],
+    [
+      "fib",
+      17,
+      17531,
+      128
+    ],
+    [
+      "sort",
+      128,
+      17531,
+      128
+    ]
+  ],
+  "actual_runtime_versions": {
+    "lua": "Lua 5.5.0  Copyright (C) 1994-2025 Lua.org, PUC-Rio",
+    "luajit": "LuaJIT 2.1.1781602682 -- Copyright (C) 2005-2026 Mike Pall. https://luajit.org/",
+    "node": "v22.2.0",
+    "bun": "1.3.14"
+  },
+  "limitations": [
+    "Host only; not MCU performance.",
+    "No CPU pinning, thermal isolation or frequency lock.",
+    "Finite warmup does not prove completed JIT tiering; natural GC may occur.",
+    "Process wall time includes startup, all warmups and execution; it is not startup latency."
+  ],
+  "timing": "In-process monotonic wall time; excludes startup, compilation, module registration and warmups.",
+  "statistic": "Median of nine batch means; each timed batch contains 128 algorithm invocations.",
+  "allocation_probe": {
+    "target": "aarch64-apple-darwin",
+    "profile": "debug",
+    "rune_version": "0.14.2",
+    "default_features": false,
+    "features": [
+      "std"
+    ],
+    "unit": "Successful GlobalAlloc Layout request bytes"
+  },
+  "compiler": {
+    "clang": "22.1.8",
+    "rustc": "1.95.0-nightly (57d2fb136 2026-02-01)",
+    "c_cpp_flags": [
+      "-O3"
+    ],
+    "rust_rune_opt_level": 3
+  }
+}

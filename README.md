@@ -86,6 +86,49 @@ seriesOrder: 1                   # 可选系列排序
 
 ---
 
+## 附件与下载
+
+附件保存在仓库根目录 `attachments/`，支持按文章、主题或数据集建立多级目录。`web/` 保存发布和编辑功能，`web/public/` 用于框架资源。文件名、类型和大小自动读取，无需维护附件清单。
+
+```text
+attachments/
+└── runtime-study/
+    ├── samples.csv
+    ├── report.pdf
+    └── sources/
+        └── algorithm.rs
+```
+
+正文使用普通 Markdown 链接：
+
+```markdown
+[原始样本](attachment:runtime-study/samples.csv)
+[实验报告](attachment:runtime-study/report.pdf)
+```
+
+开发和构建都会将引用解析为 `/downloads/runtime-study/samples.csv`。构建产物位于 `web/dist/downloads/`，由 Astro integration 自动生成，直接执行 `astro build` 同样有效。正文链接带文件名、类型和大小提示及 `download` 属性；直接访问文件的响应头由托管平台决定。配置了 Astro `base` 时，下载地址自动加上该前缀。
+
+在线编辑器提供两个附件入口，界面使用现有的新拟态主题与自定义下拉框：
+
+- 文件面板中的“全局附件”：管理根 `attachments/` 下的全部文件，可搜索、按分组筛选，也可向根目录或指定分组上传。
+- 文章编辑器顶部工具栏中的“📎 当前文章附件”：只管理 `attachments/<文章 slug>/` 及其子目录。上传目录留空时，文件直接放入该文章的附件目录。
+
+两个入口均支持上传、重命名、替换内容、删除、下载、复制引用和插入链接。上传重名文件会自动编号；重命名不覆盖同名文件；替换内容需要确认，保留原文件标识和下载地址，完整写入后才切换为新内容。单个附件可供多篇文章引用。
+
+重命名和删除前会检查磁盘中的文章、想法及附件 Markdown 链接。存在引用时，面板显示引用位置，需先修改引用；也可使用“替换内容”保留原链接。此检查不识别动态生成的链接。文章重命名不会自动更改附件目录，原附件仍可从全局入口管理。
+
+附件与文章应一并纳入版本管理。当前编辑器中的文章提交仅覆盖 `posts/`，`attachments/` 通过仓库的常规提交流程管理。
+
+文件名支持中文、空格和括号，编辑器生成的引用会自动编码。手写链接时，按 URL 路径段编码特殊字符，例如 `结果 (1).csv` 写成 `结果%20%281%29.csv`。附件以链接形式插入，图片继续使用现有图片语法。
+
+`bun run quality` 和构建会检查文章及想法正文中的附件引用，文件缺失或路径无效时报告来源位置。Markdown 行内、引用式链接、文章预览和微信导出共用解析规则；微信导出使用配置的正式站点绝对地址。
+
+编辑器单文件上传上限为 32 MiB；直接放入根目录的文件不受此上传上限限制。隐藏文件不发布，符号链接及非普通文件会被拒绝，下载目录不加入 PWA 预缓存。所有合法附件都会发布，包括尚未被正文引用的文件。
+
+Astro 内置 `preview` 会将 `.gz`、`.br` 后缀标记为传输压缩，下载这两种文件时可能发生浏览器自动解码；源文件与构建复制保持原字节。需要核对压缩包下载时，应检查实际托管响应；ZIP 不受这个后缀行为影响。
+
+---
+
 ## 想法（Thoughts）
 
 YAML 文件放在 `thoughts/` 目录，格式：
@@ -144,7 +187,7 @@ CDN_BUCKET=your-bucket
 bun run dev:editor
 ```
 
-功能：文章 CRUD、实时预览、资源管理、格式化工具栏、AI 辅助（润色/翻译/续写）、Git 提交、微信公众号导出。想法页面在编辑器模式下也内置了想法编辑器，支持创建/编辑/删除想法、AI 标签建议、心情选择、贴纸插入、实时预览和草稿持久化。
+功能：文章 CRUD、实时预览、图片资源与附件管理、格式化工具栏、AI 辅助（润色/翻译/续写）、Git 提交、微信公众号导出。想法页面在编辑器模式下也内置了想法编辑器，支持创建/编辑/删除想法、AI 标签建议、心情选择、贴纸插入、实时预览和草稿持久化。
 
 AI 功能需在 `web/.env` 配置 OpenAI 兼容 API，未配置时自动隐藏。
 
@@ -169,6 +212,7 @@ bun run quality
 ├── friends/                   # 友链（.yaml）
 ├── wishes/                    # 心愿（.yaml）
 ├── assets/                    # 全局静态资源（图片、贴纸）
+├── attachments/               # 附件源文件（多级目录，自动生成下载地址）
 ├── web/
 │   ├── public/                # 静态文件（字体、社交图标、CSS）
 │   ├── scripts/               # 质量检查脚本
@@ -186,6 +230,7 @@ bun run quality
 │       │       ├── thought/   # Editor, Preview, use-api, use-draft
 │       │       └── post/      # Live, Mdx, Toolbar, PostList, panels/
 │       ├── lib/
+│       │   ├── attachments/   # 路径解析、元信息、上传、校验与静态发布
 │       │   ├── blog/          # archive, series, tags, hero, related, filter
 │       │   ├── cdn/           # adapter, r2-adapter, local-adapter, cdn-config, url-resolver
 │       │   ├── search/        # engine, highlight

@@ -5,13 +5,15 @@ import { createMarkdownProcessor } from '@astrojs/markdown-remark';
 import remarkSticker from './remark-sticker';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import remarkAttachments from './remark-attachments';
+import attachmentOptions from 'virtual:attachments/config';
 
 let processor: Awaited<ReturnType<typeof createMarkdownProcessor>> | null = null;
 
 async function getProcessor() {
   if (!processor) {
     processor = await createMarkdownProcessor({
-      remarkPlugins: [remarkSticker, remarkMath],
+      remarkPlugins: [remarkSticker, remarkMath, [remarkAttachments, attachmentOptions]],
       rehypePlugins: [rehypeKatex],
     });
   }

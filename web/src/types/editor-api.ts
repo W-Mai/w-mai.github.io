@@ -57,6 +57,16 @@ export interface AssetInfo {
   referencedBy: string[]
 }
 
+// ── Attachments API (/api/editor/attachments) ─────────────────────────────
+
+export type { AttachmentInfo, AttachmentScope } from '~/lib/attachments/paths'
+
+/** Query parameters accompanying the raw file body. */
+export interface AttachmentUploadQuery {
+  group: string
+  name: string
+}
+
 // ── Stickers API (/api/editor/stickers) ────────────────────────────────────
 
 export interface StickerInfo {

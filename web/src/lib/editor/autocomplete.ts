@@ -6,6 +6,8 @@ import {
 } from '@codemirror/autocomplete';
 import type { Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
+import { loadEditorAttachments, invalidateAttachmentCache } from './attachments';
+import { formatAttachmentSize } from '~/lib/attachments/paths';
 
 interface AssetInfo { name: string; size: number; ext: string; }
 interface StickerInfo { name: string; size: number; meta?: { aiName?: string; description?: string; tags?: string[] } }
@@ -49,6 +51,7 @@ async function fetchStickers(): Promise<StickerInfo[]> {
 export function invalidateAutocompleteCaches() {
   assetFetched = false;
   stickerFetched = false;
+  invalidateAttachmentCache();
 }
 
 /** Build preview info HTML for tooltip */
@@ -76,9 +79,12 @@ function assetPreviewInfo(name: string, isImage: boolean): Node | null {
  *   - `src="` or `src='` in JSX/HTML
  *   - `./assets/` typed manually
  */
-async function assetCompletion(ctx: CompletionContext): Promise<CompletionResult | null> {
+export async function assetCompletion(ctx: CompletionContext): Promise<CompletionResult | null> {
   const line = ctx.state.doc.lineAt(ctx.pos);
   const textBefore = line.text.slice(0, ctx.pos - line.from);
+
+  // Attachment destinations belong exclusively to the attachment source.
+  if (/\]\(<?attachment:[^\s)>]*$/.test(textBefore)) return null;
 
   // Match patterns where asset path is expected
   const patterns = [
@@ -128,6 +134,33 @@ async function assetCompletion(ctx: CompletionContext): Promise<CompletionResult
   return options.length > 0 ? { from: matchedFrom, options, filter: true } : null;
 }
 
+/** Complete attachment destinations, including Markdown reference definitions. */
+export async function attachmentCompletion(ctx: CompletionContext): Promise<CompletionResult | null> {
+  const line = ctx.state.doc.lineAt(ctx.pos);
+  const before = line.text.slice(0, ctx.pos - line.from);
+  const match = before.match(/(?:\]\(<?|^\s{0,3}\[[^\]]+\]:\s*<?)(attachment:[^\s)>]*)$/);
+  if (!match || /!\[[^\]]*\]\([^)]*$/.test(before)) return null;
+  const typed = match[1];
+  let prefix = typed.slice('attachment:'.length);
+  try { prefix = decodeURIComponent(prefix); } catch { /* Keep incomplete percent escapes while typing. */ }
+  const query = prefix.toLocaleLowerCase();
+  try {
+    const attachments = await loadEditorAttachments();
+    const options = attachments
+      .filter((attachment) => attachment.id.toLocaleLowerCase().includes(query)
+        || attachment.reference.slice('attachment:'.length).toLocaleLowerCase().includes(query))
+      .map((attachment) => ({
+        label: attachment.id,
+        apply: attachment.reference,
+        type: 'text',
+        detail: attachment.mediaType + ' · ' + formatAttachmentSize(attachment.size),
+      }));
+    return options.length ? { from: ctx.pos - typed.length, options, filter: false } : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Stage 1: Sticker syntax completion — triggers on `:s` or `::s` prefix,
  * offers `:sticker[` and `::sticker[` commands. Selecting one inserts the
@@ -136,6 +169,8 @@ async function assetCompletion(ctx: CompletionContext): Promise<CompletionResult
 function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | null {
   const line = ctx.state.doc.lineAt(ctx.pos);
   const textBefore = line.text.slice(0, ctx.pos - line.from);
+
+  if (/attachment:[^\s)>]*$/.test(textBefore)) return null;
 
   // Already inside sticker bracket — let stage 2 handle it
   if (/::?sticker\[/.test(textBefore)) return null;
@@ -189,7 +224,7 @@ function stickerSyntaxCompletion(ctx: CompletionContext): CompletionResult | nul
 /** CodeMirror extension: asset + sticker autocomplete with preview tooltips */
 export function editorAutocomplete(): Extension {
   return autocompletion({
-    override: [stickerSyntaxCompletion, assetCompletion],
+    override: [attachmentCompletion, stickerSyntaxCompletion, assetCompletion],
     icons: false,
     optionClass: () => 'cm-editor-autocomplete',
     tooltipClass: () => 'cm-editor-autocomplete-tooltip',

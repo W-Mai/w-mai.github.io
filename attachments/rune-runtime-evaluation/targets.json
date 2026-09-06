@@ -1,0 +1,122 @@
+{
+  "wasm_unknown_unknown": {
+    "node_version": "v22.2.0",
+    "artifact_bytes": 2311707,
+    "artifact_sha256": "c4c5e63a5ad37739b4cc93e55d5ef819a27527dbe72e316cb9d90273e81cadbe",
+    "wasi": false,
+    "imports": [],
+    "exports": [
+      {
+        "name": "memory",
+        "kind": "memory"
+      },
+      {
+        "name": "last_error_code",
+        "kind": "function"
+      },
+      {
+        "name": "native_call_count",
+        "kind": "function"
+      },
+      {
+        "name": "script_add",
+        "kind": "function"
+      },
+      {
+        "name": "__data_end",
+        "kind": "global"
+      },
+      {
+        "name": "__heap_base",
+        "kind": "global"
+      }
+    ],
+    "outputs": [
+      {
+        "a": 0,
+        "b": 0,
+        "output_i64": "1",
+        "native_call_count": 1
+      },
+      {
+        "a": 20,
+        "b": 21,
+        "output_i64": "42",
+        "native_call_count": 2
+      },
+      {
+        "a": -40,
+        "b": -3,
+        "output_i64": "-42",
+        "native_call_count": 3
+      },
+      {
+        "a": 2147483647,
+        "b": 2147483647,
+        "output_i64": "4294967295",
+        "native_call_count": 4
+      },
+      {
+        "a": 20,
+        "b": 21,
+        "output_i64": "42",
+        "native_call_count": 5
+      }
+    ],
+    "memory_bytes_after_checks": 1245184
+  },
+  "wasm_unknown_unknown_scope": "Actual execution in Node, not a browser page. Artifact includes compiler, VM and Rust bindings.",
+  "esp32c3": {
+    "target": "riscv32imc-unknown-none-elf",
+    "original_version_build": "failed: Arc/CAS dependencies",
+    "compatibility_copy": "nightly plus portable Arc and feature adjustments; ELF linked, no device execution",
+    "opt_level": "z",
+    "lto": true,
+    "codegen_units": 1,
+    "panic": "abort",
+    "heap_backing_bytes_in_both": 204800,
+    "esp_hal_version": "1.1.0",
+    "baseline": {
+      "esp_app_image_bytes": 67472,
+      "esp_app_image_sha256": "2a8d7ca9af82f552d4adb1ec8bddf691e8161a407c6550a227efa1170591100a",
+      "alloc_progbits_payload_bytes": 4024
+    },
+    "with_rune": {
+      "esp_app_image_bytes": 470336,
+      "esp_app_image_sha256": "972362d9fc05e96a5594959d0de63d4807b19e8bca962dc463d8078f8385537c",
+      "alloc_progbits_payload_bytes": 438790
+    },
+    "comparison": {
+      "alloc_progbits_payload_delta": 434766,
+      "esp_app_image_delta": 402864,
+      "sections": {
+        ".data": {
+          "baseline": 32,
+          "rune": 488,
+          "delta": 456
+        },
+        ".bss": {
+          "baseline": 209052,
+          "rune": 209064,
+          "delta": 12
+        },
+        ".stack": {
+          "baseline": 109560,
+          "rune": 109092,
+          "delta": -468
+        },
+        ".text": {
+          "baseline": 1868,
+          "rune": 404718,
+          "delta": 402850
+        },
+        ".rodata": {
+          "baseline": 0,
+          "rune": 31460,
+          "delta": 31460
+        }
+      }
+    },
+    "scope": "Application image with segment headers/alignment; excludes external bootloader and partition table. Static heap backing is not measured runtime demand."
+  }
+}

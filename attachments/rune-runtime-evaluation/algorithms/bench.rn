@@ -1,0 +1,60 @@
+fn mix(n, seed) {
+    let x = seed;
+    let acc = 0;
+    let i = 0;
+    while i < n {
+        x = (25173 * x + 13849) % 65536;
+        acc = (acc + x) % 1000000007;
+        i += 1;
+    }
+    acc
+}
+
+fn fibonacci(n) {
+    if n < 2 { return n; }
+    fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+fn sort(n, seed) {
+    let values = [];
+    let x = seed;
+    let i = 0;
+    while i < n {
+        x = (25173 * x + 13849) % 65536;
+        values.push(x);
+        i += 1;
+    }
+    i = 1;
+    while i < n {
+        let value = values[i];
+        let j = i;
+        while j > 0 && values[j - 1] > value {
+            values[j] = values[j - 1];
+            j -= 1;
+        }
+        values[j] = value;
+        i += 1;
+    }
+    let checksum = 0;
+    i = 0;
+    while i < n {
+        checksum = (checksum + (i + 1) * values[i]) % 1000000007;
+        i += 1;
+    }
+    checksum
+}
+pub fn batch(which, n, seed, reps) {
+    let checksum = 0;
+    let rep = 0;
+    while rep < reps {
+        let s = (seed + rep * 17) % 65536;
+        let value = match which {
+            0 => mix(n, s),
+            1 => fibonacci(n + s % 3),
+            _ => sort(n, s),
+        };
+        checksum = (checksum + value) % 1000000007;
+        rep += 1;
+    }
+    checksum
+}

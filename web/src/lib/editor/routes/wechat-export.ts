@@ -14,6 +14,8 @@ import rehypeRaw from 'rehype-raw';
 import rehypeKatex from 'rehype-katex';
 import rehypeStringify from 'rehype-stringify';
 import remarkSticker from '~/lib/markdown/remark-sticker';
+import remarkAttachments from '~/lib/markdown/remark-attachments';
+import attachmentOptions from 'virtual:attachments/config';
 import remarkMdxToHtml from '~/lib/markdown/remark-mdx-to-html';
 import remarkJsxSsr from '~/lib/markdown/remark-jsx-ssr';
 import rehypeBase64Embed from '~/lib/markdown/rehype-base64-embed';
@@ -44,6 +46,7 @@ function createWechatProcessor(slug: string, postDir: string) {
     .use(remarkMdx)
     .use(remarkGfm)
     .use(remarkSticker)
+    .use(remarkAttachments, { ...attachmentOptions, absoluteUrls: true })
     .use(remarkMath)
     .use(remarkJsxSsr, { postDir })
     .use(remarkMdxToHtml)

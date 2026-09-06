@@ -5,10 +5,13 @@
  * - Required frontmatter fields (title, description, pubDate)
  * - Internal link references (/blog/... URLs map to existing posts)
  * - Local image references point to existing files
+ * - Attachment links in Markdown/MDX and thought content resolve to root files
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs'
 import { join, dirname, relative } from 'path'
+import { fileURLToPath } from 'node:url'
+import { validateAttachmentContentFiles } from '~/lib/attachments/validate'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -20,6 +23,7 @@ export interface ContentViolation {
 // ── Core functions ─────────────────────────────────────────────────────────
 
 const REQUIRED_FIELDS = ['title', 'description', 'pubDate']
+const SCRIPT_DIRECTORY = dirname(fileURLToPath(import.meta.url))
 
 /**
  * Validate that required frontmatter fields are present.
@@ -164,7 +168,7 @@ function getPostSlugs(postsDir: string): string[] {
 // ── CLI entry point ────────────────────────────────────────────────────────
 
 if (import.meta.main) {
-  const postsDir = join(import.meta.dir, '..', '..', 'posts')
+  const postsDir = join(SCRIPT_DIRECTORY, '..', '..', 'posts')
 
   if (!existsSync(postsDir)) {
     console.error(`Error: posts directory not found at ${postsDir}`)
@@ -196,6 +200,15 @@ if (import.meta.main) {
       ...validateInternalLinks(relPath, content, allSlugs),
       ...validateLocalImages(relPath, content),
     )
+  }
+
+  try {
+    await validateAttachmentContentFiles(
+      { directory: join(SCRIPT_DIRECTORY, '..', '..', 'attachments') },
+      { postsDirectory: postsDir, thoughtsDirectory: join(SCRIPT_DIRECTORY, '..', '..', 'thoughts') },
+    )
+  } catch (error) {
+    violations.push({ file: 'attachments', issue: error instanceof Error ? error.message : String(error) })
   }
 
   if (violations.length === 0) {

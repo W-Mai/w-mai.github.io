@@ -1,0 +1,267 @@
+---
+title: 'Rune 0.14.2 运行时评估：性能、内存、预编译与跨平台验证'
+description: '基于可核查的实验数据，比较 Rune 与 C、C++、Rust、Lua 和 JavaScript 的执行性能，分析宿主绑定、内存分配、程序序列化、WebAssembly 与 ESP32-C3 适配边界。'
+pubDate: '2026-09-06T02:01+08:00'
+tags: ['rust', 'rune', 'benchmark', 'webassembly', 'embedded', 'esp32-c3']
+category: '代码'
+---
+
+本次实验对 Rune 0.14.2 进行了五方面验证：算法执行性能、Rust 宿主绑定、运行内存、预编译程序的保存与装载，以及 WebAssembly 和 ESP32-C3 的目标支持。实验于 2026 年 9 月 5 日完成，本文记录测试条件、实际结果与结论的适用范围。
+
+结果表明，Rune 能够完成 Rust 类型和函数绑定，并在 WebAssembly 中编译、执行脚本。部分简单程序可以在初始化后复用执行缓冲，连续调用时不产生新的堆分配。不过，三个算法样例的 VM 执行时间均明显高于原生 Rust；程序序列化存在版本相关问题；ESP32-C3 需要额外适配，当前证据止于固件链接。
+
+这些结果支持将 Rune 作为可嵌入的逻辑执行层，但不足以证明任意脚本具备零分配、跨平台程序格式兼容或实时执行保证。
+
+### 实验对象与测量方法
+
+所有 Rune 实验固定使用发布版 **0.14.2**。桌面与 WebAssembly 实验没有修改 Rune 源码；ESP32-C3 的原版失败和兼容副本结果分别记录，不混合为同一个支持结论。
+
+| 项目 | 配置 |
+| --- | --- |
+| 桌面硬件 | Apple M1 Pro，10 个逻辑核心，32 GiB 内存 |
+| 操作系统 | macOS 27.0，arm64 |
+| C / C++ | clang 22.1.8，`-O3` |
+| Rust | `1.95.0-nightly (57d2fb136 2026-02-01)`，`opt-level=3` |
+| Rune 算法程序 | 0.14.2，关闭默认 feature，开启 `std`、`emit`，`opt-level=3` |
+| Rune 指令存储 | 默认 `ArrayUnit`，未开启 `byte-code` feature |
+| Lua / LuaJIT | Lua 5.5.0 / LuaJIT 2.1.1781602682 |
+| JavaScript | Node 22.2.0 / Bun 1.3.14 |
+
+算法基准没有额外启用本机 CPU 专属优化、LTO 或 fast-math。C3 固件使用另一套面向尺寸的构建配置，后文单独说明。
+
+三个工作负载使用相同的输入生成规则和算法定义：
+
+| 工作负载 | 测试内容 | 单次规模 |
+| --- | --- | --- |
+| 整数循环 | 线性同余生成数值，逐项累加并取模 | 10,000 次迭代 |
+| 递归 Fibonacci | 直接递归，无手写记忆化 | 输入为 17、18 或 19 |
+| 插入排序 | 生成数组、升序排序、计算加权校验值 | 128 个元素 |
+
+各实现保留语言通常采用的数值和容器表示。C、C++、Rust 的排序数组使用 32 位无符号整数；Lua 使用普通 table；JavaScript 使用普通 Array；Rune 使用动态数组。排序测量包括数组创建、填充和排序。自然发生在计时区间内的垃圾回收也计入时间，但不强制在区间结束前回收所有对象。
+
+因此，这是一组采用相同算法的具体实现比较，包含容器和运行时成本，不能解释为排除了表示差异的纯指令分派测试。
+
+正式采样前，14 组边界及普通输入分别在 8 个引擎上执行，共 **112 次校验通过**。正式测试使用以下协议：
+
+1. 每个样本启动独立进程，先完成初始化。
+2. 执行 5 个完整预热批次，每批运行算法 128 次。
+3. 使用进程内部的单调时钟，计时接下来的一个批次。
+4. 每个引擎、每项算法采集 9 个样本，共 216 个样本。
+5. 使用固定随机种子打乱采样顺序，并检查每个样本的结果校验值。
+
+表中统计量是**九个批次平均耗时的中位数**：先将每个批次的耗时除以 128，再对九个结果取中位数。它不是单次调用延迟的中位数，也不是 p99。
+
+计时不包括进程启动、参数解析、模块加载、Rune 的解析编译、Context 注册、预热和结果输出。Rune 使用一次 `Vm::call` 执行整个批次，调用边界成本被 128 次算法分摊；本实验没有单独测量一次 Rust↔Rune 调用的固定开销。
+
+### 算法性能结果
+
+单位为微秒/次算法，数值越小越好。
+
+| 引擎 | 整数循环 | 递归 Fibonacci | 插入排序 |
+| --- | ---: | ---: | ---: |
+| C | 26.48 | 8.52 | 2.98 |
+| C++ | 26.29 | 8.51 | 2.91 |
+| Rust | 25.87 | 8.64 | 2.82 |
+| Lua 5.5 | 222.86 | 172.25 | 111.82 |
+| LuaJIT 2.1 | 67.45 | 16.53 | 6.99 |
+| JavaScript / Node | 36.46 | 26.86 | 7.25 |
+| JavaScript / Bun | 38.95 | 13.67 | 5.90 |
+| Rune 0.14.2 | 719.88 | 531.07 | 625.55 |
+
+按未舍入的数据计算，Rune 相对 Rust 的耗时分别约为 **27.8 倍、61.5 倍和 222.1 倍**。这三个倍率只描述上述程序、输入规模和构建配置，不是 Rune 与 Rust 的通用性能比。
+
+排序的差距尤其明显，但仅凭总耗时无法将其归因到某一项实现机制。动态值表示、容器访问、索引检查、分配和指令执行都可能参与成本；确认各自贡献需要进一步剖析或控制变量实验。
+
+预编译不会自动消除这些执行成本。基准已将 Rune 编译移出计时区间，测量的仍然是 VM 执行程序所需的时间。把编译提前到构建阶段，可以减少部署端解析和编译的工作，但不会使既有 VM 程序自动变成原生机器码。
+
+在这组结果下，较合理的职责划分是让脚本组织条件分支、状态转换和宿主操作，把大规模数值循环与批量数据处理交给 Rust 函数。是否满足某个应用的延迟要求，仍应测量实际脚本及其宿主调用链。
+
+**样本波动也是结果的一部分。** Rune 三项样本的变异系数约为 0.6%–1.1%；Lua 整数循环约为 62.8%，LuaJIT 整数循环和 C++ 排序也有明显波动。变异系数按九个批次均值的样本标准差除以平均值计算。本文未删除离群样本，也未将其解释为已经证实的 GC 或 JIT 行为；这些数据不足以支持相近数值之间的精细排名。
+
+正式数据在所有实验构建停止后采集。此前另有一组完整采样，其与最后一次编译是否重叠当时尚未确认，因此按相同协议完整重跑，而非选择性补测成绩较差的样本。两组数据都附在文末。
+
+测试未绑定 CPU 核心、锁定频率或隔离系统后台活动；有限预热也不保证所有 JIT 优化阶段都已稳定。桌面结果不能换算为 ESP32-C3 的执行时间。
+
+### Rust 绑定与运行语义
+
+Rune 提供了注册 Rust 类型、函数和实例方法的接口。实测中，自定义类型构造、字段读取和修改、可变实例方法、自定义返回值，以及 `Result` 和脚本 `?` 的成功与错误传播均通过。
+
+以下代码展示测试中使用的类型和方法声明：
+
+```rust
+use rune::{Any, ContextError, Module};
+
+#[derive(Any)]
+#[rune(constructor)]
+pub struct Point {
+    #[rune(get, set, copy)]
+    pub x: i64,
+    #[rune(get, set, copy)]
+    pub y: i64,
+}
+
+impl Point {
+    #[rune::function]
+    fn translate(&mut self, dx: i64, dy: i64) {
+        self.x += dx;
+        self.y += dy;
+    }
+}
+
+pub fn point_module() -> Result<Module, ContextError> {
+    let mut module = Module::new();
+    module.ty::<Point>()?;
+    module.function_meta(Point::translate)?;
+    Ok(module)
+}
+```
+
+这段代码只展示声明与注册；实际运行还需要将 Module 安装进 Context，再构建 RuntimeContext 和 VM。普通函数同样可以用 `module.function(...).build()?` 注册。本文评估了接入方式和功能行为，没有据此给出绑定调用的性能结论。
+
+共享和借用语义需要单独理解。两个 VM 可以共享同一个 `Arc<Unit>`，同时使用各自创建的状态对象。将测试中宿主对象对应的 `Value::clone()` 交给另一个 VM 后，修改会作用于同一对象；这里的克隆不是状态深复制。闭包也可以捕获并继续持有状态对象。
+
+当 Rust 端持有对象的只读借用 guard 时，脚本中的可变访问被拒绝；释放 guard 后，同一 VM 可以继续调用。该检查发生在运行时，不能等同于 Rust 编译器对脚本完成了静态借用检查。[1]
+
+错误恢复与事务语义也不同。测试分别在宿主方法写入、脚本字段写入之后触发类型错误或耗尽指令预算，已有写入均被保留。VM 后续能够继续调用，但没有自动回滚状态。保存并重新装载 Unit 后创建的闭包也能够执行；这验证的是程序装载，不是活动 VM 对象或闭包状态的快照恢复。
+
+如果宿主要求操作失败后状态保持不变，就需要额外的暂存、校验和提交机制。指令预算只能约束脚本执行所经过的预算检查，不能代替对宿主函数耗时和副作用的约束。
+
+### 内存测量：驻留量、瞬时需求与分配次数
+
+内存实验与性能实验使用不同构建：**64 位桌面目标、debug 配置、Rune 开启 `std`**。测量器包装 Rust `GlobalAlloc`，统计成功分配请求的 `Layout.size`，并在计量窗口外输出结果。分配、清零分配、重分配和释放路径经过独立校准。
+
+下文的「堆驻留」指尚未释放的请求字节数，不包含栈、分配器元数据、尺寸分级浪费、碎片、直接 libc 分配或映射内存，也不等于进程 RSS。这里没有 ESP32-C3 真机内存数据。
+
+默认标准模块与最小执行实例的成本差异很大。`Context::with_config(false)` 不注册默认的 `dbg`、`print`、`println` 输出函数，但仍会注册标准模块；其构造阶段驻留 **1,773,360 B**，相对窗口开始的新增活跃请求峰值为 **1,842,035 B**。这些是 Context 的成本，不能直接称为纯 VM 的内存需求。
+
+另一个最小程序只执行整数运算、循环和 `host_add`。实验先编译它，销毁编译 Context 和 Sources，再创建只注册实际宿主导入的 RuntimeContext。注册时的临时对象被销毁后，预热调用留下以下堆驻留：
+
+| 部分 | 请求驻留字节数 |
+| --- | ---: |
+| Unit 及其 Arc，含该程序调试信息 | 3,710 |
+| RuntimeContext、Arc 与共享宿主 handler | 448 |
+| VM 执行缓冲 | 128 |
+| 合计 | **4,286** |
+
+最后分别销毁 VM、Unit 和 RuntimeContext 后，计数回到这一实验阶段开始时的基线，从而确认上述对象的归属范围。4,286 B 只适用于这个小程序，既不是 Rune 的固定开销，也不包含代码和栈。
+
+分配次数的对照进一步说明了限制条件：
+
+| 路径 | 实测分配 |
+| --- | --- |
+| 最小标量程序预热后连续调用 100 次 | 0 次新增分配 |
+| 每次构造两个 Point，重复 100 次 | 200 次分配，累计请求 8,000 B |
+| 一次借用冲突错误 | 3 次分配，528 B |
+| 一次指令预算耗尽错误 | 1 次分配，112 B |
+
+热路径没有新分配，不代表构造、错误处理和容量扩张路径也满足同一条件。有限次数的成功调用只能提供观测证据，无法证明任意输入下都不分配。
+
+程序装载还有单独的瞬时需求。一份去除调试信息后的绑定测试程序，CBOR 文件大小为 **5,066 B**；反序列化窗口的新增活跃请求峰值为 **46,048 B**。该窗口开始前，5,066 B 的输入缓冲已经读入，所以 46,048 B 不是整个装载过程的总峰值。反序列化结束保留 9,539 B，随后创建 Unit Arc 又请求 240 B。
+
+文件大小、解码期间新增峰值、解码后的驻留量和调用时的分配量，应分别报告。对于资源受限设备，把编译器放在构建工具或功能更强的宿主上，再按需装载程序，是值得验证的方案；该分工仍不能省略设备端解码和执行内存的测量。
+
+### 预编译程序的保存与装载
+
+Rune 可以将源码编译为 Unit，再交给 VM 执行。本文所称的「预编译」，是提前生成 VM 程序，不是生成原生机器码，也不是 LLVM bitcode。[2]
+
+```mermaid
+flowchart LR
+    S[Rune 源码] --> C[Rune 编译器]
+    C --> U[Unit 程序]
+    U --> E[序列化]
+    E --> F[程序文件]
+    F --> D[反序列化]
+    D --> V[Rune VM]
+    V --> H[已注册的 Rust 宿主函数]
+```
+
+本次使用默认 ArrayUnit。其他指令存储配置没有纳入基准与装载对照，因此本文不评价其速度或体积。
+
+序列化并没有因 Unit 实现了 Serde 接口而自动获得可用的往返能力：
+
+| 方案 | Rune 0.14.2 实测结果 |
+| --- | --- |
+| bincode 1.3.3 | 编码失败，`SequenceMustHaveLength` |
+| serde_yaml 0.9.34 | 编码成功，指令反序列化因 enum 表示限制失败 |
+| serde_json 1.0.150 | 默认 Unit 编码成功，解码报 `missing field type` |
+| serde_cbor 0.11.2 | 默认 Unit 编码成功，解码报 `missing field type` |
+| 显式去除调试信息后使用 CBOR | 本次标量与宿主绑定程序保存、读回、解码、执行均通过 |
+
+其中一项问题可以缩小到与 VM 无关的 `ItemBuf` 往返：
+
+```rust
+let item = rune::ItemBuf::with_item(["entry"])?;
+let bytes = serde_json::to_vec(&item)?;
+let loaded: Result<rune::ItemBuf, _> = serde_json::from_slice(&bytes);
+```
+
+编码得到 `[{"Str":"entry"}]`，随即解码却报告缺少 `type` 字段。固定版本源码显示，序列化路径使用借用形式 `ComponentRef`，反序列化路径读取拥有形式 `Component`；后者设置了 `#[serde(rename_all = "snake_case", tag = "type")]`，前者没有对应设置。[3][4][5]
+
+Unit 的调试路径和脚本自定义类型的运行时类型信息都会包含这类 Item。实验中仅设置 `Options::debug_info(false)` 没有移除实际 Unit 的调试信息；使用公开 API 显式构造不含 debug 的 Unit，才绕过了所测程序中的调试路径问题：
+
+```rust
+use rune::alloc::clone::TryClone;
+
+let executable = rune::Unit::from_parts(unit.logic().try_clone()?, None)?;
+```
+
+这是特定程序的绕行方式，不是完整修复。脚本自定义 struct 的类型信息仍会触发同类问题。去除 debug 后的 JSON 还遇到函数 hash map 的字符串键与 `u64` 反序列化要求不匹配。bincode 对未知长度映射或序列也有限制，不能仅靠去掉 debug 就推定可用。
+
+CBOR 成功样例中的 Rust 自定义宿主类型不应与脚本自定义 struct 混淆：前者由宿主注册，后者涉及上述程序类型信息。另一个负例表明，同一 Unit 在缺少所需宿主模块时会调用失败。**程序文件不包含被绑定的 Rust 机器码，也不能脱离相应宿主 API 自行运行。**
+
+跨位宽装载也有独立问题。在 64 位宿主生成的算法 Unit，即使去掉 debug，装入 32 位 VM 时仍因数值 `18446744073709551615` 无法表示为 `usize` 而失败。改为在 `wasm32-wasip1` 编译同一程序后，同位宽的保存、装载和执行通过。
+
+这组 32 位实验运行在 **Node 的 WASI preview1 环境**。其中一个 344 B 的最小 Unit 经装载后调用 `native_add(1, 2)`，返回 3。它证明了一条特定配置下可用的预编译路径，没有证明任意架构、版本或语言构造之间的格式兼容。
+
+要将这类文件用作长期分发格式，需要明确 Rune 版本、指令存储、目标位宽和宿主 API 契约，并验证调试信息、常量、类型信息及错误输入。当前 CBOR 成功样例不能直接充当稳定格式规范。
+
+### WebAssembly 与 ESP32-C3 的验证范围
+
+**WebAssembly 有两组不同实验。** 前文的 Unit 跨位宽实验使用 `wasm32-wasip1` 和 Node WASI；另一组使用 `wasm32-unknown-unknown` 构建 `cdylib`，在 Node 22.2.0 中由标准 WebAssembly API 实例化。
+
+后一组模块的 imports 列表为空，没有提供 WASI。模块内部创建 Context、编译脚本，然后由 Rune VM 调用同一 Wasm 模块内的 Rust `native_add`。脚本在相加结果上再加 1，五组输出依次为 1、42、−42、4,294,967,295、42，宿主函数的调用计数也逐次符合预期。
+
+原始 Wasm 文件为 **2,311,707 B**，包含编译器、VM 与绑定；该数字不是纯解释器尺寸，也不是压缩后的下载大小。五次检查后的线性内存容量为 1,245,184 B，它表示已经分配的 Wasm 页容量，不表示活跃堆、堆峰值或净泄漏。
+
+这证明了该配置在无 WASI imports 的 WebAssembly 环境中能够执行。实验没有在 Chrome、Firefox 或 Safari 页面里运行，也没有验证 DOM、浏览器事件循环或 Rune 调用 JavaScript imports。
+
+**ESP32-C3 的原版构建失败。** 关闭 Rune 默认 feature、只开启 `alloc` 后，`riscv32imc-unknown-none-elf` 的 check 和 release build 均在实际编译阶段遇到 Arc/CAS 依赖问题。该目标没有标准 Arc 所需的原子读改写支持；这不等于目标完全没有原子加载和存储能力。Rune 本体的 VM 和 Unit 使用标准 alloc Arc，依赖链中的 serde、once_cell 等也需要相应条件。[6]
+
+局部兼容副本完成了以下调整：将相关标准 Arc 使用改为 `portable-atomic-util::Arc`，调整 Serde 与原子相关 feature，关闭意外引入的 `std`，并使用 nightly 的 unsized coercion 和自定义 receiver 支持。library 探针使用 critical-section 后端；固件则沿用 ESP HAL 的单核原子后端，两者不能同时开启。
+
+适配继续使用标准 RV32IMC target 及 Arc 引用计数。新增的源码与依赖配置仍需维护，不能表述为原版开箱支持；实验也未验证这套适配能在 stable 编译器上成立。
+
+兼容固件已链接为 ELF 并生成 ESP 应用镜像。镜像含上述经 WASI32 验证的 344 B Unit、装载代码、VM 和宿主调用，符号检查确认解释器及宿主调用适配代码没有被链接器移除。尺寸对照使用相同 ESP HAL 1.1.0、启动代码、分配器和 200 KiB 静态堆缓冲，配置为 `opt-level="z"`、LTO、单个 codegen unit、panic abort。
+
+| 口径 | 无 Rune 基线 | 加入 Rune 的固件 | 增量 |
+| --- | ---: | ---: | ---: |
+| ESP 应用镜像，含段头与 Flash 对齐 | 67,472 B | 470,336 B | **402,864 B** |
+| ELF 中带 SHF_ALLOC 标志的 PROGBITS 节的 payload | 4,024 B | 438,790 B | 434,766 B |
+| 静态 `.data + .bss` | 209,084 B | 209,552 B | 468 B |
+
+应用镜像增量约为 **393.42 KiB**，包含本次引入的 VM、装载器、绑定、程序和相关支持代码，不是核心解释器的单独大小。镜像不含独立 bootloader 和分区表。段头与对齐会使镜像差量不同于 ELF payload 差量，也不能将 ELF 文件长度直接当作 Flash 占用。
+
+双方预留的 200 KiB 堆缓冲只是测试配置，不是测得的运行需求；静态数据增加 468 B 也不等于运行 RAM 只增加这些。**本实验没有烧录或运行 ESP32-C3**，因此其实际堆峰值、最大栈深度、内存不足行为、中断延迟与执行时间仍未确定。WASI32 的成功调用不能代替 C3 真机验证。
+
+### 选型时可以采用的结论
+
+Rune 的类型和函数注册机制能够支持较直接的 Rust 集成，源码编译与 VM 执行也已在桌面及两种 Wasm 配置中取得实际结果。对于需要脚本控制流程、而主要计算已经由 Rust 承担的场景，这些能力值得进一步评估。
+
+性能与资源保证则必须建立在具体程序和配置上。三个算法样例提示了明显的解释执行成本；最小实例的热调用零分配不能覆盖对象构造和错误路径；Unit 的 Serde 实现也不能代替稳定的程序格式。ESP32-C3 的适配结果目前只证明可编译、可链接，没有完成运行验收。
+
+后续评估应使用真实调用负载，分别测量初始化、装载、稳定运行和失败处理的时间与内存，再决定宿主接口、脚本能力范围及资源限制。现有数据不支持用一个性能倍率或一个内存数字概括 Rune 的全部使用成本。
+
+### 数据、算法与源码依据
+
+随文附件提供正式 [216 条性能样本](attachment:rune-runtime-evaluation/algorithm-samples.csv)、此前的 [216 条完整采样](attachment:rune-runtime-evaluation/preliminary-samples.csv)、[统计汇总](attachment:rune-runtime-evaluation/algorithm-summary.csv)、[实验配置](attachment:rune-runtime-evaluation/experiment-config.json)、[分配计数](attachment:rune-runtime-evaluation/allocation-phases.json)和[目标平台结果](attachment:rune-runtime-evaluation/targets.json)。附件仅保留与实验有关的字段；算法统计未删除或修改测量值。
+
+批次输入生成、校验规则与六份算法源文件列于[附件说明](attachment:rune-runtime-evaluation/README.md)。这些材料用于检查本文数值和算法定义，不是一份包含全部工具链、兼容补丁和运行环境的一键复现包。
+
+源码依据固定在 Rune 0.14.2，链接说明实现与接口，本文性能和内存数字来自本次实验：
+
+1. [Rune VM 实现](https://github.com/rune-rs/rune/blob/0.14.2/crates/rune/src/runtime/vm.rs)。
+2. [Unit 定义与程序存储](https://github.com/rune-rs/rune/blob/0.14.2/crates/rune/src/runtime/unit.rs)。
+3. [Item 的 Serde 实现](https://github.com/rune-rs/rune/blob/0.14.2/crates/rune-core/src/item/serde.rs)。
+4. [借用形式 ComponentRef](https://github.com/rune-rs/rune/blob/0.14.2/crates/rune-core/src/item/component_ref.rs)。
+5. [拥有形式 Component](https://github.com/rune-rs/rune/blob/0.14.2/crates/rune-core/src/item/component.rs)。
+6. [Rune feature 与依赖配置](https://github.com/rune-rs/rune/blob/0.14.2/crates/rune/Cargo.toml)。

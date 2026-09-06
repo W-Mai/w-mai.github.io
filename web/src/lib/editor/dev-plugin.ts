@@ -71,6 +71,10 @@ export default function editorDevIntegration(): AstroIntegration {
           entrypoint: './src/lib/editor/routes/assets/[name].ts',
         });
         injectRoute({
+          pattern: '/api/editor/attachments',
+          entrypoint: './src/lib/editor/routes/attachments.ts',
+        });
+        injectRoute({
           pattern: '/api/editor/ai',
           entrypoint: './src/lib/editor/routes/ai/transform.ts',
         });

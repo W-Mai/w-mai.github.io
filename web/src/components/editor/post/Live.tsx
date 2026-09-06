@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef, type FC } from 'react';
 import AssetPanel from './panels/Asset';
+import AttachmentPanel from './panels/Attachment';
+import PostAttachments from './panels/PostAttachments';
+import { invalidateAttachmentCache } from '~/lib/editor/attachments';
 import StickerPanel from '~/components/editor/shared/StickerPanel';
 import ImageGenPanel from './panels/ImageGen';
 import PostList from './PostList';
@@ -69,13 +72,16 @@ const LiveEditor: FC = () => {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
 
-  const [sidebarTab, setSidebarTab] = useState<'posts' | 'assets'>(() => {
-    return (restoreEditorState('sidebarTab') as 'posts' | 'assets') || 'posts';
+  const [sidebarTab, setSidebarTab] = useState<'posts' | 'assets' | 'attachments'>(() => {
+    const saved = restoreEditorState('sidebarTab');
+    return saved === 'assets' || saved === 'attachments' ? saved : 'posts';
   });
   const [scrollRatio, setScrollRatio] = useState(0);
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [filePanelClosing, setFilePanelClosing] = useState(false);
   const [assetRefreshKey, setAssetRefreshKey] = useState(0);
+  const [attachmentRefreshKey, setAttachmentRefreshKey] = useState(0);
+  const [showPostAttachments, setShowPostAttachments] = useState(false);
   const [gitPending, setGitPending] = useState<{ slug: string; title: string; files: string[]; action: 'add' | 'update' | 'delete' }[]>([]);
   const [gitCommitting, setGitCommitting] = useState(false);
   const [showGitModal, setShowGitModal] = useState(false);
@@ -106,6 +112,29 @@ const LiveEditor: FC = () => {
       setFilePanelClosing(false);
     }, 200);
   }, []);
+
+  const handleAttachmentsChanged = useCallback(() => {
+    invalidateAttachmentCache();
+    setAttachmentRefreshKey((key) => key + 1);
+    setState((current) => ({ ...current, previewKey: current.previewKey + 1 }));
+  }, []);
+
+  useEffect(() => {
+    if (!import.meta.hot) return;
+    import.meta.hot.on('attachments:updated', handleAttachmentsChanged);
+    return () => import.meta.hot?.off('attachments:updated', handleAttachmentsChanged);
+  }, [handleAttachmentsChanged]);
+
+  const handleInsertAttachment = useCallback((markdown: string) => {
+    if (!state.selectedSlug || !editorRef.current) {
+      setState((current) => ({ ...current, error: '请先选择文章再插入附件链接' }));
+      return;
+    }
+    editorRef.current.insertText(markdown);
+    setShowPostAttachments(false);
+    if (showFilePanel) closeFilePanel();
+    requestAnimationFrame(() => editorRef.current?.getView()?.focus());
+  }, [state.selectedSlug, showFilePanel, closeFilePanel]);
 
   // Register sticker picker callback for autocomplete integration
   useEffect(() => {
@@ -220,6 +249,7 @@ const LiveEditor: FC = () => {
   }, [state.selectedSlug]);
 
   const selectPost = useCallback(async (slug: string) => {
+    setShowPostAttachments(false);
     setState((s) => ({ ...s, isLoading: true, error: null }));
     try {
       const res = await fetch(`/api/editor/posts/${slug}`);
@@ -880,7 +910,16 @@ const LiveEditor: FC = () => {
 
         {/* Toolbar */}
         {state.selectedSlug && (
-          <Toolbar editorView={editorRef.current?.getView() ?? null} activeFormats={activeFormats} onStickerOpen={() => setShowStickerPanel(true)} onImageRailToggle={() => setShowImageRail((v) => !v)} imageRailOpen={showImageRail} onWechatExport={() => setShowWechatExport(true)} />
+          <Toolbar
+            editorView={editorRef.current?.getView() ?? null}
+            activeFormats={activeFormats}
+            onStickerOpen={() => setShowStickerPanel(true)}
+            onImageRailToggle={() => setShowImageRail((v) => !v)}
+            imageRailOpen={showImageRail}
+            onAttachmentsOpen={() => setShowPostAttachments(true)}
+            attachmentsOpen={showPostAttachments}
+            onWechatExport={() => setShowWechatExport(true)}
+          />
         )}
 
         {/* Editor + Preview split */}
@@ -1028,6 +1067,19 @@ const LiveEditor: FC = () => {
         />
       )}
 
+      {state.selectedSlug && (
+        <PostAttachments
+          slug={state.selectedSlug}
+          title={state.posts.find((post) => post.slug === state.selectedSlug)?.title ?? state.selectedSlug}
+          isOpen={showPostAttachments}
+          canInsert={!state.isLoading}
+          refreshKey={attachmentRefreshKey}
+          onClose={() => setShowPostAttachments(false)}
+          onInsert={handleInsertAttachment}
+          onChanged={handleAttachmentsChanged}
+        />
+      )}
+
       {/* File Panel Overlay */}
       {showFilePanel && (
         <div
@@ -1049,7 +1101,7 @@ const LiveEditor: FC = () => {
             className={`editor-panel${filePanelClosing ? ' closing' : ''}`}
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: '840px', maxWidth: '92vw', height: '70vh',
+              width: '840px', maxWidth: '92vw', height: sidebarTab === 'attachments' ? '82dvh' : '70vh', maxHeight: '90dvh',
               background: T.colorBg, borderRadius: '3rem',
               boxShadow: '16px 16px 32px var(--neu-shadow-dark), -16px -16px 32px var(--neu-shadow-light), 32px 32px 64px var(--neu-shadow-dark), -32px -32px 64px var(--neu-shadow-light)',
               display: 'flex', flexDirection: 'column',
@@ -1058,17 +1110,17 @@ const LiveEditor: FC = () => {
           >
             {/* Panel header */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: T.spacingLg,
-              padding: '2rem',
+              display: 'flex', alignItems: 'center', gap: T.spacingLg, flexWrap: 'wrap',
+              padding: 'clamp(1rem, 4vw, 2rem)',
             }}>
               {/* Neumorphism tab switcher */}
               <div style={{
-                flex: 1, display: 'flex', gap: T.spacingSm,
+                flex: '1 1 18rem', minWidth: 0, overflowX: 'auto', display: 'flex', gap: T.spacingSm,
                 background: T.colorBg, borderRadius: T.radiusLg,
                 padding: '10px',
                 boxShadow: T.shadowInset,
               }}>
-                {(['posts', 'assets'] as const).map((tab) => (
+                {(['posts', 'assets', 'attachments'] as const).map((tab) => (
                   <button
                     key={tab}
                     className={sidebarTab !== tab ? 'editor-btn' : ''}
@@ -1078,14 +1130,14 @@ const LiveEditor: FC = () => {
                       background: sidebarTab === tab ? T.colorBg : 'transparent',
                       border: 'none', borderRadius: T.radiusSm,
                       fontSize: T.fontSizeMd, fontWeight: 600,
-                      letterSpacing: '0.02em',
+                      letterSpacing: '0.02em', whiteSpace: 'nowrap',
                       color: sidebarTab === tab ? T.colorText : T.colorTextMuted,
                       cursor: 'pointer',
                       boxShadow: sidebarTab === tab ? T.shadowBtn : 'none',
                       transition: `all 0.25s ease`,
                     }}
                   >
-                    {tab === 'posts' ? '📝 Posts' : '🖼 Assets'}
+                    {tab === 'posts' ? '📝 Posts' : tab === 'assets' ? '🖼 Assets' : '📎 全局附件'}
                   </button>
                 ))}
               </div>
@@ -1112,9 +1164,10 @@ const LiveEditor: FC = () => {
               <button
                 className="editor-btn"
                 onClick={() => closeFilePanel()}
+                aria-label="关闭文件面板"
                 style={{
                   background: T.colorBg, border: 'none', borderRadius: T.radiusMd,
-                  cursor: 'pointer', color: T.colorTextMuted, fontSize: T.fontSizeLg,
+                  cursor: 'pointer', color: T.colorTextMuted, fontSize: T.fontSizeLg, marginLeft: 'auto',
                   width: '2.25rem', height: '2.25rem',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
@@ -1129,7 +1182,7 @@ const LiveEditor: FC = () => {
             {/* Panel body */}
             <div style={{
               flex: 1, minHeight: 0, overflow: 'hidden',
-              padding: `0 2rem 2rem`,
+              padding: '0 clamp(1rem, 4vw, 2rem) clamp(1rem, 4vw, 2rem)',
             }}>
               <div style={{
                 background: T.colorBg, borderRadius: T.radiusLg,
@@ -1143,8 +1196,16 @@ const LiveEditor: FC = () => {
                     onSelect={selectPost}
                     onDelete={deletePost}
                   />
-                ) : (
+                ) : sidebarTab === 'assets' ? (
                   <AssetPanel aiEnabled={aiEnabled} refreshKey={assetRefreshKey} onInsert={handleInsertAsset} />
+                ) : (
+                  <AttachmentPanel
+                    scope={{ kind: 'global' }}
+                    canInsert={Boolean(state.selectedSlug) && !state.isLoading}
+                    refreshKey={attachmentRefreshKey}
+                    onInsert={handleInsertAttachment}
+                    onChanged={handleAttachmentsChanged}
+                  />
                 )}
               </div>
             </div>

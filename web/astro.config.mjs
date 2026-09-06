@@ -10,6 +10,7 @@ import {astroExpressiveCode} from "@astrojs/starlight/expressive-code";
 import tailwindcss from '@tailwindcss/vite';
 import astroMermaid from 'astro-mermaid';
 import editorDev from './src/lib/editor/dev-plugin';
+import attachmentsIntegration from './src/lib/attachments/integration';
 import remarkSticker from './src/lib/markdown/remark-sticker';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -43,6 +44,7 @@ export default defineConfig({
         },
       },
     }),
+    attachmentsIntegration(),
     mdx(),
     sitemap({
       filter: (page) => !page.includes('/chunks/'),
@@ -64,6 +66,7 @@ export default defineConfig({
       workbox: {
         navigateFallback: undefined,
         globPatterns: ['**/*.{html,css,js,png,jpg,svg,woff2}'],
+        globIgnores: ['downloads/**'],
       },
     }),
     // Download avatar as PWA icon at build/dev time

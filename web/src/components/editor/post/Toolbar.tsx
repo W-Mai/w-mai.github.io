@@ -10,6 +10,8 @@ interface ToolbarProps {
   onImageRailToggle?: () => void;
   imageRailOpen?: boolean;
   onWechatExport?: () => void;
+  onAttachmentsOpen?: () => void;
+  attachmentsOpen?: boolean;
 }
 
 interface ToolbarItem {
@@ -44,7 +46,7 @@ const TOOLBAR_GROUPS: ToolbarItem[][] = [
   ],
 ];
 
-const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen, onImageRailToggle, imageRailOpen, onWechatExport }) => {
+const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen, onImageRailToggle, imageRailOpen, onWechatExport, onAttachmentsOpen, attachmentsOpen }) => {
   const handleClick = (action: FormatAction) => {
     if (!editorView) return;
     FORMAT_ACTIONS[action](editorView);
@@ -125,6 +127,25 @@ const Toolbar: FC<ToolbarProps> = ({ editorView, activeFormats, onStickerOpen, o
             fontWeight: imageRailOpen ? 700 : 500,
           }}
         >🖼</button>
+        <button
+          type="button"
+          onClick={onAttachmentsOpen}
+          disabled={!editorView}
+          className={!attachmentsOpen ? 'editor-btn' : ''}
+          title="当前文章附件"
+          aria-label="当前文章附件"
+          aria-haspopup="dialog"
+          aria-expanded={Boolean(attachmentsOpen)}
+          style={{
+            background: T.colorBg, border: 'none', borderRadius: T.radiusSm,
+            cursor: editorView ? 'pointer' : 'default', padding: `4px ${T.spacingMd}`,
+            fontSize: T.fontSizeSm, color: attachmentsOpen ? T.colorText : T.colorTextSecondary,
+            transition: `all ${T.transitionFast}`, lineHeight: 1.4,
+            minWidth: '28px', textAlign: 'center', opacity: editorView ? 1 : 0.4,
+            boxShadow: attachmentsOpen ? T.shadowInset : T.shadowBtn,
+            fontWeight: attachmentsOpen ? 700 : 500,
+          }}
+        >📎</button>
         <button
           onClick={onWechatExport}
           disabled={!editorView}
