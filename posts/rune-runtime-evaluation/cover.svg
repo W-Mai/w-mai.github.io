@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720" viewBox="0 0 1440 720" role="img" aria-labelledby="title desc">
+  <title id="title">Rune 0.14.2 运行时采用判断</title>
+  <desc id="desc">Rune 可以承接桌面与 WebAssembly 中的受控脚本逻辑。密集计算应保留在 Rust；ESP32-C3 当前只验证到兼容固件链接，暂不作为默认事件运行时。</desc>
+  <defs>
+    <linearGradient id="canvas" x1="80" y1="30" x2="1360" y2="690" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e8edf4"/>
+      <stop offset="0.52" stop-color="#e0e5ec"/>
+      <stop offset="1" stop-color="#d8dee7"/>
+    </linearGradient>
+    <linearGradient id="raised" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f3f7fc"/>
+      <stop offset="1" stop-color="#d6dce5"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#7c83ee"/>
+      <stop offset="1" stop-color="#5961c7"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#6bc6a5"/>
+      <stop offset="1" stop-color="#3e9f80"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f4c56f"/>
+      <stop offset="1" stop-color="#d7953f"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="10" dy="10" stdDeviation="13" flood-color="#a3b1c6" flood-opacity="0.5"/>
+      <feDropShadow dx="-8" dy="-8" stdDeviation="11" flood-color="#ffffff" flood-opacity="0.72"/>
+    </filter>
+    <filter id="small-shadow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="4" dy="4" stdDeviation="5" flood-color="#a3b1c6" flood-opacity="0.48"/>
+      <feDropShadow dx="-3" dy="-3" stdDeviation="4" flood-color="#ffffff" flood-opacity="0.76"/>
+    </filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+      .mono { font-family: "SFMono-Regular", "Cascadia Code", "Roboto Mono", monospace; }
+      .ink { fill: #1e293b; }
+      .secondary { fill: #536179; }
+      .muted { fill: #718096; }
+      .label { font-size: 21px; font-weight: 650; letter-spacing: 0.08em; }
+      .metric { font-size: 38px; font-weight: 760; letter-spacing: -0.025em; }
+      .caption { font-size: 19px; font-weight: 520; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="720" fill="url(#canvas)"/>
+  <circle cx="1290" cy="50" r="210" fill="#a78bfa" opacity="0.08" filter="url(#glow)"/>
+  <circle cx="110" cy="680" r="170" fill="#6366f1" opacity="0.06" filter="url(#glow)"/>
+
+  <g class="sans">
+    <g transform="translate(72 54)">
+      <rect width="242" height="52" rx="26" fill="#d3d9e2" stroke="#f6f8fb" stroke-width="2"/>
+      <g transform="translate(18 12)" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 14h8m8 0h8M12 6l8 8-8 8"/>
+        <circle cx="4" cy="14" r="3" fill="#6366f1" stroke="none"/>
+        <circle cx="30" cy="14" r="3" fill="#6366f1" stroke="none"/>
+      </g>
+      <text x="63" y="34" class="mono secondary" font-size="18" font-weight="700" letter-spacing="0.08em">RUNE 0.14.2</text>
+    </g>
+
+    <g transform="translate(954 54)">
+      <g>
+        <rect width="126" height="52" rx="26" fill="#d9e5df" stroke="#f6faf8" stroke-width="2"/>
+        <circle cx="25" cy="26" r="7" fill="#3e9f80"/>
+        <path d="m21 26 3 3 6-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="43" y="33" class="secondary" font-size="18" font-weight="700">桌面</text>
+      </g>
+      <g transform="translate(138)">
+        <rect width="166" height="52" rx="26" fill="#d9e5df" stroke="#f6faf8" stroke-width="2"/>
+        <circle cx="25" cy="26" r="7" fill="#3e9f80"/>
+        <path d="m21 26 3 3 6-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="43" y="33" class="secondary" font-size="18" font-weight="700">WebAssembly</text>
+      </g>
+      <g transform="translate(316)">
+        <rect width="98" height="52" rx="26" fill="#ece1cf" stroke="#fff8ec" stroke-width="2"/>
+        <circle cx="25" cy="26" r="7" fill="#d7953f"/>
+        <path d="M25 21v7m0 4v.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+        <text x="43" y="33" class="secondary" font-size="18" font-weight="700">C3</text>
+      </g>
+    </g>
+
+    <text x="74" y="178" class="ink" font-size="54" font-weight="780" letter-spacing="-0.035em">
+      <tspan x="74" dy="0">Rune 可以承接桌面与 WebAssembly</tspan>
+      <tspan x="74" dy="70">中的受控脚本逻辑</tspan>
+    </text>
+    <text x="76" y="306" class="secondary" font-size="25" font-weight="560">
+      密集计算留在 Rust · ESP32-C3 暂不作为默认事件运行时
+    </text>
+
+    <g transform="translate(74 342)">
+      <rect width="1292" height="68" rx="22" fill="#d4dae3" stroke="#eef2f7" stroke-width="2"/>
+      <g transform="translate(24 17)">
+        <rect width="68" height="34" rx="12" fill="url(#accent)"/>
+        <text x="34" y="23" text-anchor="middle" fill="#fff" class="mono" font-size="15" font-weight="750">UNIT</text>
+      </g>
+      <text x="116" y="43" class="secondary" font-size="21" font-weight="590">受版本、位宽、调试信息与宿主 API 约束，当前不能作为稳定的跨平台程序格式</text>
+      <g transform="translate(1218 18)" fill="none" stroke="#7b879a" stroke-width="3" stroke-linecap="round">
+        <path d="M0 16h25"/>
+        <path d="m18 9 7 7-7 7"/>
+      </g>
+    </g>
+
+    <g transform="translate(74 444)" filter="url(#soft-shadow)">
+      <rect width="400" height="188" rx="30" fill="url(#raised)"/>
+      <g transform="translate(26 24)">
+        <circle cx="13" cy="13" r="13" fill="url(#accent)"/>
+        <path d="M7 17h3l4-10 4 13 4-8h4" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="42" y="20" class="secondary label">执行成本</text>
+      </g>
+      <text x="28" y="116" class="ink metric">27.8–222.1×</text>
+      <text x="29" y="153" class="muted caption">3 个算法样例，相对原生 Rust</text>
+    </g>
+
+    <g transform="translate(520 444)" filter="url(#soft-shadow)">
+      <rect width="400" height="188" rx="30" fill="url(#raised)"/>
+      <g transform="translate(26 24)">
+        <circle cx="13" cy="13" r="13" fill="url(#mint)"/>
+        <path d="M8 13h10m-5-5v10" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+        <text x="42" y="20" class="secondary label">热路径分配</text>
+      </g>
+      <text x="28" y="116" class="ink metric">100 次 · 0 次</text>
+      <text x="29" y="153" class="muted caption">仅限预热后的标量调用</text>
+    </g>
+
+    <g transform="translate(966 444)" filter="url(#soft-shadow)">
+      <rect width="400" height="188" rx="30" fill="url(#raised)"/>
+      <g transform="translate(26 24)">
+        <circle cx="13" cy="13" r="13" fill="url(#amber)"/>
+        <path d="M8 9h10v8H8zM11 6v3m4-3v3m-4 8v3m4-3v3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="42" y="20" class="secondary label">ESP32-C3</text>
+      </g>
+      <text x="28" y="116" class="ink metric">+393.42 KiB</text>
+      <text x="29" y="153" class="muted caption">兼容固件镜像增量，仅验证到链接</text>
+    </g>
+
+    <g transform="translate(74 672)">
+      <circle cx="6" cy="-2" r="5" fill="#6366f1" opacity="0.72"/>
+      <text x="22" y="5" class="muted mono" font-size="16" font-weight="560" letter-spacing="0.025em">3 ALGORITHMS · APPLE M1 PRO · 2026-09-05</text>
+      <text x="1292" y="5" text-anchor="end" class="muted mono" font-size="16" font-weight="560">RUNTIME EVALUATION</text>
+    </g>
+  </g>
+</svg>
